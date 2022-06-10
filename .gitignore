@@ -1,0 +1,7 @@
+# created by virtualenv automatically
+*.csv
+*.jpg
+*.zip
+*.pbix
+*.xlsx
+/dags/not_share
