@@ -11,7 +11,7 @@ from commons.clear_file import clear_file
 
 
 # Функция для перемещения файла с сервера MySQL на сервер Airflow.
-# Необходимо передать название файла.
+# Необходимо передать абсолютный путь на обоих серверах, название файла, наименование сервера, откуда перемещаем файл.
 def transfer_file(from_path, to_path, file, db):
     from time import sleep
 
@@ -41,7 +41,9 @@ def transfer_file_to_dbs(from_path, to_path, file):
 
     sleep(5)
 
-
+# Функция для удаления файла с сервера.
+# Сервер MySQL не позволяет записывать файл из SQL запроса, если такой файл уже существует.
+# Необходимо передать абсолютный путь на сервере, название файла, наименование сервера, откуда удаляем файл.
 def del_file(from_path, file, db):
     host, user, password = connect_db(db)
     client = paramiko.SSHClient()
