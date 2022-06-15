@@ -6,6 +6,7 @@ from airflow import DAG
 from airflow.providers.mysql.operators.mysql import MySqlOperator
 from airflow.operators.python_operator import PythonOperator
 from scp import SCPClient
+from smb.SMBConnection import SMBConnection
 from commons.connect_db import connect_db
 from commons.clear_file import clear_file
 
@@ -32,19 +33,28 @@ def transfer_file(from_path, to_path, file, db):
     sleep(5)
 
 
-def transfer_file_to_dbs(from_path, to_path, file):
+def transfer_file_to_dbs(from_path, to_path, file, db):
     from time import sleep
 
+    host, user, password = connect_db(db)
+    conn = SMBConnection(username=user, password=password, my_name="Alexander Brezhnev", remote_name="samba", use_ntlm_v2=True)
+
     sleep(5)
 
-    shutil.copyfile(f'{from_path}{file}', f'{to_path}{file}')
+    if conn.connect(host, 445):
+        with open(f'{from_path}{file}', 'rb') as my_file:
+            conn.storeFile('dbs', f'{to_path}{file}', my_file)
+    conn.close()
 
     sleep(5)
+
 
 # Функция для удаления файла с сервера.
 # Сервер MySQL не позволяет записывать файл из SQL запроса, если такой файл уже существует.
 # Необходимо передать абсолютный путь на сервере, название файла, наименование сервера, откуда удаляем файл.
 def del_file(from_path, file, db):
+    from time import sleep
+
     host, user, password = connect_db(db)
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -52,6 +62,8 @@ def del_file(from_path, file, db):
 
     # Откуда.
     stdin, stdout, stderr = client.exec_command(f'rm -f {from_path}{file}')
+
+    sleep(5)
 
 
 default_args = {
@@ -70,7 +82,7 @@ dag = DAG(
 
 path_to_file_airflow = '/root/airflow/dags/10_report/Files/'
 path_to_file_mysql = '/home/glotov/84.201.164.249/10_report/'
-path_to_file_dbs = '//10.88.22.128/dbs/10_report/'
+path_to_file_dbs = '/10_report/'
 
 all_users_del = PythonOperator(task_id='all_users_del', python_callable=del_file, 
 op_kwargs={'from_path': path_to_file_mysql, 'file': 'All_users.csv', 'db': 'Server_MySQL'}, dag=dag)
@@ -100,9 +112,9 @@ op_kwargs={'my_file': f'{path_to_file_airflow}All_users.csv'}, dag=dag)
 super_clear = PythonOperator(task_id='super_clear', python_callable=clear_file, 
 op_kwargs={'my_file': f'{path_to_file_airflow}Super.csv'}, dag=dag)
 
-all_users_transfer_to_dbs = PythonOperator(task_id='all_users_transfer_to_dbs', python_callable=transfer_file, 
+all_users_transfer_to_dbs = PythonOperator(task_id='all_users_transfer_to_dbs', python_callable=transfer_file_to_dbs, 
 op_kwargs={'from_path': path_to_file_airflow, 'to_path': path_to_file_dbs, 'file': 'All_users.csv', 'db': 'DBS'}, dag=dag)
-super_transfer_to_dbs = PythonOperator(task_id='super_transfer_to_dbs', python_callable=transfer_file, 
+super_transfer_to_dbs = PythonOperator(task_id='super_transfer_to_dbs', python_callable=transfer_file_to_dbs, 
 op_kwargs={'from_path': path_to_file_airflow, 'to_path': path_to_file_dbs, 'file': 'Super.csv', 'db': 'DBS'}, dag=dag)
 
 all_users_del >> all_users_sql >> all_users_transfer >> all_users_clear >> all_users_transfer_to_dbs
