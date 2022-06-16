@@ -94,7 +94,7 @@ super_del = PythonOperator(task_id='super_del', python_callable=del_file,
 op_kwargs={'from_path': path_to_file_mysql, 'file': 'Super.csv', 'db': 'Server_MySQL'}, dag=dag)
 total_calls_del = PythonOperator(task_id='total_calls_del', python_callable=del_file, 
 op_kwargs={'from_path': path_to_file_mysql, 'file': 'Total_calls.csv', 'db': 'Server_MySQL'}, dag=dag)
-total_calls_31d_sql_del = PythonOperator(task_id='total_calls_31d_sql_del', python_callable=del_file, 
+total_calls_31d_sql_del = PythonOperator(task_id='total_calls_31d_del', python_callable=del_file, 
 op_kwargs={'from_path': path_to_file_mysql, 'file': 'Total_calls_31d.csv', 'db': 'Server_MySQL'}, dag=dag)
 
 # Блок выполнения SQL запросов.
@@ -110,7 +110,7 @@ super_transfer = PythonOperator(task_id='super_transfer', python_callable=transf
 op_kwargs={'from_path': path_to_file_mysql, 'to_path': path_to_file_airflow, 'file': 'Super.csv', 'db': 'Server_MySQL'}, dag=dag)
 total_calls_transfer = PythonOperator(task_id='total_calls_transfer', python_callable=transfer_file, 
 op_kwargs={'from_path': path_to_file_mysql, 'to_path': path_to_file_airflow, 'file': 'Total_calls.csv', 'db': 'Server_MySQL'}, dag=dag)
-total_calls_31d_sql_transfer = PythonOperator(task_id='total_calls_31d_sql_transfer', python_callable=transfer_file, 
+total_calls_31d_sql_transfer = PythonOperator(task_id='total_calls_31d_transfer', python_callable=transfer_file, 
 op_kwargs={'from_path': path_to_file_mysql, 'to_path': path_to_file_airflow, 'file': 'Total_calls_31d.csv', 'db': 'Server_MySQL'}, dag=dag)
 
 # Блок преобразования пользователей и супервайзеров.
@@ -130,7 +130,7 @@ super_clear_transfer_to_dbs = PythonOperator(task_id='super_clear_transfer_to_db
 op_kwargs={'from_path': path_to_file_airflow, 'to_path': path_to_file_dbs, 'file': 'Super_clear.csv', 'db': 'DBS'}, dag=dag)
 total_calls_transfer_to_dbs = PythonOperator(task_id='total_calls_transfer_to_dbs', python_callable=transfer_file_to_dbs, 
 op_kwargs={'from_path': path_to_file_airflow, 'to_path': path_to_file_dbs, 'file': 'Total_calls.csv', 'db': 'DBS'}, dag=dag)
-total_calls_31d_sql_transfer_to_dbs = PythonOperator(task_id='total_calls_31d_sql_transfer_to_dbs', python_callable=transfer_file_to_dbs, 
+total_calls_31d_sql_transfer_to_dbs = PythonOperator(task_id='total_calls_31d_transfer_to_dbs', python_callable=transfer_file_to_dbs, 
 op_kwargs={'from_path': path_to_file_airflow, 'to_path': path_to_file_dbs, 'file': 'Total_calls_31d.csv', 'db': 'DBS'}, dag=dag)
 
 # Блок очередности выполнения задач.
