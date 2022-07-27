@@ -4,6 +4,7 @@
 def clear_file(my_file):
     import time
     import re
+    from commons.my_clear import my_c
 
     start_clear = time.time()
     step = 0
@@ -27,13 +28,13 @@ def clear_file(my_file):
                     to_file.write('id;first_name;last_name;group;department_c;status\n')
                     continue
                 # ИД.
-                my_id = now[0]
+                my_id = my_c(now[0])
                 # Имя.
                 first = now[1]
                 # Фамилия.
-                last = now[2]
+                last = my_c(now[2])
                 # Отдел.
-                dep = now[3].strip().strip('""')
+                dep = my_c(now[3])
                 # Группа.
                 group = []
                 # print(my_id, first, last, dep)
@@ -43,7 +44,7 @@ def clear_file(my_file):
                     # Статус - уволен.
                     status = 'dismissed'
                     # Делим строку с именем по пробелу и "_".
-                    first = re.split(r'[ _]', first)
+                    first = re.split(r'[ _-]', first)
                     # Пробегаем по каждому слову в имени.
                     for word in first:
                         # И по каждой букве в слове.
@@ -61,7 +62,7 @@ def clear_file(my_file):
                                 name = word[k:]
                                 break
                     # Преобразую группу из списка в строку.
-                    group = ''.join(group)
+                    group = my_c(''.join(group))
                     # Если в строке с именем не было группы, то такой сотрудник записывается соответствующим образом.
                     if group == '':
                         group = 'unknown_group'
@@ -70,15 +71,15 @@ def clear_file(my_file):
                     # Статус - работает.
                     status = 'working'
                     # Делим строку с именем по пробелу и "_".
-                    first = re.split(r'[ _]', first)
+                    first = re.split(r'[ _-]', first)
                     # Если длина строки == 1, в строке содержится только имя. Группа отсутствует.
                     if len(first) == 1:
-                        name = first[0].strip()
+                        name = my_c(first[0])
                         group = 'unknown_group'
                     # Иначе, извлекаем имя и группу.
                     else:
-                        name = first[1]
-                        group = first[0]
+                        name = my_c(first[-1])
+                        group = my_c(first[-2])
 
                 # Проверка значений на пустые данные.
                 if my_id is None or my_id == '' or my_id == ' ':

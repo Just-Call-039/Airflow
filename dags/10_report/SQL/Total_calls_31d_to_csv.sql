@@ -1,5 +1,5 @@
 select *
-from (select 'user', 'queue', 'ref', 'calls_date', 'super', 'city'
+from (select 'user', 'queue', 'ref', 'result_call_c', 'calls_date', 'super'
       union all
       select user,
              queue,
