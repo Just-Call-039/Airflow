@@ -9,64 +9,9 @@ from scp import SCPClient
 from smb.SMBConnection import SMBConnection
 from commons.connect_db import connect_db
 from commons.clear_file import clear_file
-
-
-# Функция для перемещения файла с сервера на сервер.
-# Необходимо передать абсолютный путь на обоих серверах, название файла, наименование сервера, откуда перемещаем файл.
-def transfer_file(from_path, to_path, file, db):
-    from time import sleep
-
-    host, user, password = connect_db(db)
-    client = paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(hostname=host, username=user, password=password)
-
-    sleep(10)
-
-    scp = SCPClient(client.get_transport())
-
-    # Откуда, куда.
-    scp.get(f'{from_path}{file}', f'{to_path}{file}')
-    scp.close()
-    client.close()
-
-    sleep(5)
-
-
-# Функция для перемещения файла с сервера на сервер DBS.
-# Необходимо передать абсолютный путь на обоих серверах, название файла, наименование сервера, куда перемещаем файл.
-def transfer_file_to_dbs(from_path, to_path, file, db):
-    from time import sleep
-
-    host, user, password = connect_db(db)
-    conn = SMBConnection(username=user, password=password, my_name="Alexander Brezhnev", remote_name="samba", use_ntlm_v2=True)
-
-    sleep(5)
-
-    if conn.connect(host, 445):
-        with open(f'{from_path}{file}', 'rb') as my_file:
-            conn.storeFile('dbs', f'{to_path}{file}', my_file)
-    conn.close()
-
-    sleep(5)
-
-
-# Функция для удаления файла с сервера.
-# Сервер MySQL не позволяет записывать файл из SQL запроса, если такой файл уже существует.
-# Необходимо передать абсолютный путь на сервере, название файла, наименование сервера, откуда удаляем файл.
-def del_file(from_path, file, db):
-    from time import sleep
-
-    host, user, password = connect_db(db)
-    client = paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(hostname=host, username=user, password=password)
-
-    # Откуда.
-    stdin, stdout, stderr = client.exec_command(f'rm -f {from_path}{file}')
-    client.close()
-
-    sleep(5)
+from commons.transfer_file import transfer_file
+from commons.transfer_file_to_dbs import transfer_file_to_dbs
+from commons.del_file import del_file
 
 
 default_args = {

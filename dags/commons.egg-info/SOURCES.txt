@@ -4,7 +4,10 @@ commons/alive.py
 commons/clear_file.py
 commons/connect_db.py
 commons/convert_time.py
+commons/del_file.py
 commons/my_clear.py
+commons/transfer_file.py
+commons/transfer_file_to_dbs.py
 commons.egg-info/PKG-INFO
 commons.egg-info/SOURCES.txt
 commons.egg-info/dependency_links.txt
