@@ -1,3 +1,4 @@
+from datetime import timedelta
 import pendulum
 
 from airflow import DAG
@@ -11,7 +12,12 @@ from commons.del_file import del_file
 
 default_args = {
     'owner': 'Alexander Brezhnev',
+    'email': 'brezhnev.aleksandr@gmail.com',
+    'email_on_failure': False,
+    'email_on_retry': False,
     'mysql_conn_id': 'Maria_db',
+    'retries': 3,
+    'retry_delay': timedelta(minutes=5),
     'start_date': pendulum.datetime(2022, 8, 7, tz='Europe/Kaliningrad'),
     'catchup': False
 }
@@ -25,5 +31,5 @@ dag = DAG(
 
 path_to_file_airflow = '/root/airflow/dags/10_report/Files/'
 path_to_file_mysql = '/home/glotov/84.201.164.249/10_report/'
-path_to_file_dbs = '/10_report/Files/'
-path_to_file_dbs_4_rep = '/4_report/Files/'
+path_to_file_dbs = '/4_report/Files/'
+

@@ -1,3 +1,4 @@
+from datetime import timedelta
 import pendulum
 
 from airflow import DAG
@@ -11,14 +12,19 @@ from commons.del_file import del_file
 
 default_args = {
     'owner': 'Alexander Brezhnev',
+    'email': 'brezhnev.aleksandr@gmail.com',
+    'email_on_failure': False,
+    'email_on_retry': False,
     'mysql_conn_id': 'Maria_db',
+    'retries': 3,
+    'retry_delay': timedelta(minutes=5),
     'start_date': pendulum.datetime(2022, 6, 16, tz='Europe/Kaliningrad'),
     'catchup': False
 }
 
 dag = DAG(
     dag_id='10_report',
-    schedule_interval='50 3 * * *',
+    schedule_interval='50 5 * * *',
     default_args=default_args
 )
 
