@@ -1,13 +1,8 @@
 import pendulum
-import paramiko
-import shutil
 
 from airflow import DAG
 from airflow.providers.mysql.operators.mysql import MySqlOperator
 from airflow.operators.python_operator import PythonOperator
-from scp import SCPClient
-from smb.SMBConnection import SMBConnection
-from commons.connect_db import connect_db
 from commons.clear_file import clear_file
 from commons.transfer_file import transfer_file
 from commons.transfer_file_to_dbs import transfer_file_to_dbs
@@ -23,6 +18,12 @@ default_args = {
 
 dag = DAG(
     dag_id='4_report',
-    schedule_interval='0 9,11,13,15 * * *',
+    schedule_interval='0 9-15/2 * * *',
     default_args=default_args
 )
+
+
+path_to_file_airflow = '/root/airflow/dags/10_report/Files/'
+path_to_file_mysql = '/home/glotov/84.201.164.249/10_report/'
+path_to_file_dbs = '/10_report/Files/'
+path_to_file_dbs_4_rep = '/4_report/Files/'

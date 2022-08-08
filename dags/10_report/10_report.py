@@ -1,13 +1,8 @@
 import pendulum
-import paramiko
-import shutil
 
 from airflow import DAG
 from airflow.providers.mysql.operators.mysql import MySqlOperator
 from airflow.operators.python_operator import PythonOperator
-from scp import SCPClient
-from smb.SMBConnection import SMBConnection
-from commons.connect_db import connect_db
 from commons.clear_file import clear_file
 from commons.transfer_file import transfer_file
 from commons.transfer_file_to_dbs import transfer_file_to_dbs
