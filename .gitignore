@@ -1,9 +1,14 @@
-# created by virtualenv automatically
+# My ignore list.
 *.csv
 *.jpg
 *.zip
 *.pbix
 *.xlsx
+*.xls
+*.db
+*.html
+*.txt
+*.cfg
 *.db
 /dags/not_share
 airflow-webserver.pid
