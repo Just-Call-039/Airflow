@@ -4,6 +4,6 @@
 *.zip
 *.pbix
 *.xlsx
+*.db
 /dags/not_share
 airflow-webserver.pid
-*.db

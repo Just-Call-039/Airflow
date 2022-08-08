@@ -31,6 +31,7 @@ dag = DAG(
 path_to_file_airflow = '/root/airflow/dags/10_report/Files/'
 path_to_file_mysql = '/home/glotov/84.201.164.249/10_report/'
 path_to_file_dbs = '/10_report/Files/'
+path_to_file_dbs_4_rep = '/4_report/Files/'
 
 # Блок предварительного удаления файлов с сервера.
 all_users_del = PythonOperator(
@@ -158,8 +159,22 @@ total_calls_31d_sql_transfer_to_dbs = PythonOperator(
     dag=dag
     )
 
+# Два файла нужны для отчета №4.
+all_users_clear_transfer_to_dbs_4_rep = PythonOperator(
+    task_id='all_users_clear_transfer_to_dbs_4_rep', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_to_file_airflow, 'to_path': path_to_file_dbs_4_rep, 'file': 'All_users_clear.csv', 'db': 'DBS'}, 
+    dag=dag
+    )
+super_clear_transfer_to_dbs_4_rep = PythonOperator(
+    task_id='super_clear_transfer_to_dbs_4_rep', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_to_file_airflow, 'to_path': path_to_file_dbs_4_rep, 'file': 'Super_clear.csv', 'db': 'DBS'}, 
+    dag=dag
+    )
+
 # Блок очередности выполнения задач.
-all_users_del >> all_users_sql >> all_users_transfer >> all_users_clear >> [all_users_transfer_to_dbs, all_users_clear_transfer_to_dbs]
-super_del >> super_sql >> super_transfer >> super_clear >> [super_transfer_to_dbs, super_clear_transfer_to_dbs]
+all_users_del >> all_users_sql >> all_users_transfer >> all_users_clear >> [all_users_transfer_to_dbs, all_users_clear_transfer_to_dbs, all_users_clear_transfer_to_dbs_4_rep]
+super_del >> super_sql >> super_transfer >> super_clear >> [super_transfer_to_dbs, super_clear_transfer_to_dbs, super_clear_transfer_to_dbs_4_rep]
 total_calls_del >> total_calls_sql >> total_calls_transfer >> total_calls_transfer_to_dbs
 total_calls_31d_sql_del >> total_calls_31d_sql >> total_calls_31d_sql_transfer >> total_calls_31d_sql_transfer_to_dbs
