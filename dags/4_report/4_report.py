@@ -3,8 +3,8 @@ import pendulum
 
 from airflow import DAG
 from airflow.providers.mysql.operators.mysql import MySqlOperator
+from airflow.providers.telegram.operators.telegram import TelegramOperator
 from airflow.operators.python_operator import PythonOperator
-from commons.clear_file import clear_file
 from commons.transfer_file import transfer_file
 from commons.transfer_file_to_dbs import transfer_file_to_dbs
 from commons.del_file import del_file
