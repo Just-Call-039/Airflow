@@ -3,7 +3,9 @@ import pendulum
 
 from airflow import DAG
 from airflow.providers.mysql.operators.mysql import MySqlOperator
+from airflow.providers.telegram.operators.telegram import TelegramOperator
 from airflow.operators.python_operator import PythonOperator
+
 from commons.clear_file import clear_file
 from commons.transfer_file import transfer_file
 from commons.transfer_file_to_dbs import transfer_file_to_dbs
@@ -20,13 +22,13 @@ default_args = {
     'retry_delay': timedelta(minutes=5),
     'start_date': pendulum.datetime(2022, 6, 16, tz='Europe/Kaliningrad'),
     'catchup': False
-}
+    }
 
 dag = DAG(
     dag_id='10_report',
     schedule_interval='50 5 * * *',
     default_args=default_args
-)
+    )
 
 
 path_to_file_airflow = '/root/airflow/dags/10_report/Files/'
@@ -174,8 +176,22 @@ super_clear_transfer_to_dbs_4_rep = PythonOperator(
     dag=dag
     )
 
+# Отправка уведомления об ошибке в Telegram.
+send_telegram_message = TelegramOperator(
+        task_id='send_telegram_message',
+        telegram_conn_id='Telegram',
+        chat_id='-1001412983860',
+        text='Произошла ошибка работы отчета №10.',
+        dag=dag,
+        # on_failure_callback=True,
+        # trigger_rule='all_success'
+        trigger_rule='one_failed'
+    )
+
 # Блок очередности выполнения задач.
 all_users_del >> all_users_sql >> all_users_transfer >> all_users_clear >> [all_users_transfer_to_dbs, all_users_clear_transfer_to_dbs, all_users_clear_transfer_to_dbs_4_rep]
 super_del >> super_sql >> super_transfer >> super_clear >> [super_transfer_to_dbs, super_clear_transfer_to_dbs, super_clear_transfer_to_dbs_4_rep]
 total_calls_del >> total_calls_sql >> total_calls_transfer >> total_calls_transfer_to_dbs
 total_calls_31d_sql_del >> total_calls_31d_sql >> total_calls_31d_sql_transfer >> total_calls_31d_sql_transfer_to_dbs
+[all_users_transfer_to_dbs, all_users_clear_transfer_to_dbs, all_users_clear_transfer_to_dbs_4_rep, super_transfer_to_dbs, 
+super_clear_transfer_to_dbs, super_clear_transfer_to_dbs_4_rep, total_calls_transfer_to_dbs, total_calls_31d_sql_transfer_to_dbs] >> send_telegram_message

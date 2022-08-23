@@ -5,6 +5,7 @@ from airflow import DAG
 from airflow.providers.mysql.operators.mysql import MySqlOperator
 from airflow.providers.telegram.operators.telegram import TelegramOperator
 from airflow.operators.python_operator import PythonOperator
+
 from commons.transfer_file import transfer_file
 from commons.transfer_file_to_dbs import transfer_file_to_dbs
 from commons.del_file import del_file
@@ -20,13 +21,13 @@ default_args = {
     'retry_delay': timedelta(minutes=5),
     'start_date': pendulum.datetime(2022, 8, 7, tz='Europe/Kaliningrad'),
     'catchup': False
-}
+    }
 
 dag = DAG(
     dag_id='4_report',
     schedule_interval='0 9-15/2 * * *',
     default_args=default_args
-)
+    )
 
 
 path_to_file_airflow = '/root/airflow/dags/4_report/Files/'
@@ -110,7 +111,20 @@ users_total_transfer_to_dbs = PythonOperator(
     dag=dag
     )
 
+# Отправка уведомления об ошибке в Telegram.
+send_telegram_message = TelegramOperator(
+        task_id='send_telegram_message',
+        telegram_conn_id='Telegram',
+        chat_id='-1001412983860',
+        text='Произошла ошибка работы отчета №4.',
+        dag=dag,
+        # on_failure_callback=True,
+        # trigger_rule='all_success'
+        trigger_rule='one_failed'
+    )
+
 # Блок очередности выполнения задач.
 main_del >> main_sql >> main_transfer >> main_transfer_to_dbs
 working_time_del >> working_time_sql >> working_time_transfer >> working_time_transfer_to_dbs
 users_total_del >> users_total_sql >> users_total_transfer >> users_total_transfer_to_dbs
+[main_transfer_to_dbs, working_time_transfer_to_dbs, users_total_transfer_to_dbs] >> send_telegram_message
