@@ -26,7 +26,7 @@ default_args = {
 
 dag = DAG(
     dag_id='10_report',
-    schedule_interval='50 5 * * *',
+    schedule_interval='50 5-13/4 * * *',
     default_args=default_args
     )
 
