@@ -61,6 +61,12 @@ total_calls_31d_sql_del = PythonOperator(
     op_kwargs={'from_path': path_to_file_mysql, 'file': 'Total_calls_31d.csv', 'db': 'Server_MySQL'}, 
     dag=dag
     )
+transfer_del = PythonOperator(
+    task_id='transfer_del', 
+    python_callable=del_file, 
+    op_kwargs={'from_path': path_to_file_mysql, 'file': 'transfer.csv', 'db': 'Server_MySQL'}, 
+    dag=dag
+    )
 
 # Блок выполнения SQL запросов.
 all_users_sql = MySqlOperator(
@@ -81,6 +87,11 @@ total_calls_sql = MySqlOperator(
 total_calls_31d_sql = MySqlOperator(
     task_id='total_calls_31d_sql', 
     sql='/SQL/Total_calls_31d_to_csv.sql', 
+    dag=dag
+    )
+transfer_sql = MySqlOperator(
+    task_id='transfer_sql', 
+    sql='/SQL/Transfer_to_csv.sql', 
     dag=dag
     )
 
@@ -107,6 +118,12 @@ total_calls_31d_sql_transfer = PythonOperator(
     task_id='total_calls_31d_transfer', 
     python_callable=transfer_file, 
     op_kwargs={'from_path': path_to_file_mysql, 'to_path': path_to_file_airflow, 'file': 'Total_calls_31d.csv', 'db': 'Server_MySQL'}, 
+    dag=dag
+    )
+transfer_transfer = PythonOperator(
+    task_id='transfer_transfer', 
+    python_callable=transfer_file, 
+    op_kwargs={'from_path': path_to_file_mysql, 'to_path': path_to_file_airflow, 'file': 'transfer.csv', 'db': 'Server_MySQL'}, 
     dag=dag
     )
 
@@ -161,6 +178,12 @@ total_calls_31d_sql_transfer_to_dbs = PythonOperator(
     op_kwargs={'from_path': path_to_file_airflow, 'to_path': path_to_file_dbs, 'file': 'Total_calls_31d.csv', 'db': 'DBS'}, 
     dag=dag
     )
+transfer_transfer_to_dbs = PythonOperator(
+    task_id='transfer_transfer_to_dbs', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_to_file_airflow, 'to_path': path_to_file_dbs, 'file': 'transfer.csv', 'db': 'DBS'}, 
+    dag=dag
+    )
 
 # Два файла нужны для отчета №4.
 all_users_clear_transfer_to_dbs_4_rep = PythonOperator(
@@ -193,5 +216,7 @@ all_users_del >> all_users_sql >> all_users_transfer >> all_users_clear >> [all_
 super_del >> super_sql >> super_transfer >> super_clear >> [super_transfer_to_dbs, super_clear_transfer_to_dbs, super_clear_transfer_to_dbs_4_rep]
 total_calls_del >> total_calls_sql >> total_calls_transfer >> total_calls_transfer_to_dbs
 total_calls_31d_sql_del >> total_calls_31d_sql >> total_calls_31d_sql_transfer >> total_calls_31d_sql_transfer_to_dbs
+transfer_del >> transfer_sql >> transfer_transfer >> transfer_transfer_to_dbs
 [all_users_transfer_to_dbs, all_users_clear_transfer_to_dbs, all_users_clear_transfer_to_dbs_4_rep, super_transfer_to_dbs, 
-super_clear_transfer_to_dbs, super_clear_transfer_to_dbs_4_rep, total_calls_transfer_to_dbs, total_calls_31d_sql_transfer_to_dbs] >> send_telegram_message
+super_clear_transfer_to_dbs, super_clear_transfer_to_dbs_4_rep, total_calls_transfer_to_dbs, total_calls_31d_sql_transfer_to_dbs, 
+transfer_transfer_to_dbs] >> send_telegram_message
