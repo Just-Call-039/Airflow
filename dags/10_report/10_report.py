@@ -17,7 +17,7 @@ default_args = {
     'email': 'brezhnev.aleksandr@gmail.com',
     'email_on_failure': False,
     'email_on_retry': False,
-    'mysql_conn_id': 'Maria_db',
+    'mysql_conn_id': 'cloud_my_sql_117',
     'retries': 3,
     'retry_delay': timedelta(minutes=5),
     'start_date': pendulum.datetime(2022, 6, 16, tz='Europe/Kaliningrad'),
