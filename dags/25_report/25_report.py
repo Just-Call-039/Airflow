@@ -31,5 +31,5 @@ dag = DAG(
 
 
 path_to_file_airflow = '/root/airflow/dags/25_report/Files/'
-path_to_file_mysql = '/home/glotov/84.201.164.249/25_report/'
+path_to_file_mysql = '/home/glotov/192.168.1.117/25_report/'
 path_to_file_dbs = '/25_report/Files/'

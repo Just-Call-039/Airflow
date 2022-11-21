@@ -31,7 +31,7 @@ dag = DAG(
 
 
 path_to_file_airflow = '/root/airflow/dags/4_report/Files/'
-path_to_file_mysql = '/home/glotov/84.201.164.249/4_report/'
+path_to_file_mysql = '/home/glotov/192.168.1.117/4_report/'
 path_to_file_dbs = '/4_report/Files/'
 
 # Блок предварительного удаления файлов с сервера.
