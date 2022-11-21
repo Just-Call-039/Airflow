@@ -18,10 +18,10 @@ default_args = {
     'email': 'brezhnev.aleksandr@gmail.com',
     'email_on_failure': False,
     'email_on_retry': False,
-    'mysql_conn_id': 'Maria_db',
+    'mysql_conn_id': 'cloud_my_sql_117',
     'retries': 3,
     'retry_delay': timedelta(minutes=5),
-    'start_date': pendulum.datetime(2022, 8, 7, tz='Europe/Kaliningrad'),
+    'start_date': pendulum.datetime(2022, 11, 22, tz='Europe/Kaliningrad'),
     'catchup': False
     }
 
@@ -46,3 +46,29 @@ path_to_file_dbs = '/4_report/Files/'
 path_dbs_main_folder = '/4_report/Files/main_folder/'
 path_dbs_requests_folder = '/4_report/Files/requests_folder/'
 path_dbs_working_time_folder = '/4_report/Files/working_time_folder/'
+
+today = datetime.date.today()
+previous_date = today - dateutil.relativedelta.relativedelta(months=1)
+year = previous_date.year
+month = previous_date.month
+full_date = f'{year}_{month}'
+
+# Блок предварительного удаления файлов с сервера.
+main_del = PythonOperator(
+    task_id='main_del', 
+    python_callable=del_file, 
+    op_kwargs={'from_path': path_to_file_mysql, 'file': 'Main.csv', 'db': 'Server_MySQL'}, 
+    dag=dag
+    )
+working_time_del = PythonOperator(
+    task_id='working_time_del', 
+    python_callable=del_file, 
+    op_kwargs={'from_path': path_to_file_mysql, 'file': 'Working_time.csv', 'db': 'Server_MySQL'}, 
+    dag=dag
+    )
+users_total_del = PythonOperator(
+    task_id='users_total_del', 
+    python_callable=del_file, 
+    op_kwargs={'from_path': path_to_file_mysql, 'file': 'Users_total.csv', 'db': 'Server_MySQL'}, 
+    dag=dag
+    )
