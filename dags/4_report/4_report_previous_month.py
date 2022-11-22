@@ -4,13 +4,11 @@ import datetime
 import dateutil.relativedelta
 
 from airflow import DAG
-from airflow.providers.mysql.operators.mysql import MySqlOperator
 from airflow.providers.telegram.operators.telegram import TelegramOperator
 from airflow.operators.python_operator import PythonOperator
 
-from commons.transfer_file import transfer_file
 from commons.transfer_file_to_dbs import transfer_file_to_dbs
-from commons.del_file import del_file
+from commons.sql_query_to_csv import sql_query_to_csv
 
 
 default_args = {
@@ -27,25 +25,31 @@ default_args = {
 
 dag = DAG(
     dag_id='4_report_previous_month',
-    schedule_interval='0 9-15/2 * * *',
+    schedule_interval='30 7-14 * * *',
     default_args=default_args
     )
 
 
 path_to_file_airflow = '/root/airflow/dags/4_report/Files/'
-path_airflow_main_folder = '/root/airflow/dags/4_report/Files/main_folder/'
-path_airflow_requests_folder = '/root/airflow/dags/4_report/Files/requests_folder/'
-path_airflow_working_time_folder = '/root/airflow/dags/4_report/Files/working_time_folder/'
+path_airflow_main_folder = f'{path_to_file_airflow}main_folder/'
+path_airflow_requests_folder = f'{path_to_file_airflow}requests_folder/'
+path_airflow_working_time_folder = f'{path_to_file_airflow}working_time_folder/'
 
 path_to_file_mysql = '/home/glotov/192.168.1.117/4_report/'
-path_mysql_main_folder = '/home/glotov/192.168.1.117/4_report/main_folder/'
-path_mysql_requests_folder = '/home/glotov/192.168.1.117/4_report/requests_folder/'
-path_mysql_working_time_folder = '/home/glotov/192.168.1.117/4_report/working_time_folder/'
+path_mysql_main_folder = f'{path_to_file_mysql}main_folder/'
+path_mysql_requests_folder = f'{path_to_file_mysql}requests_folder/'
+path_mysql_working_time_folder = f'{path_to_file_mysql}working_time_folder/'
 
 path_to_file_dbs = '/4_report/Files/'
-path_dbs_main_folder = '/4_report/Files/main_folder/'
-path_dbs_requests_folder = '/4_report/Files/requests_folder/'
-path_dbs_working_time_folder = '/4_report/Files/working_time_folder/'
+path_dbs_main_folder = f'{path_to_file_dbs}main_folder/'
+path_dbs_requests_folder = f'{path_to_file_dbs}requests_folder/'
+path_dbs_working_time_folder = f'{path_to_file_dbs}working_time_folder/'
+
+cloud_name = 'cloud_117'
+sql_main = '/root/airflow/dags/4_report/SQL/main_current_month.sql'
+sql_requests = '/root/airflow/dags/4_report/SQL/requests_current_month.sql'
+sql_working_time = '/root/airflow/dags/4_report/SQL/working_time_current_month.sql'
+sql_users = '/root/airflow/dags/4_report/SQL/Users_total.sql'
 
 today = datetime.date.today()
 previous_date = today - dateutil.relativedelta.relativedelta(months=1)
@@ -53,28 +57,72 @@ year = previous_date.year
 month = previous_date.month
 file_name = f'{year}_{month}.csv'
 
-# Блок предварительного удаления файлов с сервера.
-main_folder_del = PythonOperator(
-    task_id='main_folder_del', 
-    python_callable=del_file, 
-    op_kwargs={'from_path': path_to_file_mysql, 'file': 'Main.csv', 'db': 'Server_MySQL'}, 
+# Блок выполнения SQL запросов.
+main_folder_sql = PythonOperator(
+    task_id='main_folder_sql', 
+    python_callable=sql_query_to_csv, 
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_main, 'path_csv_file': path_airflow_main_folder, 'name_csv_file': 'main_current_month.csv'}, 
     dag=dag
     )
-requests_folder_del = PythonOperator(
-    task_id='requests_folder_del', 
-    python_callable=del_file, 
-    op_kwargs={'from_path': path_to_file_mysql, 'file': 'Working_time.csv', 'db': 'Server_MySQL'}, 
+requests_folder_sql = PythonOperator(
+    task_id='requests_folder_sql', 
+    python_callable=sql_query_to_csv, 
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_requests, 'path_csv_file': path_airflow_requests_folder, 'name_csv_file': 'requests_current_month.csv'}, 
     dag=dag
     )
-working_time_folder_del = PythonOperator(
-    task_id='working_time_folder_del', 
-    python_callable=del_file, 
-    op_kwargs={'from_path': path_to_file_mysql, 'file': 'Users_total.csv', 'db': 'Server_MySQL'}, 
+working_time_folder_sql = PythonOperator(
+    task_id='working_time_folder_sql', 
+    python_callable=sql_query_to_csv, 
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_working_time, 'path_csv_file': path_airflow_working_time_folder, 'name_csv_file': 'working_time_current_month.csv'}, 
     dag=dag
     )
-users_total_del = PythonOperator(
-    task_id='users_total_del', 
-    python_callable=del_file, 
-    op_kwargs={'from_path': path_to_file_mysql, 'file': 'Users_total.csv', 'db': 'Server_MySQL'}, 
+users_total_sql = PythonOperator(
+    task_id='users_total_sql', 
+    python_callable=sql_query_to_csv, 
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_users, 'path_csv_file': path_to_file_airflow, 'name_csv_file': 'Users_total.csv'}, 
     dag=dag
     )
+
+# Блок отправки всех файлов в папку DBS.
+main_transfer_to_dbs = PythonOperator(
+    task_id='main_transfer_to_dbs', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_airflow_main_folder, 'to_path': path_dbs_main_folder, 'file': 'main_current_month.csv', 'db': 'DBS'}, 
+    dag=dag
+    )
+requests_transfer_to_dbs = PythonOperator(
+    task_id='requests_transfer_to_dbs', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_airflow_requests_folder, 'to_path': path_dbs_requests_folder, 'file': 'requests_current_month.csv', 'db': 'DBS'}, 
+    dag=dag
+    )
+working_transfer_to_dbs = PythonOperator(
+    task_id='working_transfer_to_dbs', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_airflow_working_time_folder, 'to_path': path_dbs_working_time_folder, 'file': 'working_time_current_month.csv', 'db': 'DBS'}, 
+    dag=dag
+    )
+users_total_transfer_to_dbs = PythonOperator(
+    task_id='users_total_transfer_to_dbs', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_to_file_airflow, 'to_path': path_to_file_dbs, 'file': 'Users_total.csv', 'db': 'DBS'}, 
+    dag=dag
+    )
+
+# Отправка уведомления об ошибке в Telegram.
+send_telegram_message = TelegramOperator(
+        task_id='send_telegram_message',
+        telegram_conn_id='Telegram',
+        chat_id='-1001412983860',
+        text='Произошла ошибка работы отчета №4 текущего месяца.',
+        dag=dag,
+        # on_failure_callback=True,
+        # trigger_rule='all_success'
+        trigger_rule='one_failed'
+    )
+
+# Блок очередности выполнения задач.
+main_folder_sql >> main_transfer_to_dbs >> send_telegram_message
+requests_folder_sql >> requests_transfer_to_dbs >> send_telegram_message
+working_time_folder_sql >> working_transfer_to_dbs >> send_telegram_message
+users_total_sql >> users_total_transfer_to_dbs >> send_telegram_message
