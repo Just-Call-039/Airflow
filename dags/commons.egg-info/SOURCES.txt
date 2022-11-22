@@ -6,6 +6,7 @@ commons/connect_db.py
 commons/convert_time.py
 commons/del_file.py
 commons/my_clear.py
+commons/sql_query_to_csv.py
 commons/transfer_file.py
 commons/transfer_file_to_dbs.py
 commons.egg-info/PKG-INFO

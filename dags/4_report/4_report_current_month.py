@@ -43,9 +43,9 @@ path_mysql_requests_folder = f'{path_to_file_mysql}requests_folder/'
 path_mysql_working_time_folder = f'{path_to_file_mysql}working_time_folder/'
 
 path_to_file_dbs = '/4_report/Files/'
-path_dbs_main_folder = '/4_report/Files/main_folder/'
-path_dbs_requests_folder = '/4_report/Files/requests_folder/'
-path_dbs_working_time_folder = '/4_report/Files/working_time_folder/'
+path_dbs_main_folder = f'{path_to_file_dbs}main_folder/'
+path_dbs_requests_folder = f'{path_to_file_dbs}requests_folder/'
+path_dbs_working_time_folder = f'{path_to_file_dbs}working_time_folder/'
 
 today = datetime.date.today()
 previous_date = today - dateutil.relativedelta.relativedelta(months=1)
@@ -53,28 +53,19 @@ year = previous_date.year
 month = previous_date.month
 file_name = f'{year}_{month}.csv'
 
-# Блок предварительного удаления файлов с сервера.
-main_folder_del = PythonOperator(
-    task_id='main_folder_del', 
-    python_callable=del_file, 
-    op_kwargs={'from_path': path_to_file_mysql, 'file': 'Main.csv', 'db': 'Server_MySQL'}, 
+# Блок выполнения SQL запросов.
+main_sql = MySqlOperator(
+    task_id='main_sql', 
+    sql='/SQL/Main_to_csv.sql', 
     dag=dag
     )
-requests_folder_del = PythonOperator(
-    task_id='requests_folder_del', 
-    python_callable=del_file, 
-    op_kwargs={'from_path': path_to_file_mysql, 'file': 'Working_time.csv', 'db': 'Server_MySQL'}, 
+working_time_sql = MySqlOperator(
+    task_id='working_time_sql', 
+    sql='/SQL/Working_time_to_csv.sql', 
     dag=dag
     )
-working_time_folder_del = PythonOperator(
-    task_id='working_time_folder_del', 
-    python_callable=del_file, 
-    op_kwargs={'from_path': path_to_file_mysql, 'file': 'Users_total.csv', 'db': 'Server_MySQL'}, 
-    dag=dag
-    )
-users_total_del = PythonOperator(
-    task_id='users_total_del', 
-    python_callable=del_file, 
-    op_kwargs={'from_path': path_to_file_mysql, 'file': 'Users_total.csv', 'db': 'Server_MySQL'}, 
+users_total_sql = MySqlOperator(
+    task_id='users_total_sql', 
+    sql='/SQL/Users_total_to_csv.sql', 
     dag=dag
     )
