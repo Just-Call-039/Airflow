@@ -35,11 +35,6 @@ path_airflow_main_folder = f'{path_to_file_airflow}main_folder/'
 path_airflow_requests_folder = f'{path_to_file_airflow}requests_folder/'
 path_airflow_working_time_folder = f'{path_to_file_airflow}working_time_folder/'
 
-path_to_file_mysql = '/home/glotov/192.168.1.117/4_report/'
-path_mysql_main_folder = f'{path_to_file_mysql}main_folder/'
-path_mysql_requests_folder = f'{path_to_file_mysql}requests_folder/'
-path_mysql_working_time_folder = f'{path_to_file_mysql}working_time_folder/'
-
 path_to_file_dbs = '/4_report/Files/'
 path_dbs_main_folder = f'{path_to_file_dbs}main_folder/'
 path_dbs_requests_folder = f'{path_to_file_dbs}requests_folder/'
@@ -50,12 +45,6 @@ sql_main = '/root/airflow/dags/4_report/SQL/main_current_month.sql'
 sql_requests = '/root/airflow/dags/4_report/SQL/requests_current_month.sql'
 sql_working_time = '/root/airflow/dags/4_report/SQL/working_time_current_month.sql'
 sql_users = '/root/airflow/dags/4_report/SQL/Users_total.sql'
-
-today = datetime.date.today()
-previous_date = today - dateutil.relativedelta.relativedelta(months=1)
-year = previous_date.year
-month = previous_date.month
-file_name = f'{year}_{month}.csv'
 
 # Блок выполнения SQL запросов.
 main_folder_sql = PythonOperator(
