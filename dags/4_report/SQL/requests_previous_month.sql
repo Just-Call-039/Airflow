@@ -120,7 +120,8 @@ with requests as (select 'RTK'                              as project,
                             row_number() over (partition by cl_c.asterisk_caller_id_c order by cl.date_entered desc) as num
                      from suitecrm.calls as cl
                               left join suitecrm.calls_cstm as cl_c on cl.id = cl_c.id_c
-                     where ((date(cl.date_entered) >= date(now()) - interval 90 day))) as temp
+                     where (date(now()) - interval 90 day <= date(cl.date_entered)
+                         and date(cl.date_entered) <= date(now()) - interval 1 day)) as temp
                where num = 1)
 
 select *
