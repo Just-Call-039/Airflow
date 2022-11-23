@@ -1,7 +1,5 @@
 from datetime import timedelta
 import pendulum
-import datetime
-import dateutil.relativedelta
 
 from airflow import DAG
 from airflow.providers.telegram.operators.telegram import TelegramOperator
