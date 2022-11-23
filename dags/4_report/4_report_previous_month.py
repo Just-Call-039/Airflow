@@ -35,11 +35,6 @@ path_airflow_main_folder = f'{path_to_file_airflow}main_folder/'
 path_airflow_requests_folder = f'{path_to_file_airflow}requests_folder/'
 path_airflow_working_time_folder = f'{path_to_file_airflow}working_time_folder/'
 
-path_to_file_mysql = '/home/glotov/192.168.1.117/4_report/'
-path_mysql_main_folder = f'{path_to_file_mysql}main_folder/'
-path_mysql_requests_folder = f'{path_to_file_mysql}requests_folder/'
-path_mysql_working_time_folder = f'{path_to_file_mysql}working_time_folder/'
-
 path_to_file_dbs = '/4_report/Files/'
 path_dbs_main_folder = f'{path_to_file_dbs}main_folder/'
 path_dbs_requests_folder = f'{path_to_file_dbs}requests_folder/'
