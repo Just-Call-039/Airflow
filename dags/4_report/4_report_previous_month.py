@@ -25,7 +25,7 @@ default_args = {
 
 dag = DAG(
     dag_id='4_report_previous_month',
-    schedule_interval='30 7-14 * * *',
+    schedule_interval='00 6 1 * 1,4',
     default_args=default_args
     )
 
@@ -101,7 +101,7 @@ send_telegram_message = TelegramOperator(
         task_id='send_telegram_message',
         telegram_conn_id='Telegram',
         chat_id='-1001412983860',
-        text='Произошла ошибка работы отчета №4 текущего месяца.',
+        text='Произошла ошибка работы отчета №4 предыдущего месяца.',
         dag=dag,
         # on_failure_callback=True,
         # trigger_rule='all_success'
