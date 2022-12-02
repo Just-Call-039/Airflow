@@ -25,7 +25,7 @@ default_args = {
 
 dag = DAG(
     dag_id='4_report_previous_month',
-    schedule_interval='30 7-14 1-3 * 1,4',
+    schedule_interval='30 7-14 1-3,4-30/2 * *',
     default_args=default_args
     )
 

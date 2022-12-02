@@ -119,16 +119,15 @@ with requests as (select 'RTK'                              as project,
                     and year(date(date_entered)) = year(curdate())),
 
      calls as (select *
-               from (select cl.id                                                                               as id_call,
-                            cl_c.asterisk_caller_id_c                                                           as phone_number,
-                            date(cl.date_entered)                                                               as call_date,
+               from (select cl.id                                                                                    as id_call,
+                            cl_c.asterisk_caller_id_c                                                                as phone_number,
+                            date(cl.date_entered)                                                                    as call_date,
                             cl_c.result_call_c,
-                            row_number() over (partition by cl_c.asterisk_caller_id_c order by cl.date_entered) as num
+                            row_number() over (partition by cl_c.asterisk_caller_id_c order by cl.date_entered desc) as num
                      from suitecrm.calls as cl
                               left join suitecrm.calls_cstm as cl_c on cl.id = cl_c.id_c
-                     where (day(date(cl.date_entered)) != day(curdate())
-                         and month(date(cl.date_entered)) = month(curdate())
-                         and year(date(cl.date_entered)) = year(curdate()))) as temp
+                     where (date(now()) - interval 90 day <= date(cl.date_entered)
+                         and date(cl.date_entered) <= date(now()) - interval 1 day)) as temp
                where num = 1)
 
 select *

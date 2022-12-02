@@ -123,9 +123,16 @@ with requests as (select 'RTK'                              as project,
                             cl_c.asterisk_caller_id_c                                                                as phone_number,
                             date(cl.date_entered)                                                                    as call_date,
                             cl_c.result_call_c,
+                            case
+                                when city_c is null then concat(town_c, 'OBL')
+                                when city_c in ('', ' ') then concat(town_c, 'OBL')
+                                else city_c
+                                end                                                                                  as city,
                             row_number() over (partition by cl_c.asterisk_caller_id_c order by cl.date_entered desc) as num
                      from suitecrm.calls as cl
                               left join suitecrm.calls_cstm as cl_c on cl.id = cl_c.id_c
+                              left join suitecrm.contacts on cl_c.asterisk_caller_id_c = contacts.phone_work
+                              left join suitecrm.contacts_cstm on contacts_cstm.id_c = contacts.id
                      where (date(now()) - interval 90 day <= date(cl.date_entered)
                          and date(cl.date_entered) <= date(now()) - interval 1 day)) as temp
                where num = 1)
