@@ -16,14 +16,14 @@ default_args = {
     'email_on_retry': False,
     'mysql_conn_id': 'cloud_my_sql_117',
     'retries': 3,
-    'retry_delay': timedelta(minutes=5),
-    'start_date': pendulum.datetime(2022, 11, 22, tz='Europe/Kaliningrad'),
-    'catchup': False
+    'retry_delay': timedelta(minutes=5)
     }
 
 dag = DAG(
     dag_id='4_report_current_month',
     schedule_interval='30 7-14 * * *',
+    start_date=pendulum.datetime(2022, 11, 22, tz='Europe/Kaliningrad'),
+    catchup=False,
     default_args=default_args
     )
 
@@ -38,7 +38,7 @@ path_dbs_main_folder = f'{path_to_file_dbs}main_folder/'
 path_dbs_requests_folder = f'{path_to_file_dbs}requests_folder/'
 path_dbs_working_time_folder = f'{path_to_file_dbs}working_time_folder/'
 
-cloud_name = 'cloud_117'
+cloud_name = '72'
 sql_main = '/root/airflow/dags/4_report/SQL/main_current_month.sql'
 sql_requests = '/root/airflow/dags/4_report/SQL/requests_current_month.sql'
 sql_working_time = '/root/airflow/dags/4_report/SQL/working_time_current_month.sql'

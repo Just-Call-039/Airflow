@@ -19,14 +19,14 @@ default_args = {
     'email_on_retry': False,
     'mysql_conn_id': 'cloud_my_sql_117',
     'retries': 3,
-    'retry_delay': timedelta(minutes=5),
-    'start_date': pendulum.datetime(2022, 6, 16, tz='Europe/Kaliningrad'),
-    'catchup': False
+    'retry_delay': timedelta(minutes=5)
     }
 
 dag = DAG(
     dag_id='10_report',
     schedule_interval='50 5-13/4 * * *',
+    start_date=pendulum.datetime(2022, 6, 16, tz='Europe/Kaliningrad'),
+    catchup=False,
     default_args=default_args
     )
 
