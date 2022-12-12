@@ -1,6 +1,6 @@
 ﻿# Функция для извлечения хоста, логина, пароля.
 # Необходимо передать файл с соответствующим наименованием.
-# Maria_db, 72, Combat, Click, Server_MySQL, DBS, cloud_117.
+# Maria_db, 72, Combat, Click, Server_MySQL, DBS, cloud_117, cloud_128.
 
 
 def connect_db(file):
@@ -9,6 +9,8 @@ def connect_db(file):
         dest = '/root/airflow/dags/not_share/Maria_db.csv'
     elif file == 'cloud_117':
         dest = '/root/airflow/dags/not_share/cloud_my_sql_117.csv'
+    elif file == 'cloud_128':
+        dest = '/root/airflow/dags/not_share/cloud_my_sql_128.csv'
     elif file == '72':
         dest = '/root/airflow/dags/not_share/Second_cloud_72.csv'
     elif file == 'Combat':

@@ -38,7 +38,7 @@ path_dbs_main_folder = f'{path_to_file_dbs}main_folder/'
 path_dbs_requests_folder = f'{path_to_file_dbs}requests_folder/'
 path_dbs_working_time_folder = f'{path_to_file_dbs}working_time_folder/'
 
-cloud_name = '72'
+cloud_name = 'cloud_128'
 sql_main = '/root/airflow/dags/4_report/SQL/main_current_month.sql'
 sql_requests = '/root/airflow/dags/4_report/SQL/requests_current_month.sql'
 sql_working_time = '/root/airflow/dags/4_report/SQL/working_time_current_month.sql'
