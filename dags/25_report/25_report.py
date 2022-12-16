@@ -7,6 +7,7 @@ from airflow.operators.python_operator import PythonOperator
 
 from commons.transfer_file_to_dbs import transfer_file_to_dbs
 from commons.sql_query_to_csv import sql_query_to_csv
+from status_dict import status_dict
 
 
 default_args = {
@@ -78,6 +79,19 @@ total_calls_yesterday_transfer_to_dbs = PythonOperator(
     dag=dag
     )
 
-status_sql >> status_transfer_to_dbs
+# Создание словаря со статусами, запись словаря в файл, перенос на DBS.
+status_dict = PythonOperator(
+    task_id='status_dict',
+    python_callable='status_dict',
+    op_kwargs={'status': '/root/airflow/dags/25_report/Files/status.csv', 'to_file_status_dict': '/root/airflow/dags/25_report/Files/status_dict.csv'}
+)
+status_dict_transfer_to_dbs = PythonOperator(
+    task_id='status_dict_transfer_to_dbs', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_to_file_airflow, 'to_path': path_to_file_dbs, 'file': 'status_dict.csv', 'db': 'DBS'}, 
+    dag=dag
+    )
+
+status_sql >> [status_transfer_to_dbs, status_dict] >> status_dict_transfer_to_dbs
 my_request_yesterday_window_sql >> my_request_yesterday_window_transfer_to_dbs
 total_calls_yesterday_sql >> total_calls_yesterday_transfer_to_dbs
