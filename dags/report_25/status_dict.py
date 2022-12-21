@@ -1,6 +1,6 @@
 def status_dict(status, to_file_status_dict):
     from commons.my_clear import my_c
-    from my_status import my_status
+    from report_25.my_status import my_status
 
     status_dict = {}
 

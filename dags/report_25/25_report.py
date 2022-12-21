@@ -7,7 +7,7 @@ from airflow.operators.python_operator import PythonOperator
 
 from commons.transfer_file_to_dbs import transfer_file_to_dbs
 from commons.sql_query_to_csv import sql_query_to_csv
-from status_dict import status_dict
+from report_25.status_dict import status_dict
 
 
 default_args = {
@@ -29,12 +29,12 @@ dag = DAG(
     )
 
 
-path_to_file_airflow = '/root/airflow/dags/25_report/Files/'
-path_to_file_mysql = '/home/glotov/192.168.1.117/25_report/'
-path_to_file_dbs = '/25_report/Files/'
-
 cloud_name = 'cloud_128'
-path_to_sql = '/root/airflow/dags/25_report/SQL/'
+
+path_to_file_airflow = '/root/airflow/dags/report_25/Files/'
+path_to_file_dbs = '/25_report/Files/'
+path_to_sql = '/root/airflow/dags/report_25/SQL/'
+
 sql_status = f'{path_to_sql}Status.sql'
 sql_my_request_yesterday_window = f'{path_to_sql}My_request_yesterday_window.sql'
 sql_total_calls_yesterday = f'{path_to_sql}Total_calls_yesterday.sql'
@@ -80,10 +80,10 @@ total_calls_yesterday_transfer_to_dbs = PythonOperator(
     )
 
 # Создание словаря со статусами, запись словаря в файл, перенос на DBS.
-status_dict = PythonOperator(
-    task_id='status_dict',
-    python_callable='status_dict',
-    op_kwargs={'status': '/root/airflow/dags/25_report/Files/status.csv', 'to_file_status_dict': '/root/airflow/dags/25_report/Files/status_dict.csv'}
+status_dict_to_file = PythonOperator(
+    task_id='status_dict_to_file',
+    python_callable=status_dict,
+    op_kwargs={'status': f'{path_to_file_airflow}status.csv', 'to_file_status_dict': f'{path_to_file_airflow}status_dict.csv'}
 )
 status_dict_transfer_to_dbs = PythonOperator(
     task_id='status_dict_transfer_to_dbs', 
@@ -92,6 +92,6 @@ status_dict_transfer_to_dbs = PythonOperator(
     dag=dag
     )
 
-status_sql >> [status_transfer_to_dbs, status_dict] >> status_dict_transfer_to_dbs
+status_sql >> [status_transfer_to_dbs, status_dict_to_file] >> status_dict_transfer_to_dbs
 my_request_yesterday_window_sql >> my_request_yesterday_window_transfer_to_dbs
 total_calls_yesterday_sql >> total_calls_yesterday_transfer_to_dbs
