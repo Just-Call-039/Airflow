@@ -18,6 +18,6 @@ select id_user,
        if(recall_talk is NULL, 0, recall_talk)                                                   as recall_talk
 from suitecrm.reports_cache
 where month(date) = month(curdate() - interval 1 month)
-  and year(date) = year(curdate())
+  and year(date) = if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year), year(curdate()))
   and id_user not in ('1', '')
   and id_user is not null;

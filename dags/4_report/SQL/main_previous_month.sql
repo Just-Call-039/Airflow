@@ -20,7 +20,7 @@ with calls as (select cl.id,
                         left join suitecrm.contacts on cl_c.asterisk_caller_id_c = contacts.phone_work
                         left join suitecrm.contacts_cstm on contacts_cstm.id_c = contacts.id
                where month(date(cl.date_entered)) = month(curdate() - interval 1 month)
-                 and year(date(cl.date_entered)) = year(curdate())),
+                 and year(date(cl.date_entered)) = if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year), year(curdate()))),
 
      ws as (select *
             from (select *, row_number() over (partition by id_user order by date_start desc) as num

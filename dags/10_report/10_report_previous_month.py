@@ -23,7 +23,7 @@ default_args = {
 
 dag = DAG(
     dag_id='10_report_previous_month',
-    schedule_interval='50 5-13/4 * * *',
+    schedule_interval='15 6-14/4 1-30/3 * *',
     start_date=pendulum.datetime(2022, 6, 16, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args
@@ -67,15 +67,27 @@ transfer_folder_sql = PythonOperator(
 main_transfer_to_dbs = PythonOperator(
     task_id='main_transfer_to_dbs', 
     python_callable=transfer_file_to_dbs, 
-    op_kwargs={'from_path': path_airflow_main_folder, 'to_path': path_dbs_main_folder, 'file': 'main_current_month.csv', 'db': 'DBS'}, 
+    op_kwargs={'from_path': path_airflow_main_folder, 'to_path': path_dbs_main_folder, 'file': file_name, 'db': 'DBS'}, 
     dag=dag
     )
 transfer_folder_transfer_to_dbs = PythonOperator(
     task_id='transfer_folder_transfer_to_dbs', 
     python_callable=transfer_file_to_dbs, 
-    op_kwargs={'from_path': path_airflow_transfer_folder, 'to_path': path_dbs_transfer_folder, 'file': 'transfer_current_month.csv', 'db': 'DBS'}, 
+    op_kwargs={'from_path': path_airflow_transfer_folder, 'to_path': path_dbs_transfer_folder, 'file': file_name, 'db': 'DBS'}, 
     dag=dag
     )
 
-main_folder_sql >> main_transfer_to_dbs
-transfer_folder_sql >> transfer_folder_transfer_to_dbs
+# Отправка уведомления об ошибке в Telegram.
+send_telegram_message = TelegramOperator(
+        task_id='send_telegram_message',
+        telegram_conn_id='Telegram',
+        chat_id='-1001412983860',
+        text='Произошла ошибка работы отчета №10 предыдущего месяца.',
+        dag=dag,
+        # on_failure_callback=True,
+        # trigger_rule='all_success'
+        trigger_rule='one_failed'
+    )
+
+main_folder_sql >> main_transfer_to_dbs >> send_telegram_message
+transfer_folder_sql >> transfer_folder_transfer_to_dbs >> send_telegram_message

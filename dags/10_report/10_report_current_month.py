@@ -22,7 +22,7 @@ default_args = {
 
 dag = DAG(
     dag_id='10_report_current_month',
-    schedule_interval='50 5-13/4 * * *',
+    schedule_interval='15 6-14/4 * * *',
     start_date=pendulum.datetime(2022, 6, 16, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args
@@ -137,7 +137,19 @@ super_clear_transfer_to_dbs_4_rep = PythonOperator(
     dag=dag
     )
 
-all_users_sql >> all_users_clear >> [all_users_transfer_to_dbs, all_users_clear_transfer_to_dbs, all_users_clear_transfer_to_dbs_4_rep]
-super_sql >> super_clear >> [super_transfer_to_dbs, super_clear_transfer_to_dbs, super_clear_transfer_to_dbs_4_rep]
-main_folder_sql >> main_transfer_to_dbs
-transfer_folder_sql >> transfer_folder_transfer_to_dbs
+# Отправка уведомления об ошибке в Telegram.
+send_telegram_message = TelegramOperator(
+        task_id='send_telegram_message',
+        telegram_conn_id='Telegram',
+        chat_id='-1001412983860',
+        text='Произошла ошибка работы отчета №10 текущего месяца.',
+        dag=dag,
+        # on_failure_callback=True,
+        # trigger_rule='all_success'
+        trigger_rule='one_failed'
+    )
+
+all_users_sql >> all_users_clear >> [all_users_transfer_to_dbs, all_users_clear_transfer_to_dbs, all_users_clear_transfer_to_dbs_4_rep] >> send_telegram_message
+super_sql >> super_clear >> [super_transfer_to_dbs, super_clear_transfer_to_dbs, super_clear_transfer_to_dbs_4_rep] >> send_telegram_message
+main_folder_sql >> main_transfer_to_dbs >> send_telegram_message
+transfer_folder_sql >> transfer_folder_transfer_to_dbs >> send_telegram_message

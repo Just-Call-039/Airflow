@@ -15,7 +15,8 @@ with requests as (select 'RTK'                              as project,
                            left join suitecrm.jc_meetings_rostelecom_cstm as r_c on r.id = r_c.id_c
                   where status != 'Error'
                     and month(date(date_entered)) = month(curdate() - interval 1 month)
-                    and year(date(date_entered)) = year(curdate())
+                    and year(date(date_entered)) =
+                        if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year), year(curdate()))
                   union all
                   select 'Beeline'                          as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
@@ -34,7 +35,8 @@ with requests as (select 'RTK'                              as project,
                            left join suitecrm.jc_meetings_beeline_cstm as b_c on b.id = b_c.id_c
                   where status != 'Error'
                     and month(date(date_entered)) = month(curdate() - interval 1 month)
-                    and year(date(date_entered)) = year(curdate())
+                    and year(date(date_entered)) =
+                        if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year), year(curdate()))
                   union all
                   select 'DOMRU'                            as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
@@ -53,7 +55,8 @@ with requests as (select 'RTK'                              as project,
                            left join suitecrm.jc_meetings_domru_cstm as d_c on d.id = d_c.id_c
                   where status != 'Error'
                     and month(date(date_entered)) = month(curdate() - interval 1 month)
-                    and year(date(date_entered)) = year(curdate())
+                    and year(date(date_entered)) =
+                        if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year), year(curdate()))
                   union all
                   select 'TTK'                              as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
@@ -72,7 +75,8 @@ with requests as (select 'RTK'                              as project,
                            left join suitecrm.jc_meetings_ttk_cstm as t_c on t.id = t_c.id_c
                   where status != 'Error'
                     and month(date(date_entered)) = month(curdate() - interval 1 month)
-                    and year(date(date_entered)) = year(curdate())
+                    and year(date(date_entered)) =
+                        if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year), year(curdate()))
                   union all
                   select 'NBN'                              as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
@@ -91,7 +95,8 @@ with requests as (select 'RTK'                              as project,
                            left join suitecrm.jc_meetings_netbynet_cstm as n_c on n.id = n_c.id_c
                   where status != 'Error'
                     and month(date(date_entered)) = month(curdate() - interval 1 month)
-                    and year(date(date_entered)) = year(curdate())
+                    and year(date(date_entered)) =
+                        if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year), year(curdate()))
                   union all
                   select 'MTS'                              as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
@@ -110,7 +115,9 @@ with requests as (select 'RTK'                              as project,
                            left join suitecrm.jc_meetings_mts_cstm as m_c on m.id = m_c.id_c
                   where status != 'Error'
                     and month(date(date_entered)) = month(curdate() - interval 1 month)
-                    and year(date(date_entered)) = year(curdate())),
+                    and year(date(date_entered)) =
+                        if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year),
+                           year(curdate()))),
 
      calls as (select *
                from (select cl.id                                                                                    as id_call,
