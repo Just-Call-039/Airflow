@@ -28,16 +28,7 @@ dag = DAG(
     )
 
 
-def my_func(her):
-    print(her)
-
-
 cloud_name = 'cloud_128'
-
-path_to_file_airflow = '/root/airflow/dags/steps_report/files/'
-path_to_sql_airflow = '/root/airflow/dags/steps_report/SQL/'
-path_to_file_dbs = '/steps_report/files/'
-
 
 today = date.today()
 year = today.strftime('%Y')
@@ -46,11 +37,15 @@ day = today.strftime('%d')
 
 file_name = f'{year}_{month}_{day}.csv'
 
-main_transfer_to_dbs = PythonOperator(
-    task_id='main_transfer_to_dbs', 
-    python_callable=my_func, 
-    op_kwargs={'her': file_name}, 
-    dag=dag
-    )
+path_to_file_airflow = '/root/airflow/dags/steps_report/files/'
+path_to_files_from_sql = f'{path_to_file_airflow}files_from_sql/'
+path_to_main_folder = f'{path_to_file_airflow}main_folder/'
 
-main_transfer_to_dbs
+
+path_to_sql_airflow = '/root/airflow/dags/steps_report/SQL/'
+
+path_to_file_dbs = '/steps_report/files/'
+
+sql_main = f'{path_to_sql_airflow}main.sql'
+sql_request = f'{path_to_sql_airflow}request_only_one_day.sql'
+
