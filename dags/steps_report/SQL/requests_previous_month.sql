@@ -12,7 +12,9 @@ with request as (select 'RTK'                                 project,
                         status
                  from suitecrm.jc_meetings_rostelecom
                  where status != 'Error'
-                   and date(date_entered) = '2023-03-12'
+                   and month(date(date_entered)) = month(curdate() - interval 1 month)
+                   and year(date(date_entered)) =
+                       if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year), year(curdate()))
                  union all
                  select 'Beeline'                             project,
                         if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
@@ -28,7 +30,9 @@ with request as (select 'RTK'                                 project,
                         status
                  from suitecrm.jc_meetings_beeline
                  where status != 'Error'
-                   and date(date_entered) = '2023-03-12'
+                   and month(date(date_entered)) = month(curdate() - interval 1 month)
+                   and year(date(date_entered)) =
+                       if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year), year(curdate()))
                  union all
                  select project,
                         if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
@@ -44,7 +48,9 @@ with request as (select 'RTK'                                 project,
                         status
                  from suitecrm.jc_meetings_domru
                  where status != 'Error'
-                   and date(date_entered) = '2023-03-12'
+                   and month(date(date_entered)) = month(curdate() - interval 1 month)
+                   and year(date(date_entered)) =
+                       if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year), year(curdate()))
                  union all
                  select project,
                         if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
@@ -60,7 +66,9 @@ with request as (select 'RTK'                                 project,
                         status
                  from suitecrm.jc_meetings_ttk
                  where status != 'Error'
-                   and date(date_entered) = '2023-03-12'
+                   and month(date(date_entered)) = month(curdate() - interval 1 month)
+                   and year(date(date_entered)) =
+                       if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year), year(curdate()))
                  union all
                  select 'NBN'                                 project,
                         if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
@@ -76,7 +84,9 @@ with request as (select 'RTK'                                 project,
                         status
                  from suitecrm.jc_meetings_netbynet
                  where status != 'Error'
-                   and date(date_entered) = '2023-03-12'
+                   and month(date(date_entered)) = month(curdate() - interval 1 month)
+                   and year(date(date_entered)) =
+                       if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year), year(curdate()))
                  union all
                  select project,
                         if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
@@ -92,7 +102,10 @@ with request as (select 'RTK'                                 project,
                         status
                  from suitecrm.jc_meetings_mts jc_meetings_mts
                  where status != 'Error'
-                   and date(date_entered) = '2023-03-12'),
+                   and month(date(date_entered)) = month(curdate() - interval 1 month)
+                   and year(date(date_entered)) =
+                       if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year),
+                          year(curdate()))),
 
      new_rob as (select call_date, uniqueid, ochered, phone
                  from (select date(call_date)                                                as call_date,

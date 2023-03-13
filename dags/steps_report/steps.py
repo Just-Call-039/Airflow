@@ -48,4 +48,3 @@ path_to_file_dbs = '/steps_report/files/'
 
 sql_main = f'{path_to_sql_airflow}main.sql'
 sql_request = f'{path_to_sql_airflow}request_only_one_day.sql'
-
