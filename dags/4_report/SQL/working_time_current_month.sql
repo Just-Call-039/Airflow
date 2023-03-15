@@ -1,24 +1,32 @@
-select id_user,
-       date,
-       if(talk_inbound is NULL, 0, talk_inbound)                                                 as talk_inbound,
-       if(talk_outbound is NULL, 0, talk_outbound)                                               as talk_outbound,
-       if((fact - talk_inbound -
-           if((talk_outbound - (recall - recall_talk)) < 0, 0, (talk_outbound - (recall - recall_talk))) -
-           obrabotka_in_fact - progul_obrabotka_in_fact) is NULL, 0, (fact - talk_inbound -
-                                                                      if((talk_outbound - (recall - recall_talk)) < 0,
-                                                                         0, (talk_outbound - (recall - recall_talk))) -
-                                                                      obrabotka_in_fact -
-                                                                      progul_obrabotka_in_fact)) as ozhidanie,
-       if(obrabotka is NULL, 0, obrabotka)                                                       as obrabotka,
-       if(training is NULL, 0, training)                                                         as training,
-       if(nastavnik is NULL, 0, nastavnik)                                                       as nastavnik,
-       if(sobranie is NULL, 0, sobranie)                                                         as sobranie,
-       if(problems is NULL, 0, problems)                                                         as problems,
-       if(obuchenie is NULL, 0, obuchenie)                                                       as obuchenie,
-       if(recall_talk is NULL, 0, recall_talk)                                                   as recall_talk
-from suitecrm.reports_cache
-where day(date) != day(curdate())
-  and month(date) = month(curdate())
-  and year(date) = year(curdate())
-  and id_user not in ('1', '')
-  and id_user is not null;
+select rc.id_user,
+       rc.date,
+       if(rc.talk_inbound is null, 0, rc.talk_inbound)                                                    as talk_inbound,
+       if(rc.talk_outbound is null, 0, rc.talk_outbound)                                                  as talk_outbound,
+       if((rc.fact - rc.talk_inbound -
+           if((rc.talk_outbound - (rc.recall - rc.recall_talk)) < 0, 0,
+              (rc.talk_outbound - (rc.recall - rc.recall_talk))) -
+           rc.obrabotka_in_fact - rc.progul_obrabotka_in_fact) is null, 0, (rc.fact - talk_inbound -
+                                                                            if(
+                                                                                        (rc.talk_outbound - (rc.recall - rc.recall_talk)) <
+                                                                                        0,
+                                                                                        0,
+                                                                                        (rc.talk_outbound - (rc.recall - rc.recall_talk))) -
+                                                                            rc.obrabotka_in_fact -
+                                                                            rc.progul_obrabotka_in_fact)) as ozhidanie,
+       if(rc.obrabotka is null, 0, rc.obrabotka)                                                          as obrabotka,
+       if(rc.training is null, 0, rc.training)                                                            as training,
+       if(rc.nastavnik is null, 0, rc.nastavnik)                                                          as nastavnik,
+       if(rc.sobranie is null, 0, rc.sobranie)                                                            as sobranie,
+       if(rc.problems is null, 0, rc.problems)                                                            as problems,
+       if(rc.obuchenie is null, 0, rc.obuchenie)                                                          as obuchenie,
+       if(rc.recall is null, 0, rc.recall)                                                                as dorabotka,
+       if(rc.pause10 is null, 0, rc.pause10)                                                              as pause,
+       if(timestampdiff(second, wt.lunch_start, wt.lunch_stop) is null, 0,
+          timestampdiff(second, wt.lunch_start, wt.lunch_stop))                                           as lunch_duration
+from suitecrm.reports_cache as rc
+         left join suitecrm.worktime_log as wt on rc.id_user = wt.id_user and date(rc.date) = date(wt.date)
+where day(rc.date) != day(curdate())
+  and month(rc.date) = month(curdate())
+  and year(rc.date) = year(curdate())
+  and rc.id_user not in ('1', '')
+  and rc.id_user is not null;
