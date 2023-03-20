@@ -1,6 +1,6 @@
-from datetime import timedelta, date
 import pendulum
 import dateutil.relativedelta
+from datetime import timedelta, date
 
 from airflow import DAG
 from airflow.providers.telegram.operators.telegram import TelegramOperator
@@ -42,6 +42,12 @@ year_for_current = today.year
 month_for_current = today.month
 file_name_current = f'{year_for_current}_{month_for_current}.csv'
 
+previous_day = today - dateutil.relativedelta.relativedelta(days=1)
+year_main = previous_day.year
+month_main = previous_day.month
+day_main = previous_day.day
+file_name_main = f'{year_main}_{month_main}_{day_main}.csv'
+
 path_to_file_airflow = '/root/airflow/dags/steps_report/files/'
 path_to_files_from_sql = f'{path_to_file_airflow}files_from_sql/'
 path_to_main_folder = f'{path_to_file_airflow}main_folder/'
@@ -72,6 +78,12 @@ requests_current_month_sql = PythonOperator(
     op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_requests_current_month, 'path_csv_file': path_to_requests_folder, 'name_csv_file': file_name_current}, 
     dag=dag
     )
+main_folder_sql = PythonOperator(
+    task_id='main_folder_sql', 
+    python_callable=sql_query_to_csv, 
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_main, 'path_csv_file': path_to_files_from_sql, 'name_csv_file': file_name_main}, 
+    dag=dag
+    )
 
 # Блок отправки всех файлов в папку DBS.
 requests_previous_month_to_dbs = PythonOperator(
@@ -86,6 +98,14 @@ requests_current_month_to_dbs = PythonOperator(
     op_kwargs={'from_path': path_to_requests_folder, 'to_path': dbs_requests_folder, 'file': file_name_current, 'db': 'DBS'}, 
     dag=dag
     )
+main_folder_to_dbs = PythonOperator(
+    task_id='main_folder_to_dbs', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_to_files_from_sql, 'to_path': dbs_from_sql, 'file': file_name_main, 'db': 'DBS'}, 
+    dag=dag
+    )
 
+# Блок очередности выполнения задач.
 requests_previous_month_sql >> requests_previous_month_to_dbs
 requests_current_month_sql >> requests_current_month_to_dbs
+main_folder_sql >> main_folder_to_dbs
