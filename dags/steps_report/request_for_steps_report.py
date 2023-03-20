@@ -73,4 +73,19 @@ requests_current_month_sql = PythonOperator(
     dag=dag
     )
 
-[requests_previous_month_sql, requests_current_month_sql]
+# Блок отправки всех файлов в папку DBS.
+requests_previous_month_to_dbs = PythonOperator(
+    task_id='requests_previous_month_to_dbs', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_to_requests_folder, 'to_path': dbs_requests_folder, 'file': file_name_previous, 'db': 'DBS'}, 
+    dag=dag
+    )
+requests_current_month_to_dbs = PythonOperator(
+    task_id='requests_current_month_to_dbs', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_to_requests_folder, 'to_path': dbs_requests_folder, 'file': file_name_current, 'db': 'DBS'}, 
+    dag=dag
+    )
+
+requests_previous_month_sql >> requests_previous_month_to_dbs
+requests_current_month_sql >> requests_current_month_to_dbs
