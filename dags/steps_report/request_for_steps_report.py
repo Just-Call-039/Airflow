@@ -105,7 +105,15 @@ main_folder_to_dbs = PythonOperator(
     dag=dag
     )
 
+# Преобразование файла из запроса Main.
+main_transformation = PythonOperator(
+    task_id='main_transformation', 
+    python_callable=sql_query_to_csv, 
+    op_kwargs={'name': file_name_main, 'files_from_sql': path_to_files_from_sql, 'main_folder': path_to_main_folder}, 
+    dag=dag
+    )
+
 # Блок очередности выполнения задач.
 requests_previous_month_sql >> requests_previous_month_to_dbs
 requests_current_month_sql >> requests_current_month_to_dbs
-main_folder_sql >> main_folder_to_dbs
+main_folder_sql >> [main_transformation, main_folder_to_dbs]
