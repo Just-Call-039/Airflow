@@ -9,6 +9,8 @@ from airflow.operators.python_operator import PythonOperator
 from commons.clear_file import clear_file
 from commons.transfer_file_to_dbs import transfer_file_to_dbs
 from commons.sql_query_to_csv import sql_query_to_csv
+from steps_report.main_transformation import main_transformation
+from steps_report.create_medium_step_file import create_medium_step_file
 
 
 default_args = {
@@ -105,15 +107,21 @@ main_folder_to_dbs = PythonOperator(
     dag=dag
     )
 
-# Преобразование файла из запроса Main.
-main_transformation = PythonOperator(
+# Преобразование файлов из запроса Main.
+main_transformation_operator = PythonOperator(
     task_id='main_transformation', 
-    python_callable=sql_query_to_csv, 
+    python_callable=main_transformation, 
     op_kwargs={'name': file_name_main, 'files_from_sql': path_to_files_from_sql, 'main_folder': path_to_main_folder}, 
+    dag=dag
+    )
+create_medium_step_file_operator = PythonOperator(
+    task_id='create_medium_step_file', 
+    python_callable=create_medium_step_file, 
+    op_kwargs={'name': file_name_main, 'files_from_sql': path_to_files_from_sql, 'uniqueid_medium_folder': path_to_uniqueid_medium_folder}, 
     dag=dag
     )
 
 # Блок очередности выполнения задач.
 requests_previous_month_sql >> requests_previous_month_to_dbs
 requests_current_month_sql >> requests_current_month_to_dbs
-main_folder_sql >> [main_transformation, main_folder_to_dbs]
+main_folder_sql >> [main_transformation_operator, create_medium_step_file_operator, main_folder_to_dbs]
