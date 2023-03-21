@@ -6,7 +6,6 @@ from airflow import DAG
 from airflow.providers.telegram.operators.telegram import TelegramOperator
 from airflow.operators.python_operator import PythonOperator
 
-from commons.clear_file import clear_file
 from commons.transfer_file_to_dbs import transfer_file_to_dbs
 from commons.sql_query_to_csv import sql_query_to_csv
 from steps_report.main_transformation import main_transformation
@@ -23,7 +22,7 @@ default_args = {
     }
 
 dag = DAG(
-    dag_id='request_for_steps_report',
+    dag_id='steps_report',
     schedule_interval='30 6,12 * * *',
     start_date=pendulum.datetime(2023, 3, 13, tz='Europe/Kaliningrad'),
     catchup=False,
@@ -87,6 +86,20 @@ main_folder_sql = PythonOperator(
     dag=dag
     )
 
+# Преобразование файлов из запроса Main.
+main_transformation_operator = PythonOperator(
+    task_id='main_transformation', 
+    python_callable=main_transformation, 
+    op_kwargs={'name': file_name_main, 'files_from_sql': path_to_files_from_sql, 'main_folder': path_to_main_folder}, 
+    dag=dag
+    )
+create_medium_step_file_operator = PythonOperator(
+    task_id='create_medium_step_file', 
+    python_callable=create_medium_step_file, 
+    op_kwargs={'name': file_name_main, 'files_from_sql': path_to_files_from_sql, 'uniqueid_medium_folder': path_to_uniqueid_medium_folder}, 
+    dag=dag
+    )
+
 # Блок отправки всех файлов в папку DBS.
 requests_previous_month_to_dbs = PythonOperator(
     task_id='requests_previous_month_to_dbs', 
@@ -106,22 +119,35 @@ main_folder_to_dbs = PythonOperator(
     op_kwargs={'from_path': path_to_files_from_sql, 'to_path': dbs_from_sql, 'file': file_name_main, 'db': 'DBS'}, 
     dag=dag
     )
-
-# Преобразование файлов из запроса Main.
-main_transformation_operator = PythonOperator(
-    task_id='main_transformation', 
-    python_callable=main_transformation, 
-    op_kwargs={'name': file_name_main, 'files_from_sql': path_to_files_from_sql, 'main_folder': path_to_main_folder}, 
+main_folder_true_to_dbs = PythonOperator(
+    task_id='main_folder_true_to_dbs', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_to_main_folder, 'to_path': dbs_main_folder, 'file': file_name_main, 'db': 'DBS'}, 
     dag=dag
     )
-create_medium_step_file_operator = PythonOperator(
-    task_id='create_medium_step_file', 
-    python_callable=create_medium_step_file, 
-    op_kwargs={'name': file_name_main, 'files_from_sql': path_to_files_from_sql, 'uniqueid_medium_folder': path_to_uniqueid_medium_folder}, 
+medium_step_file_to_dbs = PythonOperator(
+    task_id='medium_step_file_to_dbs', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_to_uniqueid_medium_folder, 'to_path': dbs_uniqueid_medium_folder, 'file': file_name_main, 'db': 'DBS'}, 
     dag=dag
+    )
+
+# Отправка уведомления об ошибке в Telegram.
+send_telegram_message = TelegramOperator(
+        task_id='send_telegram_message',
+        telegram_conn_id='Telegram',
+        chat_id='-1001412983860',
+        text='Произошла ошибка работы отчета по шагам.',
+        dag=dag,
+        # on_failure_callback=True,
+        # trigger_rule='all_success'
+        trigger_rule='one_failed'
     )
 
 # Блок очередности выполнения задач.
 requests_previous_month_sql >> requests_previous_month_to_dbs
 requests_current_month_sql >> requests_current_month_to_dbs
 main_folder_sql >> [main_transformation_operator, create_medium_step_file_operator, main_folder_to_dbs]
+main_transformation_operator >> main_folder_true_to_dbs
+create_medium_step_file_operator >> medium_step_file_to_dbs
+[requests_current_month_to_dbs, requests_previous_month_to_dbs, main_folder_true_to_dbs, medium_step_file_to_dbs] >> send_telegram_message
