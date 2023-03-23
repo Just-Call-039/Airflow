@@ -32,34 +32,43 @@ dag = DAG(
 
 cloud_name = 'cloud_128'
 
+# Текущая дата.
 today = date.today()
+# Предыдущий месяц.
 previous_date = today - dateutil.relativedelta.relativedelta(months=1)
+# Предыдущий день.
+previous_day = today - dateutil.relativedelta.relativedelta(days=1)
 
+# Наименование файла для заявок предыдущего месяца.
 year_for_previous = previous_date.year
 month_for_previous = previous_date.month
 file_name_previous = f'{year_for_previous}_{month_for_previous}.csv'
 
+# Наименование файла для заявок текущего месяца.
 year_for_current = today.year
 month_for_current = today.month
 file_name_current = f'{year_for_current}_{month_for_current}.csv'
 
-previous_day = today - dateutil.relativedelta.relativedelta(days=1)
+# Наименование файла из робот лога предыдущего дня. Везде использую, как main.
 year_main = previous_day.year
 month_main = previous_day.month
 day_main = previous_day.day
 file_name_main = f'{year_main}_{month_main}_{day_main}.csv'
 
+# Пути к файлам на сервере airflow.
 path_to_file_airflow = '/root/airflow/dags/steps_report/files/'
 path_to_files_from_sql = f'{path_to_file_airflow}files_from_sql/'
 path_to_main_folder = f'{path_to_file_airflow}main_folder/'
 path_to_requests_folder = f'{path_to_file_airflow}requests_folder/'
 path_to_uniqueid_medium_folder = f'{path_to_file_airflow}uniqueid_medium_folder/'
 
+# Пути к sql запросам на сервере airflow.
 path_to_sql_airflow = '/root/airflow/dags/steps_report/SQL/'
 sql_main = f'{path_to_sql_airflow}main.sql'
 sql_requests_previous_month = f'{path_to_sql_airflow}requests_previous_month.sql'
 sql_requests_current_month = f'{path_to_sql_airflow}requests_current_month.sql'
 
+# Пути к файлам на сервере dbs.
 path_to_file_dbs = '/steps_report/files/'
 dbs_from_sql = f'{path_to_file_dbs}files_from_sql/'
 dbs_main_folder = f'{path_to_file_dbs}main_folder/'
