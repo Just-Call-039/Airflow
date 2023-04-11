@@ -1,5 +1,5 @@
 with calls as (select cl.id,
-                      cl.date_entered               as call_date,
+                      cl.date_entered + interval 2 hour   as call_date,
                       cl.name,
                       cl_c.asterisk_caller_id_c           as phone,
                       if((cl_c.queue_c in ('', ' ') or cl_c.queue_c is null), 'unknown_queue',
