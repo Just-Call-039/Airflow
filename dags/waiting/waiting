@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, date
 import pendulum
 
 from airflow import DAG
@@ -21,8 +21,28 @@ default_args = {
 
 dag = DAG(
     dag_id='waiting',
-    schedule_interval='30 7-14 * * *',
-    start_date=pendulum.datetime(2022, 11, 22, tz='Europe/Kaliningrad'),
+    schedule_interval='30 22 * * *',
+    start_date=pendulum.datetime(2023, 4, 11, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args
+    )
+
+
+cloud_name = 'cloud_128'
+sql = '/root/airflow/dags/waiting/SQL/waiting_log.sql'
+
+path_to_file_airflow = '/root/airflow/dags/waiting/Files/'
+
+now = date.today()
+file_name = f'Ждуны за {now}.csv'
+path_to_file_dbs = '/Shoooorik/Waiters/Waiters/'
+
+# path = rf'\\10.88.22.128\dbs\Shoooorik\Waiters\Waiters\Ждуны за {now}.csv'
+
+# Блок выполнения SQL запросов.
+requests_previous_month_sql = PythonOperator(
+    task_id='requests_previous_month_sql', 
+    python_callable=sql_query_to_csv, 
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql, 'path_csv_file': path_to_file_airflow, 'name_csv_file': file_name}, 
+    dag=dag
     )
