@@ -14,7 +14,6 @@ default_args = {
     'email': 'brezhnev.aleksandr@gmail.com',
     'email_on_failure': False,
     'email_on_retry': False,
-    'mysql_conn_id': 'cloud_my_sql_117',
     'retries': 3,
     'retry_delay': timedelta(minutes=5)
     }
@@ -26,3 +25,25 @@ dag = DAG(
     catchup=False,
     default_args=default_args
     )
+
+
+cloud_name = 'cloud_128'
+
+sql_main = '/root/airflow/dags/4_report/SQL/main_current_month.sql'
+sql_requests = '/root/airflow/dags/4_report/SQL/requests_current_month.sql'
+
+# Пути к sql запросам на сервере airflow.
+path_to_sql_airflow = '/root/airflow/dags/4_report/SQL/'
+sql_main = f'{path_to_sql_airflow}main_current_day.sql'
+sql_requests = f'{path_to_sql_airflow}requests_current_day.sql'
+
+# Пути к файлам на сервере airflow.
+path_to_file_airflow = '/root/airflow/dags/4_report/Files/today/'
+path_to_main_today = f'{path_to_file_airflow}main_folder/'
+path_to_requests_today = f'{path_to_file_airflow}requests_folder/'
+
+# Пути к файлам на сервере dbs.
+path_to_file_dbs = '/4_report/Files/today/'
+dbs_main_today = f'{path_to_file_dbs}main_folder/'
+dbs_requests_today = f'{path_to_file_dbs}requests_folder/'
+
