@@ -29,8 +29,9 @@ dag = DAG(
 
 cloud_name = 'cloud_128'
 
-sql_main = '/root/airflow/dags/4_report/SQL/main_current_month.sql'
-sql_requests = '/root/airflow/dags/4_report/SQL/requests_current_month.sql'
+# Наименование файлов.
+csv_main = 'main.csv'
+csv_requests = 'requests.csv'
 
 # Пути к sql запросам на сервере airflow.
 path_to_sql_airflow = '/root/airflow/dags/4_report/SQL/'
@@ -47,3 +48,18 @@ path_to_file_dbs = '/4_report/Files/today/'
 dbs_main_today = f'{path_to_file_dbs}main_folder/'
 dbs_requests_today = f'{path_to_file_dbs}requests_folder/'
 
+# Блок выполнения SQL запросов.
+requests_today = PythonOperator(
+    task_id='requests_today', 
+    python_callable=sql_query_to_csv, 
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_requests, 'path_csv_file': path_to_requests_today, 'name_csv_file': csv_requests}, 
+    dag=dag
+    )
+main_today = PythonOperator(
+    task_id='main_today', 
+    python_callable=sql_query_to_csv, 
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_main, 'path_csv_file': path_to_main_today, 'name_csv_file': csv_main}, 
+    dag=dag
+    )
+
+requests_today, main_today
