@@ -19,7 +19,8 @@ with calls as (select cl.id,
                         left join suitecrm.calls_cstm as cl_c on cl.id = cl_c.id_c
                         left join suitecrm.contacts on cl_c.asterisk_caller_id_c = contacts.phone_work
                         left join suitecrm.contacts_cstm on contacts_cstm.id_c = contacts.id
-               where date(cl.date_entered) = date(curdate())),
+               where date(cl.date_entered) = date(curdate())
+                 and hour(time(cl.date_entered + interval 2 hour)) < hour(time(now() - interval 1 hour))),
 
      ws as (select *
             from (select *, row_number() over (partition by id_user order by date_start desc) as num

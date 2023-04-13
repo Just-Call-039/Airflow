@@ -62,4 +62,19 @@ main_today = PythonOperator(
     dag=dag
     )
 
-requests_today, main_today
+# Блок отправки всех файлов в папку DBS.
+requests_today_to_dbs = PythonOperator(
+    task_id='requests_today_to_dbs', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_to_requests_today, 'to_path': dbs_requests_today, 'file': csv_requests, 'db': 'DBS'}, 
+    dag=dag
+    )
+main_today_to_dbs = PythonOperator(
+    task_id='main_today_to_dbs', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_to_main_today, 'to_path': dbs_main_today, 'file': csv_main, 'db': 'DBS'}, 
+    dag=dag
+    )
+
+requests_today >> requests_today_to_dbs
+main_today >> main_today_to_dbs
