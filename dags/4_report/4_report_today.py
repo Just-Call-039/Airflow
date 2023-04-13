@@ -20,7 +20,7 @@ default_args = {
 
 dag = DAG(
     dag_id='4_report_today',
-    schedule_interval='30 7-14 * * *',
+    schedule_interval='10 9-17/1 * * *',
     start_date=pendulum.datetime(2022, 11, 22, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args
