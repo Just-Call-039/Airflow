@@ -19,3 +19,5 @@ def sql_query_to_csv(cloud, path_sql_file, path_csv_file, name_csv_file):
 
     to_file = rf'{path_csv_file}/{name_csv_file}'
     df.to_csv(to_file, index=False, sep=';', encoding='utf-8')
+    
+    my_connect.close()
