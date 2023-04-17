@@ -46,7 +46,7 @@ path_to_file_dbs = '/Shoooorik/Waiters/Waiters/'
 waiting_sql = PythonOperator(
     task_id='waiting_sql', 
     python_callable=sql_query_to_csv, 
-    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql, 'path_csv_file': path_to_file_airflow, 'name_csv_file': file_name}, 
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql, 'path_csv_file': path_to_file_airflow, 'name_csv_file': file_name, 'current_separator': ','}, 
     dag=dag
     )
 
