@@ -4,7 +4,7 @@ import os
 
 
 def team_project():
-    path = '/root/airflow/dags/Проект/Команды'
+    path = '/root/airflow/dags/project_defenition/projects/teams'
     files = glob.glob(path + "/*.csv")
     project_team = pd.DataFrame()
     n = 0
@@ -29,7 +29,7 @@ def team_project():
 
 
 def queue_project():
-    path = '/root/airflow/dags/Проект/Очереди'
+    path = '/root/airflow/dags/project_defenition/projects/queues'
     files = glob.glob(path + "/*.csv")
     project_queue = pd.DataFrame()
     n = 0
