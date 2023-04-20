@@ -1,4 +1,5 @@
 # My ignore list.
+*.json
 *.csv
 *.jpg
 *.zip

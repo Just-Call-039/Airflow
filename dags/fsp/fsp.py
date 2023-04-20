@@ -189,17 +189,17 @@ remove_files_from_airflow = PythonOperator(
     dag=dag
     )
 
-# # Отправка уведомления об ошибке в Telegram.
-# send_telegram_message = TelegramOperator(
-#         task_id='send_telegram_message',
-#         telegram_conn_id='Telegram',
-#         chat_id='-1001412983860',
-#         text='Произошла ошибка работы отчета по шагам.',
-#         dag=dag,
-#         # on_failure_callback=True,
-#         # trigger_rule='all_success'
-#         trigger_rule='one_failed'
-#     )
+# Отправка уведомления об ошибке в Telegram.
+send_telegram_message = TelegramOperator(
+        task_id='send_telegram_message',
+        telegram_conn_id='Telegram',
+        chat_id='-1001412983860',
+        text='Ошибка выгрузки данных для фсп',
+        dag=dag,
+        # on_failure_callback=True,
+        # trigger_rule='all_success'
+        trigger_rule='one_failed'
+    )
 
 # Очередности выполнения задач.
 [sql_users,
@@ -214,6 +214,8 @@ sql_robotlog_calls]
 [sql_robotlog_calls,sql_users] >> transformation_robotlog_calls >> transfer_robotlog_calls
 [sql_users, sql_worktime] >> transfer_else
 [transfer_operator_calls, transfer_robotlog_calls] >> remove_files_from_airflow
+
+[transfer_meetings, transfer_operator_calls,transfer_robotlog_calls, transfer_else, remove_files_from_airflow ] >> send_telegram_message
 
 
 
