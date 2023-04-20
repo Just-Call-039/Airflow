@@ -8,7 +8,8 @@ from airflow.providers.telegram.operators.telegram import TelegramOperator
 from airflow.operators.python_operator import PythonOperator
 
 from fsp.transfer_files_to_dbs import transfer_files_to_dbs
-from commons.transfer_file_to_dbs import transfer_file_to_dbs
+from fsp.transfer_files_to_dbs import transfer_file_to_dbs
+from fsp.transfer_files_to_dbs import remove_files_from_airflow
 from fsp.repeat_download import sql_query_to_csv
 from fsp.repeat_download import repeat_download
 from fsp.operator_calls_editing import operator_calls_transformation
@@ -156,28 +157,35 @@ transformation_meetings = PythonOperator(
 transfer_operator_calls = PythonOperator(
     task_id='operator_calls_transfer', 
     python_callable=transfer_files_to_dbs, 
-    op_kwargs={'from_path': path_to_operator_calls_folder, 'to_path': dbs_operator_calls, 'db': 'DBS', 'n': n, 'days': days}, 
+    op_kwargs={'from_path': path_to_operator_calls_folder, 'to_path': dbs_operator_calls, 'db': 'DBS'}, 
     dag=dag
     )
 
 transfer_robotlog_calls = PythonOperator(
     task_id='robotlog_calls_transfer', 
     python_callable=transfer_files_to_dbs, 
-    op_kwargs={'from_path': path_to_robotlog_calls_folder, 'to_path': dbs_robotlog_calls, 'db': 'DBS', 'n': n, 'days': days}, 
+    op_kwargs={'from_path': path_to_robotlog_calls_folder, 'to_path': dbs_robotlog_calls, 'db': 'DBS'}, 
     dag=dag
     )
 
 transfer_meetings = PythonOperator(
     task_id='meetings_transfer', 
     python_callable=transfer_files_to_dbs, 
-    op_kwargs={'from_path': path_to_meetings_folder, 'to_path': dbs_meetings, 'db': 'DBS', 'n': 1, 'days': 2}, 
+    op_kwargs={'from_path': path_to_meetings_folder, 'to_path': dbs_meetings, 'db': 'DBS'}, 
     dag=dag
     )
 
 transfer_else = PythonOperator(
     task_id='else_transfer', 
-    python_callable=transfer_files_to_dbs, 
-    op_kwargs={'from_path': path_to_file_airflow, 'to_path': path_to_file_dbs, 'db': 'DBS', 'n': 1, 'days': 2}, 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_to_file_airflow, 'to_path': path_to_file_dbs, 'db': 'DBS', 'file1': file_name_worktime, 'file2': file_name_users}, 
+    dag=dag
+    )
+
+remove_files_from_airflow = PythonOperator(
+    task_id='remove_files_from_airflow', 
+    python_callable=remove_files_from_airflow, 
+    op_kwargs={'paths': [path_to_robotlog_calls_folder, path_to_operator_calls_folder]}, 
     dag=dag
     )
 
@@ -205,7 +213,7 @@ sql_robotlog_calls]
 [sql_operator_calls,sql_users] >> transformation_operator_calls >> transfer_operator_calls
 [sql_robotlog_calls,sql_users] >> transformation_robotlog_calls >> transfer_robotlog_calls
 [sql_users, sql_worktime] >> transfer_else
-
+[transfer_operator_calls, transfer_robotlog_calls] >> remove_files_from_airflow
 
 
 

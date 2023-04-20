@@ -76,5 +76,17 @@ main_today_to_dbs = PythonOperator(
     dag=dag
     )
 
-requests_today >> requests_today_to_dbs
-main_today >> main_today_to_dbs
+# Отправка уведомления об ошибке в Telegram.
+send_telegram_message = TelegramOperator(
+        task_id='send_telegram_message',
+        telegram_conn_id='Telegram',
+        chat_id='-1001412983860',
+        text='Произошла ошибка работы отчета №4 текущего дня.',
+        dag=dag,
+        # on_failure_callback=True,
+        # trigger_rule='all_success'
+        trigger_rule='one_failed'
+    )
+
+requests_today >> requests_today_to_dbs >> send_telegram_message
+main_today >> main_today_to_dbs >> send_telegram_message

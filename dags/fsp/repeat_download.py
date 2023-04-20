@@ -1,13 +1,14 @@
 ﻿# Та же функция отправки sql скрипта на сервер, но с циклом в несколько раз
 
 def repeat_download(n,days,cloud, path_sql_file, path_csv_file, name_csv_file):
+    import pymysql
+    import pandas as pd
+    import datetime
+    from time import sleep
+
+    from commons.connect_db import connect_db
+    
     for i in range(0,days):
-        import pymysql
-        import pandas as pd
-        import datetime
-
-        from commons.connect_db import connect_db
-
         host, user, password = connect_db(cloud)
         my_connect = pymysql.Connect(host=host, user=user, passwd=password,
                                      db="suitecrm",
@@ -27,6 +28,7 @@ def repeat_download(n,days,cloud, path_sql_file, path_csv_file, name_csv_file):
 
         n += 1
         my_connect.close()
+        sleep(20)
 
 def sql_query_to_csv(cloud, path_sql_file, path_csv_file, name_csv_file, current_separator=','):
     import pymysql
