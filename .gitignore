@@ -13,3 +13,5 @@
 *.db
 /dags/not_share
 airflow-webserver.pid
+/logs
+/venv
