@@ -12,11 +12,11 @@ with timework as (select id_user, date, sum(A) timework, sum(talk_inbound) talk_
                              and id_user not in ('1', '')
                              and id_user is not null) t
                   group by id_user, date),
-     config as (select D.name                                        'Название диалога',
-                       step.name                                     'Название шага перевода',
+     config as (select D.name                                        'name',
+                       step.name                                     'step_name',
                        index_number                                  'step',
                        replace(replace(queue, '_NEW^', ''), '^', '') 'dialogs',
-                       custom_queue_c                                'Принимающая очередь'
+                       custom_queue_c                                'custom'
                 from suitecrm.jc_robconfig_step step
                          left join suitecrm.jc_robconfig_step_cstm cstm on step.id = cstm.id_c
                          left join suitecrm.jc_robconfig_dialog_jc_robconfig_step_c sv
@@ -245,9 +245,9 @@ with timework as (select id_user, date, sum(A) timework, sum(talk_inbound) talk_
                            when left(first_name, instr(first_name, ' ') - 1) > 0 and
                                 left(first_name, instr(first_name, ' ') - 1) < 10000
                                then left(first_name, instr(first_name, ' ') - 1)
-                           when left(first_name, 2) = 'я_'
+                           when left(first_name, 2) = 'пїЅ_'
                                then substring(first_name, 3, (instr(first_name, ' ') - 3))
-                           when left(first_name, 1) = 'я'
+                           when left(first_name, 1) = 'пїЅ'
                                then substring(first_name, 2, (instr(first_name, ' ') - 1))
                           when first_name > 0 then first_name
                            else '' end team

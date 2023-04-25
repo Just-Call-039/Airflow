@@ -39,7 +39,9 @@ cloud_name = 'cloud_128'
 path_to_sql_airflow = '/root/airflow/dags/operational_all/SQL/'
 sql_operational = f'{path_to_sql_airflow}operational.sql'
 sql_operational_calls = f'{path_to_sql_airflow}operational_calls.sql'
-# sql_worktime = f'{path_to_sql_airflow}worktime.sql'
+sql_worktime = f'{path_to_sql_airflow}worktime.sql'
+sql_transfers = f'{path_to_sql_airflow}transfers.sql'
+sql_meetings = f'{path_to_sql_airflow}meetings.sql'
 sql_etv = f'{path_to_sql_airflow}etv.sql'
 sql_autofilling = f'{path_to_sql_airflow}autofilling.sql'
 
@@ -48,7 +50,9 @@ sql_autofilling = f'{path_to_sql_airflow}autofilling.sql'
 file_name_users = 'users.csv'
 file_name_operational = 'operational.csv'
 file_name_operational_calls = 'operational_calls.csv'
-# file_name_worktime = 'worktime.csv'
+file_name_worktime = 'worktime.csv'
+file_name_transfers = 'transfers.csv'
+file_name_meetings = 'meetings.csv'
 file_name_etv = 'etv.csv'
 file_name_autofilling = 'autofilling.csv'
 
@@ -82,6 +86,27 @@ sql_operational_calls = PythonOperator(
     dag=dag
     )
 
+sql_worktime = PythonOperator(
+    task_id='worktime_sql',
+    python_callable=sql_query_to_csv,
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_worktime, 'path_csv_file': path_to_operational_folder, 'name_csv_file': file_name_worktime},
+    dag=dag
+    )
+
+sql_transfers = PythonOperator(
+    task_id='transfers_sql',
+    python_callable=sql_query_to_csv,
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_transfers, 'path_csv_file': path_to_operational_folder, 'name_csv_file': file_name_transfers},
+    dag=dag
+    )
+
+sql_meetings = PythonOperator(
+    task_id='meetings_sql',
+    python_callable=sql_query_to_csv,
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_meetings, 'path_csv_file': path_to_operational_folder, 'name_csv_file': file_name_meetings},
+    dag=dag
+    )
+
 sql_etv = PythonOperator(
     task_id='etv_sql',
     python_callable=sql_query_to_csv,
@@ -109,7 +134,7 @@ transformation_operational = PythonOperator(
 transformation_operational_calls = PythonOperator(
     task_id='operational_calls_transformation', 
     python_callable = operational_calls_transformation, 
-    op_kwargs={'path_to_folder': path_to_sql_operational_folder, 'name_calls': file_name_operational, 'path_to_final_folder': path_to_operational_folder}, 
+    op_kwargs={'path_to_folder': path_to_sql_operational_folder, 'name_calls': file_name_operational_calls, 'path_to_final_folder': path_to_operational_folder}, 
     dag=dag
     )
 
@@ -118,7 +143,7 @@ transformation_operational_calls = PythonOperator(
 transfer_operational = PythonOperator(
     task_id='operational_transfer', 
     python_callable=transfer_files_to_dbs, 
-    op_kwargs={'from_path': path_to_operational_folder, 'to_path': path_to_file_dbs, 'db': 'DBS'}, 
+    op_kwargs={'from_path': path_to_operational_folder, 'to_path': dbs_operational, 'db': 'DBS'}, 
     dag=dag
     )
 
@@ -138,7 +163,9 @@ send_telegram_message = TelegramOperator(
 
 sql_operational >> transformation_operational
 sql_operational_calls >> transformation_operational_calls
-[transformation_operational, transformation_operational_calls, sql_etv, sql_autofilling] >> transfer_operational
+
+[transformation_operational, transformation_operational_calls, sql_worktime,
+  sql_transfers, sql_meetings, sql_etv, sql_autofilling] >> transfer_operational
 # >> send_telegram_message
 
 
