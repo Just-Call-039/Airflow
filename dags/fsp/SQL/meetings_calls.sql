@@ -420,7 +420,20 @@
                     ) as t2
                where ochered is not null)
 
-select jc2.*
+select jc2.id,
+       datecall,
+       jc2.assigned_user_id,
+       phone,
+       network_provider,
+       jc2.ptv_c,
+       jc2.region_c,
+       marker,
+       last_step,
+       queue,
+       destination_queue,
+       was_repeat,
+       inbound_call,
+       if(jc2.city_c is null or jc2.city_c = '',concat(contacts_cstm.town_c,'_t'),jc2.city_c) as city_c
 from (select distinct jc.uniqueid                    id,
                       DATE(jc.call_date)             datecall,
                       jc.assigned_user_id,
@@ -498,5 +511,7 @@ from (select distinct jc.uniqueid                    id,
       WHERE date(call_date) >= '2022-10-01'
         and jc.assigned_user_id not in ('1', '')) jc2
          left join steps on last_step = step and queue = ochered
+         left join suitecrm.contacts on phone = phone_work
+         left join suitecrm.contacts_cstm on contacts.id = contacts_cstm.id_c
 where step is not null
 # or inbound_call = 1

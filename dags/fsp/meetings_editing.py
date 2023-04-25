@@ -26,6 +26,12 @@ def meetings_transformation(path_to_users, name_users, path_to_folder, name_call
             return row['team_y']
         else:
             return row['team_x']
+    
+    def city_c(row):
+        if row['city_c_y'] == '':
+            return row['city_c_x']
+        else:
+            return row['city_c_y']
 
     part1['team'] = part1.apply(lambda row: team_y(row), axis=1)
 
@@ -45,6 +51,7 @@ def meetings_transformation(path_to_users, name_users, path_to_folder, name_call
     konva['region'] = konva['region_c'].astype('str')
     konva['ptv_c'] = konva['ptv_c'].fillna('^0^')
     konva['region'] = konva.apply(lambda row: def_meetings_functions.region(row), axis=1)
+    konva['city_c'] = konva.apply(lambda row: city_c(row), axis=1)
 
     konva[['destination_queue', 'queue', 'last_queue_c']] = konva[['destination_queue', 'queue', 'last_queue_c']].fillna(0)
     konva['queue_c'] = konva.apply(lambda row: def_meetings_functions.queue(row), axis=1)
@@ -63,13 +70,13 @@ def meetings_transformation(path_to_users, name_users, path_to_folder, name_call
     konva_group = konva.groupby(['project', 'team', 'uid', 'fio_x', 'date', 'date_entered', 'status', 'konva', 'tarif',
                                 'department', 'marker', 'last_step', 'region', 'queue_c', 'destination_queue_c',
                                 'network_provider','organization',
-                                'city_c_x'], as_index=False, dropna=False).agg({'rtkid': 'count'}).rename(
+                                'city_c'], as_index=False, dropna=False).agg({'rtkid': 'count'}).rename(
         columns={'rtkid': 'vsego',
                 'date': 'calldate',
                 'fio_x': 'fio',
                 'queue_c': 'queue',
                 'destination_queue_c': 'destination_queue',
-                'city_c_x': 'city_c',
+                # 'city_c_x': 'city_c',
                 'project': 'proect'})
 
     konva_group.to_csv(f'{path_to_final_folder}/{name_meetings}', sep=',', index=False, encoding='utf-8')

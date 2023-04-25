@@ -41,8 +41,9 @@ def transfer_file_to_dbs(from_path, to_path, db, file1, file2):
     if conn.connect(host, 445):
         with open(f'{from_path}{file1}', 'rb') as my_file:
             conn.storeFile('dbs', f'{to_path}{file1}', my_file)
-        with open(f'{from_path}{file2}', 'rb') as my_file:
-            conn.storeFile('dbs', f'{to_path}{file2}', my_file)
+        if file2 != '':
+            with open(f'{from_path}{file2}', 'rb') as my_file:
+                conn.storeFile('dbs', f'{to_path}{file2}', my_file)
     
     conn.close()
 

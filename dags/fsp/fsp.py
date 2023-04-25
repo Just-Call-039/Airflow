@@ -38,10 +38,10 @@ dag = DAG(
 cloud_name = 'cloud_128'
 
 # Кол-во дней для выгрузки
-days = 16
+days = 3
 
 # Дата выгрузки (n = кол-во дней назад)
-n = 4
+n = 1
 now = datetime.datetime.now() - datetime.timedelta(days=n)
 
 # Пути к sql запросам на сервере airflow.

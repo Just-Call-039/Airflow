@@ -470,7 +470,7 @@
                                when jc_robot_log.network_provider_c = '68' then 'Теле2'
                                else 'MVNO'
                                end                               network_provider_c,
-                           jc_robot_log.city_c,
+                           if(jc_robot_log.city_c is null or jc_robot_log.city_c = '',concat(cm.town_c,'_t'),jc_robot_log.city_c) as city_c,
                            jc_robot_log.region_c,
                            jc_robot_log.ptv_c,
                            jc_robot_log.uniqueid                 id,

@@ -71,7 +71,10 @@ with ocheredi as (select distinct *
                                     where rn = 1) worktime_supervisor on users.id = id_user
                          left join fio on supervisor = fio.id),
      teams as (select id, fio, replace(team1, ' ', '') team, supervisor
-               from userrr)
+               from userrr),
+     contacts as (select phone_work, if(city_c is null or city_c = '',concat(contacts_cstm.town_c,'_t'),city_c) as city_c, town_c
+                                         from suitecrm.contacts
+                                                  left join suitecrm.contacts_cstm on id = id_c)
 
 select Meets.*,
        case
@@ -126,10 +129,7 @@ from (
                      FROM suitecrm.jc_meetings_rostelecom rtk
                               left join suitecrm.jc_meetings_rostelecom_cstm rtk_cstm on rtk.id = rtk_cstm.id_c
                               left join teams on rtk.assigned_user_id = teams.id
-                              left join (select phone_work, city_c, town_c
-                                         from suitecrm.contacts
-                                                  left join suitecrm.contacts_cstm on id = id_c) contacts
-                                        on rtk.phone_work = contacts.phone_work
+                              left join contacts on rtk.phone_work = contacts.phone_work
                      WHERE date(rtk.date_entered) >= '2023-01-01'
                        AND rtk.status not in ('Error', 'doubled')
                        and rtk.deleted = 0) R
@@ -179,10 +179,7 @@ from (
                      FROM suitecrm.jc_meetings_beeline bln
                               left join suitecrm.jc_meetings_beeline_cstm bln_cstm on bln.id = bln_cstm.id_c
                               left join teams on bln.assigned_user_id = teams.id
-                              left join (select phone_work, city_c, town_c
-                                         from suitecrm.contacts
-                                                  left join suitecrm.contacts_cstm on id = id_c) contacts
-                                        on bln.phone_work = contacts.phone_work
+                              left join contacts on bln.phone_work = contacts.phone_work
                      WHERE date(bln.date_entered) >= '2023-01-01'
                        AND bln.status != 'Error'
                        and bln.deleted = 0) R) BLN
@@ -246,10 +243,7 @@ from (
                      FROM suitecrm.jc_meetings_domru dom
                               left join suitecrm.jc_meetings_domru_cstm dom_cstm on id_c = id
                               left join teams on dom.assigned_user_id = teams.id
-                              left join (select phone_work, city_c, town_c
-                                         from suitecrm.contacts
-                                                  left join suitecrm.contacts_cstm on id = id_c) contacts
-                                        on dom.phone_work = contacts.phone_work
+                              left join contacts on dom.phone_work = contacts.phone_work
                      WHERE date(dom.date_entered) >= '2023-01-01'
                        AND dom.status != 'Error'
                        and dom.deleted = 0) R) DOM
@@ -305,10 +299,7 @@ from (
                      FROM suitecrm.jc_meetings_ttk ttk
                               left join suitecrm.jc_meetings_ttk_cstm ttk_cstm on ttk.id = ttk_cstm.id_c
                               left join teams on ttk.assigned_user_id = teams.id
-                              left join (select phone_work, city_c, town_c
-                                         from suitecrm.contacts
-                                                  left join suitecrm.contacts_cstm on id = id_c) contacts
-                                        on ttk.phone_work = contacts.phone_work
+                              left join contacts on ttk.phone_work = contacts.phone_work
                      WHERE date(ttk.date_entered) >= '2023-01-01'
                        AND ttk.status != 'Error'
                        and ttk.deleted = 0) R) TTK
@@ -352,10 +343,7 @@ from (
                      FROM suitecrm.jc_meetings_netbynet nbn
                               left join suitecrm.jc_meetings_netbynet_cstm nbn_cstm on nbn.id = nbn_cstm.id_c
                               left join teams on nbn.assigned_user_id = teams.id
-                              left join (select phone_work, city_c, town_c
-                                         from suitecrm.contacts
-                                                  left join suitecrm.contacts_cstm on id = id_c) contacts
-                                        on nbn.phone_work = contacts.phone_work
+                              left join contacts on nbn.phone_work = contacts.phone_work
                      WHERE date(nbn.date_entered) >= '2023-01-01'
                        AND nbn.status != 'Error'
                        and nbn.deleted = 0) R
@@ -416,13 +404,9 @@ from (
                               left join suitecrm.jc_meetings_mts_cstm mts_cstm on mts.id = mts_cstm.id_c
                               left join ocheredi on mts_cstm.last_queue_c = ocheredi.queue
                               left join teams on mts.assigned_user_id = teams.id
-                              left join (select phone_work, city_c, town_c
-                                         from suitecrm.contacts
-                                                  left join suitecrm.contacts_cstm on id = id_c) contacts
-                                        on mts.phone_work = contacts.phone_work
+                              left join contacts on mts.phone_work = contacts.phone_work
                      WHERE date(mts.date_entered) >= '2023-01-01'
                        AND mts.status != 'Error'
                        and mts.deleted = 0) tmts) R2
      ) Meets
          left join department on Meets.team = department.team
-# where uid = '45400544-e3e6-f4fb-f1dd-5c500fb13e8c'

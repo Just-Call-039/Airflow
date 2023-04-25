@@ -6,7 +6,7 @@ SELECT id_user, date, (`recall`+ `sobranie`+ `obuchenie`+ `training`+ `nastavnik
 
        talk_inbound
 FROM suitecrm.reports_cache
-where (date between '2022-09-01' and now())
+where (date between '2023-02-01' and now())
 and id_user not in ('1','')
 and id_user is not null    ) t
 group by id_user, date
