@@ -26,7 +26,7 @@ default_args = {
 
 dag = DAG(
     dag_id='operational',
-    schedule_interval='*/90 8-20 * * *',
+    schedule_interval='*/90 7-19 * * *',
     start_date=pendulum.datetime(2023, 4, 24, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args
@@ -48,13 +48,22 @@ sql_autofilling = f'{path_to_sql_airflow}autofilling.sql'
 
 # Наименование файлов
 file_name_users = 'users.csv'
-file_name_operational = 'operational.csv'
-file_name_operational_calls = 'operational_calls.csv'
-file_name_worktime = 'worktime.csv'
-file_name_transfers = 'transfers.csv'
-file_name_meetings = 'meetings.csv'
-file_name_etv = 'etv.csv'
-file_name_autofilling = 'autofilling.csv'
+# file_name_operational = 'operational.csv'
+# file_name_operational_calls = 'operational_calls.csv'
+# file_name_worktime = 'worktime.csv'
+# file_name_transfers = 'transfers.csv'
+# file_name_meetings = 'meetings.csv'
+# file_name_etv = 'etv.csv'
+# file_name_autofilling = 'autofilling.csv'
+
+file_name_operational = 'Оперативный.csv'
+file_name_operational_calls = 'Дозвон.csv'
+file_name_worktime = 'Время.csv'
+file_name_transfers = 'Оперативный_переводы.csv'
+file_name_meetings = 'Оперативный_заявки.csv'
+file_name_etv = 'ЕТВ.csv'
+file_name_autofilling = 'Автозаливки.csv'
+
 
 # Пути к файлам на сервере airflow
 # Сразу после sql
@@ -147,17 +156,24 @@ transfer_operational = PythonOperator(
     dag=dag
     )
 
-# Отправка уведомления об ошибке в Telegram.
-send_telegram_message = TelegramOperator(
-        task_id='send_telegram_message',
-        telegram_conn_id='Telegram',
-        chat_id='-1001412983860',
-        text='Ошибка выгрузки данных для оперативных отчетов',
-        dag=dag,
-        # on_failure_callback=True,
-        # trigger_rule='all_success'
-        trigger_rule='one_failed'
+transfer_operational2 = PythonOperator(
+    task_id='operational_transfer2', 
+    python_callable=transfer_files_to_dbs, 
+    op_kwargs={'from_path': path_to_operational_folder, 'to_path': '/scripts fsp/Current Files/', 'db': 'DBS'}, 
+    dag=dag
     )
+
+# # Отправка уведомления об ошибке в Telegram.
+# send_telegram_message = TelegramOperator(
+#         task_id='send_telegram_message',
+#         telegram_conn_id='Telegram',
+#         chat_id='-1001412983860',
+#         text='Ошибка выгрузки данных для оперативных отчетов',
+#         dag=dag,
+#         # on_failure_callback=True,
+#         # trigger_rule='all_success'
+#         trigger_rule='one_failed'
+#     )
 
 # Очередности выполнения задач.
 
@@ -165,7 +181,7 @@ sql_operational >> transformation_operational
 sql_operational_calls >> transformation_operational_calls
 
 [transformation_operational, transformation_operational_calls, sql_worktime,
-  sql_transfers, sql_meetings, sql_etv, sql_autofilling] >> transfer_operational
+  sql_transfers, sql_meetings, sql_etv, sql_autofilling] >> transfer_operational >> transfer_operational2 
 # >> send_telegram_message
 
 

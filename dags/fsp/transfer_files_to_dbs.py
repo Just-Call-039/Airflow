@@ -18,7 +18,9 @@ def transfer_files_to_dbs(from_path, to_path, db):
     if conn.connect(host, 445):
         for i in files:
             with open(f'{from_path}{i}', 'rb') as my_file:
+                print(f'{from_path}{i}')
                 conn.storeFile('dbs', f'{to_path}{i}', my_file)
+                sleep(5)
                 # n += 1
     
     conn.close()

@@ -1,0 +1,21 @@
+select phone_work,
+        stoplist_c,
+        ptv_c,
+        region_c,
+        network_provider_c,
+        base_source_c,
+        town_c,
+        city_c,
+        priority1,
+        priority2,
+        last_project,
+        next_project,
+        date(last_call_c) last_call,
+        otkaz_c,
+        contacts_status_c,
+        istochnik_combo_c
+from suitecrm.contacts_cstm
+left join suitecrm.contacts on id=id_c
+left join contacts_custom_fields ON contacts_custom_fields.id_custom = contacts.id
+where deleted=0
+limit {},{}
