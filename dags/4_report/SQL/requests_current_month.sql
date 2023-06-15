@@ -10,7 +10,8 @@ with requests as (select 'RTK'                              as project,
                          date(r.date_entered)               as request_date,
                          assigned_user_id                   as user,
                          user_id_c                          as super,
-                         status
+                         status,
+                         r_c.last_queue_c
                   from suitecrm.jc_meetings_rostelecom as r
                            left join suitecrm.jc_meetings_rostelecom_cstm as r_c on r.id = r_c.id_c
                   where status != 'Error'
@@ -30,7 +31,8 @@ with requests as (select 'RTK'                              as project,
                          date(b.date_entered)               as request_date,
                          assigned_user_id                   as user,
                          user_id_c                          as super,
-                         status
+                         status,
+                         b_c.last_queue_c
                   from suitecrm.jc_meetings_beeline as b
                            left join suitecrm.jc_meetings_beeline_cstm as b_c on b.id = b_c.id_c
                   where status != 'Error'
@@ -50,7 +52,8 @@ with requests as (select 'RTK'                              as project,
                          date(d.date_entered)               as request_date,
                          assigned_user_id                   as user,
                          user_id_c                          as super,
-                         status
+                         status,
+                         d.last_queue_c
                   from suitecrm.jc_meetings_domru as d
                            left join suitecrm.jc_meetings_domru_cstm as d_c on d.id = d_c.id_c
                   where status != 'Error'
@@ -70,7 +73,8 @@ with requests as (select 'RTK'                              as project,
                          date(t.date_entered)               as request_date,
                          assigned_user_id                   as user,
                          user_id_c                          as super,
-                         status
+                         status,
+                         t_c.last_queue_c
                   from suitecrm.jc_meetings_ttk as t
                            left join suitecrm.jc_meetings_ttk_cstm as t_c on t.id = t_c.id_c
                   where status != 'Error'
@@ -90,7 +94,8 @@ with requests as (select 'RTK'                              as project,
                          date(n.date_entered)               as request_date,
                          assigned_user_id                   as user,
                          user_id_c                          as super,
-                         status
+                         status,
+                         n_c.last_queue_c
                   from suitecrm.jc_meetings_netbynet as n
                            left join suitecrm.jc_meetings_netbynet_cstm as n_c on n.id = n_c.id_c
                   where status != 'Error'
@@ -110,7 +115,8 @@ with requests as (select 'RTK'                              as project,
                          date(m.date_entered)               as request_date,
                          assigned_user_id                   as user,
                          user_id_c                          as super,
-                         status
+                         status,
+                         m_c.last_queue_c
                   from suitecrm.jc_meetings_mts as m
                            left join suitecrm.jc_meetings_mts_cstm as m_c on m.id = m_c.id_c
                   where status != 'Error'
@@ -137,6 +143,6 @@ with requests as (select 'RTK'                              as project,
                          and date(cl.date_entered) <= date(now()) - interval 1 day)) as temp
                where num = 1)
 
-select *
+select project, my_phone_work, request_date, user, super, status, id_call, phone_number, call_date, result_call_c, city, num, last_queue_c
 from requests
          left join calls on requests.my_phone_work = calls.phone_number;

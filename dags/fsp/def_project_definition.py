@@ -68,7 +68,33 @@ def project(row):
 def organization(row):
     if row['team'] in ['4','12','50']:
         return 'Лиды'
-    elif 'LIDS' in row['team']:
+    elif 'LIDS' in row['project']:
         return 'Лиды'
     else:
         return 'КЦ'
+    
+def queue_project2():
+    path = '/root/airflow/dags/project_defenition/projects/queues'
+    files = sorted(glob.glob(path + "/*.csv"), reverse=True)
+    project_queue = pd.DataFrame()
+    n = 0
+    num_of_files = len(os.listdir(path))
+
+    print(f'Всего файлов {num_of_files}')
+
+    for i in files:
+        n += 1
+        df = pd.read_csv(i)
+        project_queue = pd.concat([project_queue, df], ignore_index=True, axis=0)
+        # project_queue = project_queue.append(df)
+    del df
+
+    # print(project_queue.columns)
+
+    project_queue = project_queue.rename(columns={'Группировка': 'type_ro'})
+    project_queue['date'] = project_queue['date'].astype('str')
+
+    project_queue['RN'] = project_queue.groupby(['Очередь', 'date']).cumcount() + 1
+    project_queue = project_queue[project_queue['RN'] == 1][['Очередь', 'type_ro', 'date']]
+
+    return project_queue

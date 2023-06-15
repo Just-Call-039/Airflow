@@ -46,6 +46,7 @@ def operational_transformation(path_to_users, name_users, path_to_folder, name_c
         'region',
         'holod',
         'city_c',
+        'otkaz',
         'trunk_id',
         'autootvet',
         'category_stat',

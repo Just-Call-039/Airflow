@@ -8,6 +8,7 @@ from airflow.providers.telegram.operators.telegram import TelegramOperator
 from airflow.operators.python_operator import PythonOperator
 
 from fsp.transfer_files_to_dbs import transfer_files_to_dbs
+from fsp.transfer_files_to_dbs import transfer_file_to_dbs
 from fsp.repeat_download import sql_query_to_csv
 
 from operational_all.operational_editing import operational_transformation
@@ -26,7 +27,7 @@ default_args = {
 
 dag = DAG(
     dag_id='operational',
-    schedule_interval='*/90 7-19 * * *',
+    schedule_interval='10 7-19 * * *',
     start_date=pendulum.datetime(2023, 4, 24, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args
@@ -79,6 +80,7 @@ path_to_operational_folder = f'{path_to_file_airflow}operational/'
 # Пути к файлам на сервере dbs
 path_to_file_dbs = '/operational/'
 dbs_operational = f'{path_to_file_dbs}operational/'
+dbs_operational2 = '/scripts fsp/Current Files/'
 
 # Выполнение SQL запросов
 sql_operational = PythonOperator(
@@ -136,7 +138,7 @@ transformation_operational = PythonOperator(
     task_id='operational_transformation', 
     python_callable = operational_transformation, 
     op_kwargs={'path_to_users': path_to_file_users, 'name_users': file_name_users, 'path_to_folder': path_to_sql_operational_folder,
-                'name_calls': file_name_operational, 'path_to_final_folder': path_to_operational_folder}, 
+                'name_calls': file_name_operational, 'path_to_final_folder': path_to_file_airflow}, 
     dag=dag
     )
 
@@ -149,44 +151,50 @@ transformation_operational_calls = PythonOperator(
 
 
 # Перенос всех файлов в папку DBS.
-transfer_operational = PythonOperator(
-    task_id='operational_transfer', 
-    python_callable=transfer_files_to_dbs, 
-    op_kwargs={'from_path': path_to_operational_folder, 'to_path': dbs_operational, 'db': 'DBS'}, 
-    dag=dag
-    )
+# transfer_operational = PythonOperator(
+#     task_id='operational_transfer', 
+#     python_callable=transfer_files_to_dbs, 
+#     op_kwargs={'from_path': path_to_operational_folder, 'to_path': dbs_operational, 'db': 'DBS'}, 
+#     dag=dag
+#     )
 
 transfer_operational2 = PythonOperator(
     task_id='operational_transfer2', 
     python_callable=transfer_files_to_dbs, 
-    op_kwargs={'from_path': path_to_operational_folder, 'to_path': '/scripts fsp/Current Files/', 'db': 'DBS'}, 
+    op_kwargs={'from_path': path_to_operational_folder, 'to_path': dbs_operational2, 'db': 'DBS'}, 
     dag=dag
     )
 
-# # Отправка уведомления об ошибке в Telegram.
-# send_telegram_message = TelegramOperator(
-#         task_id='send_telegram_message',
-#         telegram_conn_id='Telegram',
-#         chat_id='-1001412983860',
-#         text='Ошибка выгрузки данных для оперативных отчетов',
-#         dag=dag,
-#         # on_failure_callback=True,
-#         # trigger_rule='all_success'
-#         trigger_rule='one_failed'
-#     )
+transfer_operational_main = PythonOperator(
+    task_id='operational_transfer_main', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_to_file_airflow, 'to_path': dbs_operational2, 'db': 'DBS', 'file1': file_name_operational, 'file2': ''}, 
+    dag=dag
+    )
+
+
+# Отправка уведомления об ошибке в Telegram.
+send_telegram_message = TelegramOperator(
+        task_id='send_telegram_message',
+        telegram_conn_id='Telegram',
+        chat_id='-1001412983860',
+        text='Ошибка выгрузки данных для оперативных отчетов',
+        dag=dag,
+        # on_failure_callback=True,
+        # trigger_rule='all_success'
+        trigger_rule='one_failed'
+    )
 
 # Очередности выполнения задач.
 
-sql_operational >> transformation_operational
+sql_operational >> transformation_operational >> transfer_operational_main
 sql_operational_calls >> transformation_operational_calls
 
-[transformation_operational, transformation_operational_calls, sql_worktime,
-  sql_transfers, sql_meetings, sql_etv, sql_autofilling] >> transfer_operational >> transfer_operational2 
-# >> send_telegram_message
+[transformation_operational_calls, sql_worktime,
+  sql_transfers, sql_meetings, sql_etv, sql_autofilling] >> transfer_operational2
 
 
-
-
+[transfer_operational_main, transfer_operational2] >> send_telegram_message
 
 
 

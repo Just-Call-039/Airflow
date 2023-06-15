@@ -1,0 +1,27 @@
+select assigned_user_id,
+       contact_id_c,
+       call_date,
+       last_step,
+       count_steps,
+       uniqueid,
+       client_status,
+       otkaz,
+       was_repeat,
+       substring(dialog, 11, 4) queue,
+       route,
+       server_number,
+       directory,
+       billsec,
+       town,
+       inbound_call,
+       marker,
+       was_stepgroups,
+       ptv_c,
+       network_provider_c,
+       city_c,
+       region_c,
+       phone,
+       was_stepgroups
+from suitecrm_robot.jc_robot_log
+where date(call_date) = date(now())
+and hour(call_date) between 0 and hour(now()) - 4

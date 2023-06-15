@@ -503,6 +503,7 @@ with etv as (SELECT substring(turn, 11, 4)                                      
                                   jc.phone,
                                   jc.uniqueid,
                                   marker,
+                                  otkaz,
                                   route,
                                   jc.assigned_user_id,
                                   last_step,
@@ -517,11 +518,15 @@ with etv as (SELECT substring(turn, 11, 4)                                      
                                   case when real_billsec is null then billsec else real_billsec end     trafic,
                                   trunk_id,
                                   case
-                                      when base_source_c like '%^180^%' then 'Январь РТК'
-                                      when base_source_c like '%^173^%' then 'Декабрь РТК'
-                                      when base_source_c like '%^172^%' then 'Ноябрь РТК'
-                                      when base_source_c like '%^179^%' then 'Октябрь РТК'
-                                      when base_source_c like '%^178^%' then 'Сентябрь РТК'
+                                        when base_source_c like '%^88^%' then 'Май РТК'
+                                        when base_source_c like '%^89^%' then 'Апрель РТК'
+                                        when base_source_c like '%^90^%' then 'Март РТК'
+                                        when base_source_c like '%^100^%' then 'Февраль РТК'
+                                        when base_source_c like '%^180^%' then 'Январь РТК'
+                                        when base_source_c like '%^173^%' then 'Декабрь РТК'
+                                        when base_source_c like '%^172^%' then 'Ноябрь РТК'
+                                        when base_source_c like '%^179^%' then 'Октябрь РТК'
+                                        when base_source_c like '%^178^%' then 'Сентябрь РТК'
                                   else '' end as source
 #                   from (select distinct * from suitecrm_robot.jc_robot_log) jc
 from suitecrm_robot.jc_robot_log jc
@@ -721,6 +726,7 @@ team,
        was_repeat,
        marker,
        route,
+       otkaz,
        perevod,
        1 calls,
        region,

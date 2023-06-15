@@ -85,7 +85,7 @@ dbs_meetings = f'{path_to_file_dbs}meetings/'
 sql_operator_calls = PythonOperator(
     task_id='operator_calls_sql',
     python_callable=repeat_download,
-    op_kwargs={'n': n, 'days': days, 'cloud': cloud_name, 'path_sql_file': sql_operator_calls, 'path_csv_file': path_to_sql_operator_calls_folder, 'name_csv_file': file_name_operator_calls},
+    op_kwargs={'n': n, 'days': days, 'cloud': cloud_name, 'path_sql_file': sql_operator_calls, 'path_csv_file': path_to_sql_operator_calls_folder, 'name_csv_file': file_name_operator_calls, 'source': ''},
     dag=dag
     )
 
@@ -93,7 +93,7 @@ sql_robotlog_calls = PythonOperator(
     task_id='robotlog_calls_sql',
     python_callable=repeat_download,
     op_kwargs={'n': n, 'days': days, 'cloud': cloud_name, 'path_sql_file': sql_robotlog_calls, 'path_csv_file': path_to_sql_robotlog_calls_folder,
-                'name_csv_file': file_name_robotlog_calls},
+                'name_csv_file': file_name_robotlog_calls, 'source': ''},
     dag=dag
     )
 

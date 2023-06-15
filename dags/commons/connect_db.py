@@ -17,6 +17,8 @@ def connect_db(file):
         dest = '/root/airflow/dags/not_share/Combat_server.csv'
     elif file == 'Click':
         dest = '/root/airflow/dags/not_share/ClickHouse.csv'
+    # elif file == 'Click2':
+    #     dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
     elif file == 'Server_MySQL':
         dest = '/root/airflow/dags/not_share/Server_files_MySQL.csv'
     elif file == 'DBS':

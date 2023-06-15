@@ -21,6 +21,7 @@ with work_time as (select rc.id_user,
                           if(rc.problems is null, 0, rc.problems)                                                            as problems,
                           if(rc.obuchenie is null, 0, rc.obuchenie)                                                          as obuchenie,
                           if(rc.recall is null, 0, rc.recall)                                                                as dorabotka,
+                          if(rc.recall is null, 0, rc.recall_talk)                                                           as dorabotka_talk,
                           if(rc.pause10 is null, 0, rc.pause10)                                                              as pause,
                           if(timestampdiff(second, wt.lunch_start, wt.lunch_stop) is null, 0,
                              timestampdiff(second, wt.lunch_start, wt.lunch_stop))                                           as lunch_duration
@@ -46,7 +47,8 @@ select work_time.id_user,
        work_time.obuchenie,
        work_time.dorabotka,
        work_time.pause,
-       work_time.lunch_duration
+       work_time.lunch_duration,
+       work_time.dorabotka_talk
 from work_time
 where work_time.num = 1
 order by work_time.date, work_time.id_user;

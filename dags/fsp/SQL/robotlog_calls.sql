@@ -468,7 +468,8 @@ with ocheredi as (select *
                            when jc_robot_log.network_provider_c = '68' then 'Теле2'
                            else 'MVNO'
                            end                               network_provider,
-                       if(jc_robot_log.city_c is null or jc_robot_log.city_c = '',concat(cm.town_c,'_t'),jc_robot_log.city_c) as city_c,
+                       # if(jc_robot_log.city_c is null or jc_robot_log.city_c = '',concat(cm.town_c,'_t'),jc_robot_log.city_c) as city_c,
+                       jc_robot_log.city_c,
                        jc_robot_log.region_c                 region,
                        trunk_id,
                        jc_robot_log.ptv_c,
@@ -481,7 +482,8 @@ with ocheredi as (select *
                        jc_robot_log.phone,
                        if(step is null, 0, 1)   perevod,
                        marker,
-                       last_step
+                       last_step,
+                       if(inbound_call = 1, 1, 0) as inbound_call
        FROM suitecrm_robot.jc_robot_log
                 left join suitecrm.contacts c on c.phone_work = jc_robot_log.phone
                 left join suitecrm.contacts_cstm cm on cm.id_c = c.id
@@ -490,7 +492,7 @@ with ocheredi as (select *
                 left join (select distinct * from suitecrm.transferred_to_other_queue) tr
                           on jc_robot_log.uniqueid = tr.uniqueid and tr.phone = jc_robot_log.phone
         WHERE date(call_date) = date(now()) - interval {} day
-         and (inbound_call = 0 or inbound_call = '')
+         # and (inbound_call = 0 or inbound_call = '')
          and jc_robot_log.deleted = 0),
  R2 as (SELECT call_date,
                R.queue,
@@ -509,6 +511,7 @@ with ocheredi as (select *
                team,
                marker,
                last_step,
+               inbound_call,
                case
                    when team = 555 and call_date <= '2023-02-15' then 'NBN'
                    when team = 555 and call_date > '2023-02-15' then 'RTK'
@@ -593,6 +596,7 @@ select call_date,
                marker,
                team,
                last_step,
+               inbound_call,
  case
                       when team in (12, 13, 50, 4) and
                            project in ('RTK', 'TTK', 'MTS', 'NBN', 'BEELINE', 'DOMRU')

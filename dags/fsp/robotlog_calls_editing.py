@@ -8,6 +8,7 @@ def robotlog_calls_transformation(n, days, files_from_sql, main_folder, path_to_
     print('Пользователи')
     teams = pd.read_csv(f'{path_to_users}/{name_users}').fillna('')
     teams = teams[['id', 'team']]
+    teams['team'] = teams['team'].apply(lambda x: x.strip())
 
     print('Функция команды')
     def def_team_y(row):
@@ -42,8 +43,8 @@ def robotlog_calls_transformation(n, days, files_from_sql, main_folder, path_to_
         trafic['team'] = trafic.apply(lambda row: def_team_y(row), axis=1)
 
         trafic['call_date'] = trafic['call_date'].astype('str')
-        trafic['team'] = trafic['team'].astype('str')
-        trafic['queue'] = trafic['queue'].astype('str')
+        trafic['team'] = trafic['team'].astype('str').apply(lambda x: x.strip())
+        trafic['queue'] = trafic['queue'].astype('str').apply(lambda x: x.strip())
 
         trafic = trafic.merge(team_project, how='left', left_on=['call_date', 'team'], right_on=['date', 'team'])
         trafic = trafic.merge(queue_project, how='left', left_on=['call_date', 'queue'], right_on=['date', 'Очередь'])

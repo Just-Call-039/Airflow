@@ -28,7 +28,7 @@ def meetings_transformation(path_to_users, name_users, path_to_folder, name_call
             return row['team_x']
     
     def city_c(row):
-        if row['city_c_y'] == '':
+        if row['city_c_y'] == 0.0:
             return row['city_c_x']
         else:
             return row['city_c_y']
@@ -51,6 +51,7 @@ def meetings_transformation(path_to_users, name_users, path_to_folder, name_call
     konva['region'] = konva['region_c'].astype('str')
     konva['ptv_c'] = konva['ptv_c'].fillna('^0^')
     konva['region'] = konva.apply(lambda row: def_meetings_functions.region(row), axis=1)
+    konva = konva.fillna(0)
     konva['city_c'] = konva.apply(lambda row: city_c(row), axis=1)
 
     konva[['destination_queue', 'queue', 'last_queue_c']] = konva[['destination_queue', 'queue', 'last_queue_c']].fillna(0)

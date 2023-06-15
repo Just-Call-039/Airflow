@@ -35,8 +35,8 @@ dag = DAG(
 cloud_name = 'cloud_128'
 x = 0
 y = 10000000
-count_repeats = 28
-limit_list = [40000000,80000000,120000000,160000000,200000000,240000000]
+count_repeats = 31
+limit_list = [40000000,80000000,120000000,160000000,200000000,240000000,280000000]
 
 # Пути к sql запросам на сервере airflow
 path_to_sql_airflow = '/root/airflow/dags/all_data/SQL/'
@@ -58,19 +58,19 @@ path_to_data_folder = f'{path_to_file_airflow}data/'
 path_to_file_dbs = '/scripts fsp/Current Files/Базы/'
 
 # Выполнение SQL запросов
-sql_data = PythonOperator(
-    task_id='data_sql',
-    python_callable=repeat_download_data,
-    op_kwargs={'x': x, 'y': y, 'count_repeats': count_repeats, 'limit_list': limit_list, 'cloud': cloud_name, 'path_sql_file': sql_data, 'path_csv_file': path_to_sql_data_folder,
-                'name_csv_file': file_data},
-    dag=dag
-    )
+# sql_data = PythonOperator(
+#     task_id='data_sql',
+#     python_callable=repeat_download_data,
+#     op_kwargs={'x': x, 'y': y, 'count_repeats': count_repeats, 'limit_list': limit_list, 'cloud': cloud_name, 'path_sql_file': sql_data, 'path_csv_file': path_to_sql_data_folder,
+#                 'name_csv_file': file_data, 'timeout': 240},
+#     dag=dag
+#     )
 
 # Преобразование файлов после sql.
 transformation_data = PythonOperator(
     task_id='data_transformation', 
     python_callable = data_transformation, 
-    op_kwargs={'files_from_sql': path_to_sql_data_folder, 'files_to_csv': path_to_data_folder}, 
+    op_kwargs={'file_from_sql': path_to_sql_data_folder+'Data_40000000.csv','name_csv':'Data_40000000.csv', 'files_to_csv': path_to_data_folder}, 
     dag=dag
     )
 
@@ -89,21 +89,22 @@ transfer_data = PythonOperator(
 #     dag=dag
 #     )
 
-# # Отправка уведомления об ошибке в Telegram.
-# send_telegram_message = TelegramOperator(
-#         task_id='send_telegram_message',
-#         telegram_conn_id='Telegram',
-#         chat_id='-1001412983860',
-#         text='Ошибка выгрузки данных для отчета Базы 2.0',
-#         dag=dag,
-#         # on_failure_callback=True,
-#         # trigger_rule='all_success'
-#         trigger_rule='one_failed'
-#     )
+# Отправка уведомления об ошибке в Telegram.
+send_telegram_message = TelegramOperator(
+        task_id='send_telegram_message',
+        telegram_conn_id='Telegram',
+        chat_id='-1001412983860',
+        text='Ошибка выгрузки данных для отчета Базы 2.0',
+        dag=dag,
+        # on_failure_callback=True,
+        # trigger_rule='all_success'
+        trigger_rule='one_failed'
+    )
 
 # Очередности выполнения задач.
-sql_data >> transformation_data >> transfer_data 
-# >> remove_files_from_airflow >> send_telegram_message
+# sql_data >> 
+transformation_data >> transfer_data >> send_telegram_message
+# >> remove_files_from_airflow  >> send_telegram_message
 
 
 
