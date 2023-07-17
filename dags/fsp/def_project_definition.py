@@ -14,7 +14,7 @@ def team_project():
     for i in files:
         n += 1
         df = pd.read_csv(i)
-        project_team = project_team.append(df)
+        project_team = pd.concat([project_team,df], axis = 0)
     del df
 
     project_team['team'] = project_team['team'].fillna(0).astype('int').astype('str')
@@ -22,6 +22,7 @@ def team_project():
     project_team['date'] = project_team['date'].astype('str')
     project_team['team'] = project_team['team'].astype('str')
 
+    project_team = project_team.reset_index(drop=True)
     project_team['RN'] = project_team.groupby(['team', 'date']).cumcount() + 1
     project_team = project_team[project_team['RN'] == 1][['team', 'team_project', 'date']]
 
@@ -40,7 +41,7 @@ def queue_project():
     for i in files:
         n += 1
         df = pd.read_csv(i)
-        project_queue = project_queue.append(df)
+        project_queue = pd.concat([project_queue,df], axis = 0)
     del df
 
     project_queue = project_queue.rename(columns={'Проект (набирающая очередь)': 'destination_project'})
@@ -48,6 +49,7 @@ def queue_project():
     project_queue['Очередь'] = project_queue['Очередь'].fillna(0).astype('int').astype('str')
     project_queue['date'] = project_queue['date'].astype('str')
 
+    project_queue = project_queue.reset_index(drop=True)
     project_queue['RN'] = project_queue.groupby(['Очередь', 'date']).cumcount() + 1
     project_queue = project_queue[project_queue['RN'] == 1][['Очередь', 'destination_project', 'date']]
 

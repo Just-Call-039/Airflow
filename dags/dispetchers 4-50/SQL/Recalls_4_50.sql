@@ -218,7 +218,7 @@ with town_c as (select 0 town_c, '0 РФ' Город
                 select 3, 'Автоматически удалён'),/*словарь*/
      BP as (select phone phone_bp, date_start date_start_bp
             from suitecrm.jc_planned_calls jpc
-            where date(date_start) > date(now())- interval {} day),
+            where date(date_start) > date(now())- interval 1 day),
      Meets_90 as (SELECT phone_work
                   from (SELECT rtk.phone_work phone_work, date_entered, status, deleted
                         FROM suitecrm.jc_meetings_rostelecom rtk
@@ -364,7 +364,7 @@ with town_c as (select 0 town_c, '0 РФ' Город
                                  from suitecrm.calls
                                           left join suitecrm.calls_cstm ON calls_cstm.id_c = calls.id
                                  where (name in ('Исходящий звонок','') or (name = 'Входящий звонок' and direction = 'I'))
-                                   and date(date_start) = date(now())- interval {} day
+                                   and date(date_start) = date(now())- interval 1 day
                                    and asterisk_caller_id_c is not null
                                    and not (duration_minutes = 0
                                      and otkaz_c is null
@@ -492,7 +492,7 @@ from suitecrm.jc_planned_calls jpc
          left join ocheredi_new on (ocheredi_new.date = date(jp.date_entered) and ocheredi_new.mother = jp.last_queue_c)
          left join ocheredi_new2 on (ocheredi_new2.date = date(jp.date_entered) and ocheredi_new2.queue = jp.last_queue_c)
          left join users_crm on jpc.assigned_user_id = users_crm.id
-where date(jpc.date_start) = date(now())- interval {} day)
+where date(jpc.date_start) = date(now())- interval 1 day)
 
 select distinct *
                 from

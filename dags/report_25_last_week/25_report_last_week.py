@@ -22,7 +22,7 @@ default_args = {
 
 dag = DAG(
     dag_id='25_report_last_week',
-    schedule_interval='0 7 * * *',
+    schedule_interval='0 5 * * *',
     start_date=pendulum.datetime(2022, 11, 22, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args

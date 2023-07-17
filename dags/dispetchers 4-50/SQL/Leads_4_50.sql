@@ -171,7 +171,7 @@ with town_c as (select 0 town_c, '0 РФ' Город
                 select 92, '92 Севастополь'),
      BP as (select phone phone_bp, date_start date_start_bp
             from suitecrm.jc_planned_calls jpc
-            where date(date_start) > date(now())- interval {} day),
+            where date(date_start) > date(now())- interval 1 day),
      Meets_90 as (SELECT phone_work
                   from (SELECT rtk.phone_work phone_work, date_entered, status, deleted
                         FROM suitecrm.jc_meetings_rostelecom rtk
@@ -318,7 +318,7 @@ with town_c as (select 0 town_c, '0 РФ' Город
                                  from suitecrm.calls
                                           left join suitecrm.calls_cstm ON calls_cstm.id_c = calls.id
                                  where name in ('Входящий звонок', 'Исходящий звонок')
-                                   and date(date_start) = date(now())- interval {} day
+                                   and date(date_start) = date(now())- interval 1 day
                                    and asterisk_caller_id_c is not null
                                    and not (duration_minutes = 0
                                      and otkaz_c is null
@@ -638,7 +638,7 @@ with town_c as (select 0 town_c, '0 РФ' Город
                          left join suitecrm.jc_robot_leads_cstm jrlc ON jrl.id = jrlc.id_c
                          left join (select *
                                     from suitecrm_robot.jc_robot_log
-                                    where date(call_date) = date(now()) - interval {} day) log
+                                    where date(call_date) = date(now()) - interval 1 day) log
                                    on (date(jrl.date_entered) = date(log.call_date) and jrl.phone = log.phone)
                          left join (select distinct * from suitecrm.transferred_to_other_queue) tr
                                    on (log.uniqueid = tr.uniqueid and log.phone = tr.phone)
@@ -650,7 +650,7 @@ with town_c as (select 0 town_c, '0 РФ' Город
                          left join steps
                                    on (steps.ochered = substring(log.dialog, 11, 4) and log.last_step = steps.step)
                 where jrl.type in ('interested', 'recall_plus', 'recall_tomorrow', 'waiters', 'recall_today', 'leads')
-                  and date(jrl.date_entered) = date(now()) - interval {} day
+                  and date(jrl.date_entered) = date(now()) - interval 1 day
                   and date_start_bp is null
                   and phone_work is null
                   and (Причина_отказа in ('Автоответчик', 'Нет ответа', 'Обрыв разговора', '') or
