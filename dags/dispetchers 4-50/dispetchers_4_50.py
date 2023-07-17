@@ -38,17 +38,20 @@ chat_id = 738716223  # your chat id
 today_date = datetime.now().strftime("%d/%m/%Y")
 text_leads = today_date+' Отправляем файл Лидов'
 text_recalls = today_date+' Отправляем файл Перезвонов'
+text_transfers = 'Отправляем файл с переводами за вчера'
 text_meetings = today_date+' Отправляем файл с Заявками'
 
 path_to_sql = '/root/airflow/dags/dispetchers 4-50/SQL/'
 sql_leads = f'{path_to_sql}Leads_4_50.sql'
 sql_recalls = f'{path_to_sql}Recalls_4_50.sql'
+sql_transfers = f'{path_to_sql}Transfers.sql'
 
 path_to_file_sql_airflow = '/root/airflow/dags/dispetchers 4-50/Files/'
 path_to_meetings = '/root/airflow/dags/fsp/Files/meetings/'
 
 csv_leads = 'leads_4_50.csv'
 csv_recalls = 'recalls_4_50.csv'
+csv_transfers = 'transfers.csv'
 csv_meetings = 'meeting_phones.csv'
 
 # Блок выполнения SQL запросов.
@@ -66,6 +69,13 @@ recalls_sql = PythonOperator(
     dag=dag
     )
 
+transfers_sql = PythonOperator(
+    task_id='transfers_sql', 
+    python_callable=sql_query_to_csv, 
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_transfers, 'path_csv_file': path_to_file_sql_airflow, 'name_csv_file': csv_transfers}, 
+    dag=dag
+    )
+
 leads_telegram = PythonOperator(
     task_id='leads_telegram', 
     python_callable=telegram_send, 
@@ -80,13 +90,21 @@ recalls_telegram = PythonOperator(
     dag=dag
     )
 
-meetings_telegram = PythonOperator(
-    task_id='meetings_telegram', 
+transfers_telegram = PythonOperator(
+    task_id='transfers_telegram', 
     python_callable=telegram_send, 
-    op_kwargs={'text': text_meetings, 'token': token, 'chat_id': chat_id, 'filepath': path_to_meetings, 'filename': csv_meetings}, 
+    op_kwargs={'text': text_transfers, 'token': token, 'chat_id': chat_id, 'filepath': path_to_file_sql_airflow, 'filename': csv_transfers}, 
     dag=dag
     )
 
+# meetings_telegram = PythonOperator(
+#     task_id='meetings_telegram', 
+#     python_callable=telegram_send, 
+#     op_kwargs={'text': text_meetings, 'token': token, 'chat_id': chat_id, 'filepath': path_to_meetings, 'filename': csv_meetings}, 
+#     dag=dag
+#     )
+
 leads_sql >> leads_telegram
 recalls_sql >> recalls_telegram
-[recalls_telegram,leads_telegram] >> meetings_telegram
+transfers_sql >> transfers_telegram
+# [recalls_telegram,leads_telegram] >> meetings_telegram

@@ -8,18 +8,23 @@ def calls_to_clickhouse(path_to_sql_calls, csv_calls):
     all_files = len(os.listdir(path_to_sql_calls))
     print(f'Всего файлов {all_files}')
     n = 0
-    for i in range(0,all_files):
+    stop = 7
+    for i in range(0,stop):
+        print(f'Отправляем только {stop}')
+        files = sorted(glob.glob(path_to_sql_calls + "/*.csv"),reverse=True)
+
         print(f'Текущий файл # {n+1}')
-        print(os.listdir(path_to_sql_calls)[n])
+        print(files[n])
 
         print('Читаем файл')
-        files = glob.glob(path_to_sql_calls + "/*.csv")
         calls = pd.read_csv(files[n], sep=',')
 
         full_calls = full_calls.append(calls)
         n += 1
 
        # calls = pd.read_csv(f'{path_to_sql_calls}/{calls}')
+
+    full_calls = full_calls[full_calls['queue'] != '50-n']
     print('Редактируем формат')
     full_calls['call_date'] = pd.to_datetime(full_calls['call_date'])
     full_calls[['etv','calls','was_ptv','perevod','perevelys','billsec','call_hour','call_minute',

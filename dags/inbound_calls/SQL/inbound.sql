@@ -1,6 +1,6 @@
 select TT.*,
 id contact_id
-from (select name,
+from (select if(name = 'Входящий звонок',1,0) name,
        direction,
        assigned_user_id,
        status,
@@ -15,6 +15,7 @@ from suitecrm.calls
 where date(date_start) between '2023-06-01' and date(now()) - interval 1 day
   and queue_c = 90003
   and duration_minutes > 0
-  and name = 'Входящий звонок'
-  and direction = 'I') TT
+  -- and name = 'Входящий звонок'
+  -- and direction = 'I'
+  ) TT
 left join suitecrm.contacts on asterisk_caller_id_c = phone_work

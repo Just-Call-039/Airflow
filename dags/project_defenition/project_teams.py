@@ -33,6 +33,9 @@ def project_teams():
     teams_od = pd.DataFrame(data3, columns=headers3)
     teams_lids = teams_lids.rename(columns={'Номер команды': '№ команды'})
     teams_lids = teams_lids.rename(columns={'СВ CRM': 'CRM СВ'})
+    teams_jc = teams_jc.rename(columns={'Номер команды': '№ команды'})
+    teams_jc = teams_jc.rename(columns={'СВ CRM': 'CRM СВ'})
+
 
     df = teams_jc[['№ команды','Проект','CRM СВ']].append(teams_od[['№ команды','Проект','CRM СВ']])
     df = df.append(teams_lids[['№ команды','Проект','CRM СВ']])

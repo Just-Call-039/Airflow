@@ -9,6 +9,8 @@ from fsp.repeat_download import repeat_download
 from fsp.repeat_download import sql_query_to_csv
 from report_25_last_week.calls_editer import robotlog_calls_transformation
 from report_25_last_week.calls_to_clickhouse import calls_to_clickhouse
+from report_25_last_week.calls_to_clickhouse_archive import calls_to_clickhouse_archive
+
 
 
 default_args = {
@@ -99,8 +101,16 @@ calls_file_to_clickhouse = PythonOperator(
     dag=dag
     )
 
+# Перенос файла в кликхаус архив
+calls_file_to_clickhouse_archive = PythonOperator(
+    task_id='calls_to_clickhouse_archive', 
+    python_callable=calls_to_clickhouse_archive, 
+    op_kwargs={'path_to_sql_calls': path_to_calls, 'csv_calls': csv_calls}, 
+    dag=dag
+    )
+
 # Очередности выполнения задач.
 [calls_last_week_sql,
 transfer_steps_sql,
 transfers_sql,
-steps_sql] >> transformation_calls >> calls_file_to_clickhouse
+steps_sql] >> transformation_calls >> calls_file_to_clickhouse >> calls_file_to_clickhouse_archive

@@ -513,11 +513,16 @@ with etv as (SELECT substring(turn, 11, 4)                                      
                                   if(jc.city_c is null or jc.city_c = '',concat(cstm.town_c,'_t'),jc.city_c) city_c,
                                   base_source_c,
                                   if(stoplist_c like '%^ao^%',1,0) autootvet,
-                                  case when base_source_c like '%^60^%' then 0
-                                  when base_source_c like '%^61^%' then 7 else '' end category_stat,
+                                  if(base_source_c = '10' or base_source_c like '%^10^%', 1, 0) stretched,
+                                  case
+                                  when base_source_c like '%^61^%' then 7 
+                                  when base_source_c like '%^62^%' then 1
+                                  when base_source_c like '%^60^%' then 0 else '' end category_stat,
                                   case when real_billsec is null then billsec else real_billsec end     trafic,
                                   trunk_id,
                                   case
+                                        when base_source_c like '%^85^%' then 'Июль РТК'
+                                        when base_source_c like '%^87^%' then 'Июнь РТК'
                                         when base_source_c like '%^88^%' then 'Май РТК'
                                         when base_source_c like '%^89^%' then 'Апрель РТК'
                                         when base_source_c like '%^90^%' then 'Март РТК'
@@ -736,6 +741,7 @@ team,
        trunk_id,
        autootvet,
        category_stat,
+       stretched,
        last_step,
        source,
        phone
