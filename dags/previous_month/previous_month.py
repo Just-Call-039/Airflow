@@ -9,6 +9,7 @@ from airflow.operators.python import PythonOperator
 
 from commons.transfer_file_to_dbs import transfer_file_to_dbs
 from fsp.repeat_download import sql_query_to_csv
+from commons_li.sql_query_semicolon_to_csv import sql_query_to_csv_sc
 
 default_args = {
     'owner': 'Lidiya Butenko',
@@ -21,8 +22,8 @@ default_args = {
 
 dag = DAG(
     dag_id='previous_month',
-    schedule_interval='20 8 1 * *',
-    start_date=pendulum.datetime(2023, 8, 1, tz='Europe/Kaliningrad'),
+    schedule_interval='20 5 1 * *',
+    start_date=pendulum.datetime(2023, 8, 30, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args
     )
@@ -81,7 +82,7 @@ calls_with_request_sql = PythonOperator(
     )
 working_sql = PythonOperator(
     task_id='working_sql', 
-    python_callable=sql_query_to_csv, 
+    python_callable=sql_query_to_csv_sc, 
     op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_main_working, 'path_csv_file': path_airflow_working, 'name_csv_file': file_work}, 
     dag=dag
     )

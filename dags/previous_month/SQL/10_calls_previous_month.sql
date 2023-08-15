@@ -23,15 +23,32 @@ with callsAll as (select  date(calls.date_start) dateCall,
                                    if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year),
                                       year(curdate())))
 
-select distinct dateCall,
+select dateCall,
        userid,
        queue_c,
        result_call_c,
        otkaz_c,
        project_c,
-       asterisk_caller_id_c,
-       city_c
-from callsAll
-         left outer join   robotlog
-              on phone = asterisk_caller_id_c and date(dateCall) = date(call_date);
+       city_c,
+       count(asterisk_caller_id_c)
+from (
+         select distinct dateCall,
+                         userid,
+                         queue_c,
+                         result_call_c,
+                         otkaz_c,
+                         project_c,
+                         city_c,
+                         asterisk_caller_id_c,
+                         duration_minutes
+         from callsAll
+                  left outer join robotlog
+                                  on phone = asterisk_caller_id_c and date(dateCall) = date(call_date)) tg
+group by dateCall,
+         userid,
+         queue_c,
+         result_call_c,
+         otkaz_c,
+         project_c,
+         city_c
 

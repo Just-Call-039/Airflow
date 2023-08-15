@@ -7,7 +7,6 @@ from airflow import DAG
 from airflow.providers.telegram.operators.telegram import TelegramOperator
 from airflow.operators.python_operator import PythonOperator
 
-#from dispetchers_4_50.disp_editer import disp_editor
 from fsp.repeat_download import sql_query_to_csv
 from commons_sawa.telegram import telegram_send
 
@@ -32,6 +31,8 @@ def disp_editor(path_to_files, req, path_result):
     req_file = 'meeting_phones.csv'
     print('Сохраняем файл')
     request.to_csv(rf'{path_result}/{req_file}', index=False, sep=',', encoding='utf-8')
+
+
 
 dag = DAG(
     dag_id='dispetchers_4_50',
@@ -93,7 +94,7 @@ transfers_sql = PythonOperator(
 request_editing = PythonOperator(
     task_id='request_editing', 
     python_callable=disp_editor, 
-    op_kwargs={'path_to_files': path_to_meetings, 'request': csv_meetings, 'path_result': path_to_file_sql_airflow}, 
+    op_kwargs={'path_to_files': path_to_meetings, 'req': csv_meetings, 'path_result': path_to_file_sql_airflow}, 
     dag=dag
     )
 

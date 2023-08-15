@@ -132,7 +132,7 @@ from suitecrm_robot_ch.temp_operational
         'stretched',
         'category',
         'category_calls',
-        'last_step'], as_index=False, dropna=False).agg({'calls': 'sum','trafic': 'sum'})
+        'last_step'], as_index=False, dropna=False).agg({'calls': 'sum', 'trafic1': 'sum', 'trafic': 'sum'}).rename(columns={'trafic': 'full_trafic','trafic1': 'trafic'})
         # .rename(columns={'category_y': 'category'})
 
     print('Сохраняем')

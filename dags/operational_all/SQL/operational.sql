@@ -513,7 +513,9 @@ with etv as (SELECT substring(turn, 11, 4)                                      
                                   if(jc.city_c is null or jc.city_c = '',concat(cstm.town_c,'_t'),jc.city_c) city_c,
                                   base_source_c,
                                   if(stoplist_c like '%^ao^%',1,0) autootvet,
-                                  if(base_source_c = '10' or base_source_c like '%^10^%', 1, 0) stretched,
+                                  case when (base_source_c = '10' or base_source_c like '%^10^%') then '1'
+                                   when (base_source_c is null and istochnik_combo_c = 'stretched') then '> 1' 
+                                   else '' end stretched,
                                   case
                                   when base_source_c like '%^61^%' then 7 
                                   when base_source_c like '%^62^%' then 1
@@ -545,6 +547,7 @@ from suitecrm_robot.jc_robot_log jc
              and (inbound_call = 0 or inbound_call = '')
      ),
      jc_today_1 as (select distinct jc_today.*,
+                                    if(autootvet=1 and trafic < 3,0,trafic) trafic1,
      team,
                                     case
                        when team = 13 then 'RTK'
@@ -738,6 +741,7 @@ team,
        holod,
        city_c,
        trafic,
+       trafic1,
        trunk_id,
        autootvet,
        category_stat,

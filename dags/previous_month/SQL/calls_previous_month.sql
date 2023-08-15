@@ -16,15 +16,16 @@ with calls as (select cl.id,
                           else city_c
                           end                             as city,
                       duration_minutes                    as call_sec,
-                      if(cl.duration_minutes <= 10, 1, 0) as short_calls
+                      if(cl.duration_minutes <= 10, 1, 0) as short_calls,
+                      contacts.id                            contact_id
                from suitecrm.calls as cl
                         left join suitecrm.calls_cstm as cl_c on cl.id = cl_c.id_c
                         left join suitecrm.contacts on cl_c.asterisk_caller_id_c = contacts.phone_work
                         left join suitecrm.contacts_cstm on contacts_cstm.id_c = contacts.id
                where (month(cl.date_entered) = month(curdate() - interval 1 month)
-                               and year(cl.date_entered) =
-                                   if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year),
-                                      year(curdate())))),
+                   and year(cl.date_entered) =
+                       if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year),
+                          year(curdate())))),
 
      ws as (select *
             from (select *, row_number() over (partition by id_user order by date_start desc) as num
@@ -49,7 +50,18 @@ with calls as (select cl.id,
 select distinct calls.id,
                 calls.call_date,
                 calls.name,
-                calls.phone,
+                if(contact_id is null, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                                                                                                               REPLACE(calls.phone, '0', 'k'),
+                                                                                                               '1',
+                                                                                                               'a'),
+                                                                                                       '2', 'z'),
+                                                                                               '3', 'd'),
+                                                                                       '4', 'e'),
+                                                                               '5', 's'),
+                                                                       '6', 'm'),
+                                                               '7', 'h'),
+                                                       '8', 'i'),
+                                               '9', 'p'), contact_id)                                     contactid,
                 calls.queue,
                 calls.user_call,
                 if((ws.supervisor in ('', ' ') or ws.supervisor is null), 'unknown_id', ws.supervisor) as super,

@@ -98,6 +98,7 @@ from suitecrm_robot_ch.temp_operational2
     df['phone_work'] = df['phone_work'].astype('str').apply(lambda x: x.replace('.0',''))
     category['phone_work'] = category['phone_work'].astype('str').apply(lambda x: x.replace('.0',''))
     df = df.merge(category, how='left', on='phone_work')
+    print(df.columns)
 
     df['network_provider'] = df.apply(lambda row: redactor.network(row), axis=1)
 

@@ -11,9 +11,11 @@ from fsp.transfer_files_to_dbs import transfer_files_to_dbs
 from fsp.transfer_files_to_dbs import transfer_file_to_dbs
 from fsp.repeat_download import sql_query_to_csv
 
+
+from airflow.utils.trigger_rule import TriggerRule
+from airflow.models import Variable
 from operational_all.operational_editing import operational_transformation
 from operational_all.operational_calls_editing import operational_calls_transformation
-
 
 
 default_args = {
@@ -25,9 +27,10 @@ default_args = {
     'retry_delay': timedelta(minutes=5)
     }
 
+
 dag = DAG(
     dag_id='operational',
-    schedule_interval='10 7-19 * * *',
+    schedule_interval='0 7-19/2 * * *',
     start_date=pendulum.datetime(2023, 4, 24, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args
@@ -70,6 +73,8 @@ file_name_autofilling = 'Автозаливки.csv'
 # Сразу после sql
 path_to_file_airflow = '/root/airflow/dags/operational_all/Files/'
 path_to_sql_operational_folder = f'{path_to_file_airflow}sql_operational/'
+path_to_sql_operational_operativ = f'{path_to_file_airflow}x/'
+
 
 # Путь к пользователям
 path_to_file_users = '/root/airflow/dags/fsp/Files/'
@@ -81,6 +86,10 @@ path_to_operational_folder = f'{path_to_file_airflow}operational/'
 path_to_file_dbs = '/operational/'
 dbs_operational = f'{path_to_file_dbs}operational/'
 dbs_operational2 = '/scripts fsp/Current Files/'
+dbs_operational3 = '/scripts fsp/Current Files/'
+# dbs_operational3 = '/test folder/'
+
+
 
 # Выполнение SQL запросов
 sql_operational = PythonOperator(
@@ -138,7 +147,7 @@ transformation_operational = PythonOperator(
     task_id='operational_transformation', 
     python_callable = operational_transformation, 
     op_kwargs={'path_to_users': path_to_file_users, 'name_users': file_name_users, 'path_to_folder': path_to_sql_operational_folder,
-                'name_calls': file_name_operational, 'path_to_final_folder': path_to_file_airflow}, 
+                'name_calls': file_name_operational, 'path_to_final_folder': path_to_sql_operational_operativ}, 
     dag=dag
     )
 
@@ -167,23 +176,20 @@ transfer_operational2 = PythonOperator(
 
 transfer_operational_main = PythonOperator(
     task_id='operational_transfer_main', 
-    python_callable=transfer_file_to_dbs, 
-    op_kwargs={'from_path': path_to_file_airflow, 'to_path': dbs_operational2, 'db': 'DBS', 'file1': file_name_operational, 'file2': ''}, 
+    python_callable=transfer_files_to_dbs, 
+    op_kwargs={'from_path': path_to_sql_operational_operativ, 'to_path': dbs_operational3, 'db': 'DBS'}, 
     dag=dag
     )
 
-
 # Отправка уведомления об ошибке в Telegram.
 send_telegram_message = TelegramOperator(
-        task_id='send_telegram_message',
-        telegram_conn_id='Telegram',
-        chat_id='-1001412983860',
-        text='Ошибка выгрузки данных для оперативных отчетов',
-        dag=dag,
-        # on_failure_callback=True,
-        # trigger_rule='all_success'
-        trigger_rule='one_failed'
-    )
+    task_id='send_telegram_message',
+    telegram_conn_id='Telegram',
+    chat_id='-1001412983860',
+    text='Ошибка в модуле при выгрузке данных для оперативных отчетов',
+    dag=dag,
+    trigger_rule='one_failed'
+)
 
 # Очередности выполнения задач.
 
