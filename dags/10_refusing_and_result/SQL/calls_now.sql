@@ -1,4 +1,4 @@
-with callsAll as (select  date(calls.date_start) dateCall,
+with callsAll as (select  date(calls.date_entered) dateCall,
                          assigned_user_id       userid,
                          queue_c,
                          result_call_c,
@@ -44,3 +44,4 @@ group by dateCall,
          otkaz_c,
          project_c,
          city_c
+

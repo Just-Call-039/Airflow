@@ -1,142 +1,276 @@
-select assigned_user_id,
-       date_entered,
-       phone_work,
-       statused,
-       last_queue_c,
-       date_created,
-       before_value_string,
-       after_value_string
-from (select jc_meetings_beeline.assigned_user_id   assigned_user_id,
-             case
-                 when jc_meetings_beeline.status in ('Held', 'Active') then 1
-                 when jc_meetings_beeline.status in
-                      ('Created', 'provider_planned', 'dispetcher_grafik') then 2
-                 else 0
-                 end                                statused,
-             date(jc_meetings_beeline.date_entered) date_entered,
-             jc_meetings_beeline.phone_work         phone_work,
-             jc_meetings_beeline_cstm.last_queue_c  last_queue_c,
-             date_created,
-             before_value_string,
-             after_value_string
-      from jc_meetings_beeline
-               left join jc_meetings_beeline_cstm on id = id_c
-               left join users on users.id = assigned_user_id
-               left join jc_meetings_beeline_audit on jc_meetings_beeline.id = parent_id
-      where date(jc_meetings_beeline.date_entered) >= '2023-05-01'
-        and (jc_meetings_beeline.status <> 'Error' and jc_meetings_beeline.status <> 'doubled' and
-             jc_meetings_beeline.status <> 'change_flat')
-        and field_name = 'status'#beeline
-      union all
-      select jc_meetings_mts.assigned_user_id   assigned_user_id,
-             case
-                 when jc_meetings_mts.status in ('Held', 'Active') then 1
-                 when jc_meetings_mts.status in
-                      ('Created', 'provider_planned', 'dispetcher_grafik') then 2
-                 else 0
-                 end                            statused,
-             date(jc_meetings_mts.date_entered) date_entered,
-             jc_meetings_mts.phone_work         phone_work,
-             jc_meetings_mts_cstm.last_queue_c  last_queue_c,
-             date_created,
-             before_value_string,
-             after_value_string
-      from jc_meetings_mts
-               left join jc_meetings_mts_cstm on id = id_c
-               left join users on users.id = assigned_user_id
-               left join jc_meetings_mts_audit on jc_meetings_mts.id = parent_id
-      where date(jc_meetings_mts.date_entered) >= '2023-05-01'
-        and (jc_meetings_mts.status <> 'Error' and jc_meetings_mts.status <> 'doubled' and
-             jc_meetings_mts.status <> 'change_flat')
-        and field_name = 'status'#MTS
-      union all
-      select jc_meetings_rostelecom.assigned_user_id   assigned_user_id,
-             case
-                 when jc_meetings_rostelecom.status in ('Held', 'Active') then 1
-                 when jc_meetings_rostelecom.status in
-                      ('Created', 'provider_planned', 'dispetcher_grafik') then 2
-                 else 0
-                 end                                   statused,
-             date(jc_meetings_rostelecom.date_entered) date_entered,
-             jc_meetings_rostelecom.phone_work         phone_work,
-             jc_meetings_rostelecom_cstm.last_queue_c  last_queue_c,
-             date_created,
-             before_value_string,
-             after_value_string
-      from jc_meetings_rostelecom
-               left join jc_meetings_rostelecom_cstm on id = id_c
-               left join users on users.id = assigned_user_id
-               left join jc_meetings_rostelecom_audit on jc_meetings_rostelecom.id = parent_id
-      where date(jc_meetings_rostelecom.date_entered) >= '2023-05-01'
-        and (jc_meetings_rostelecom.status <> 'Error' and jc_meetings_rostelecom.status <> 'doubled' and
-             jc_meetings_rostelecom.status <> 'change_flat')
-        and field_name = 'status'#RTK
-      union all
-      select jc_meetings_ttk.assigned_user_id   assigned_user_id,
-             case
-                 when jc_meetings_ttk.status in ('Held', 'Active') then 1
-                 when jc_meetings_ttk.status in
-                      ('Created', 'provider_planned', 'dispetcher_grafik') then 2
-                 else 0
-                 end                            statused,
-             date(jc_meetings_ttk.date_entered) date_entered,
-             jc_meetings_ttk.phone_work         phone_work,
-             jc_meetings_ttk_cstm.last_queue_c  last_queue_c,
-             date_created,
-             before_value_string,
-             after_value_string
-      from jc_meetings_ttk
-               left join jc_meetings_ttk_cstm on id = id_c
-               left join users on users.id = assigned_user_id
-               left join jc_meetings_ttk_audit on jc_meetings_ttk.id = parent_id
-      where date(jc_meetings_ttk.date_entered) >= '2023-05-01'
-        and (jc_meetings_ttk.status <> 'Error' and jc_meetings_ttk.status <> 'doubled' and
-             jc_meetings_ttk.status <> 'change_flat')
-        and field_name = 'status'#TTK
-      union all
-      select jc_meetings_domru.assigned_user_id   assigned_user_id,
-             case
-                 when jc_meetings_domru.status in ('Held', 'Active') then 1
-                 when jc_meetings_domru.status in
-                      ('Created', 'provider_planned', 'dispetcher_grafik') then 2
-                 else 0
-                 end                              statused,
-             date(jc_meetings_domru.date_entered) date_entered,
-             jc_meetings_domru.phone_work         phone_work,
-             jc_meetings_domru.last_queue_c       last_queue_c,
-             date_created,
-             before_value_string,
-             after_value_string
-      from jc_meetings_domru
-               left join jc_meetings_domru_cstm on id = id_c
-               left join users on users.id = assigned_user_id
-               left join jc_meetings_domru_audit on jc_meetings_domru.id = parent_id
-      where date(jc_meetings_domru.date_entered) >= '2023-05-01'
-        and (jc_meetings_domru.status <> 'Error' and jc_meetings_domru.status <> 'doubled' and
-             jc_meetings_domru.status <> 'change_flat')
-        and field_name = 'status' #Domru
-      union all
-      select jc_meetings_netbynet.assigned_user_id   assigned_user_id,
-             case
-                 when jc_meetings_netbynet.status in ('Held', 'Active') then 1
-                 when jc_meetings_netbynet.status in
-                      ('Created', 'provider_planned', 'dispetcher_grafik') then 2
-                 else 0
-                 end                                 statused,
-             date(jc_meetings_netbynet.date_entered) date_entered,
-             jc_meetings_netbynet.phone_work         phone_work,
-             jc_meetings_netbynet_cstm.last_queue_c  last_queue_c,
-             date_created,
-             before_value_string,
-             after_value_string
-      from jc_meetings_netbynet
-               left join jc_meetings_netbynet_cstm on id = id_c
-               left join users on users.id = assigned_user_id
-               left join jc_meetings_netbynet_audit on jc_meetings_netbynet.id = parent_id
-      where date(jc_meetings_netbynet.date_entered) >= '2023-05-01'
-        and (jc_meetings_netbynet.status <> 'Error' and jc_meetings_netbynet.status <> 'doubled' and
-             jc_meetings_netbynet.status <> 'change_flat')
-        and field_name = 'status'#NBN
+with contacts as (select phone_work,
+                         if(city_c is null or city_c = '', concat(contacts_cstm.town_c, '_t'), city_c) as city,
+                         town_c,
+                         city_c
+                  from suitecrm.contacts
+                           left join suitecrm.contacts_cstm on id = id_c)
 
-     ) req
-
+select Meets.*
+from (
+         select last_queue_c,
+                date_entered,
+                status,
+                konva,
+                rtkid,
+                if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
+                                           '')) <=
+                            10,
+                            concat(8,
+                                   replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
+                            concat(8,
+                                   right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
+                                                 ''), 10))) as phone_work,
+                assigned_user_id,
+                'RTK'                      start_project,
+                before_status,
+                after_status,
+                date(date_created)         date_created,
+                created_by
+         from (SELECT distinct rtk.id                    rtkid,
+                               rtk_cstm.last_queue_c,
+                               date(rtk.date_entered) as date_entered,
+                               rtk.status,
+                               rtk.assigned_user_id,
+                               case
+                                   when rtk.status in ('Held', 'Active') then 1
+                                   when rtk.status in ('Created', 'provider_planned', 'dispetcher_grafik') then 2
+                                   else 0
+                                   end                   konva,
+                               packet_service_c          tarif,
+                               rtk.phone_work,
+                               before_value_string       before_status,
+                               after_value_string        after_status,
+                               date_created,
+                               rtk.created_by
+               FROM suitecrm.jc_meetings_rostelecom rtk
+                        left join suitecrm.jc_meetings_rostelecom_cstm rtk_cstm on rtk.id = rtk_cstm.id_c
+                        left join suitecrm.jc_meetings_rostelecom_audit rtk_audit on rtk.id = rtk_audit.parent_id
+                        left join contacts on rtk.phone_work = contacts.phone_work
+               WHERE date(rtk.date_entered) >= '2023-03-01'
+                 AND (rtk.status <> 'Error' and rtk.status <> 'doubled' and
+                      rtk.status <> 'change_flat')
+                 and field_name = 'status'
+                 and rtk.deleted = 0
+              ) RTK
+         union all
+         select last_queue_c,
+                date_entered,
+                status,
+                konva,
+                rtkid,
+                if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
+                                           '')) <=
+                            10,
+                            concat(8,
+                                   replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
+                            concat(8,
+                                   right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
+                                                 ''), 10))) as phone_work,
+                assigned_user_id,
+                'BEELINE'                  start_project,
+                before_status,
+                after_status,
+                date(date_created)         date_created,
+                created_by
+         from (SELECT distinct bln.id                    rtkid,
+                               bln_cstm.last_queue_c,
+                               date(bln.date_entered) as date_entered,
+                               bln.assigned_user_id,
+                               bln.status,
+                               case
+                                   when bln.status in ('Held', 'Active', 'Proverka', 'delivered') then 1
+                                   when bln.status in ('Created', 'provider_planned', 'dispetcher_grafik') then 2
+                                   else 0
+                                   end                   konva,
+                               bln.phone_work,
+                               before_value_string       before_status,
+                               after_value_string        after_status,
+                               date_created,
+                               bln.created_by
+               FROM suitecrm.jc_meetings_beeline bln
+                        left join suitecrm.jc_meetings_beeline_cstm bln_cstm on bln.id = bln_cstm.id_c
+                        left join suitecrm.jc_meetings_beeline_audit bln_audit on bln.id = bln_audit.parent_id
+                        left join contacts on bln.phone_work = contacts.phone_work
+               WHERE date(bln.date_entered) >= '2023-03-01'
+                 AND (bln.status <> 'Error' and bln.status <> 'doubled' and
+                      bln.status <> 'change_flat')
+                 and field_name = 'status'
+                 and bln.deleted = 0) BLN
+         union all
+         select last_queue_c,
+                date_entered,
+                status,
+                konva,
+                rtkid,
+                if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
+                                           '')) <=
+                            10,
+                            concat(8,
+                                   replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
+                            concat(8,
+                                   right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
+                                                 ''), 10))) as phone_work,
+                assigned_user_id,
+                'DOMRU'                    start_project,
+                before_status,
+                after_status,
+                date(date_created)         date_created,
+                DOM.created_by
+         from (SELECT distinct dom.id                    rtkid,
+                               dom.last_queue_c,
+                               dom.assigned_user_id,
+                               date(dom.date_entered) as date_entered,
+                               dom.status,
+                               case
+                                   when dom.status in ('Held', 'Active') then 1
+                                   when dom.status in ('Created', 'provider_planned', 'dispetcher_grafik') then 2
+                                   else 0
+                                   end                   konva,
+                               dom.phone_work,
+                               before_value_string       before_status,
+                               after_value_string        after_status,
+                               date_created,
+                               dom.created_by
+               FROM suitecrm.jc_meetings_domru dom
+                        left join suitecrm.jc_meetings_domru_cstm dom_cstm on id_c = id
+                        left join suitecrm.jc_meetings_domru_audit dom_audit on dom.id = parent_id
+                        left join contacts on dom.phone_work = contacts.phone_work
+               WHERE date(dom.date_entered) >= '2023-03-01'
+                 and (dom.status <> 'Error' and dom.status <> 'doubled' and
+                      dom.status <> 'change_flat')
+                 and field_name = 'status'
+                 and dom.deleted = 0) DOM
+         union all
+         select last_queue_c,
+                date_entered,
+                status,
+                konva,
+                rtkid,
+                if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
+                                           '')) <=
+                            10,
+                            concat(8,
+                                   replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
+                            concat(8,
+                                   right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
+                                                 ''), 10))) as phone_work,
+                assigned_user_id,
+                'TTK'                      start_project,
+                before_status,
+                after_status,
+                date(date_created)         date_created,
+                TTK.created_by
+         from (SELECT distinct ttk.id                    rtkid,
+                               ttk_cstm.last_queue_c,
+                               ttk.assigned_user_id,
+                               date(ttk.date_entered) as date_entered,
+                               ttk.status,
+                               case
+                                   when ttk.status in ('Held', 'Active') then 1
+                                   when ttk.status in ('Created', 'provider_planned', 'dispetcher_grafik') then 2
+                                   else 0
+                                   end                   konva,
+                               ttk.phone_work,
+                               before_value_string       before_status,
+                               after_value_string        after_status,
+                               date_created,
+                               ttk.created_by
+               FROM suitecrm.jc_meetings_ttk ttk
+                        left join suitecrm.jc_meetings_ttk_cstm ttk_cstm on ttk.id = ttk_cstm.id_c
+                        left join suitecrm.jc_meetings_ttk_audit ttk_audit on ttk.id = parent_id
+                        left join contacts
+                                  on ttk.phone_work = contacts.phone_work
+               WHERE date(ttk.date_entered) >= '2023-03-01'
+                 AND (ttk.status <> 'Error' and ttk.status <> 'doubled' and
+                      ttk.status <> 'change_flat')
+                 and field_name = 'status'
+                 and ttk.deleted = 0) TTK
+         union all
+         select last_queue_c,
+                date_entered,
+                status,
+                konva,
+                rtkid,
+                if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
+                                           '')) <=
+                            10,
+                            concat(8,
+                                   replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
+                            concat(8,
+                                   right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
+                                                 ''), 10))) as phone_work,
+                assigned_user_id,
+                'NBN'                      start_project,
+                before_status,
+                after_status,
+                date(date_created)         date_created, NBN.created_by
+         from (SELECT distinct nbn.id                    rtkid,
+                               nbn_cstm.last_queue_c,
+                               nbn.assigned_user_id,
+                               date(nbn.date_entered) as date_entered,
+                               nbn.status,
+                               case
+                                   when nbn.status in ('Held', 'Active') then 1
+                                   when nbn.status in ('Created', 'provider_planned', 'dispetcher_grafik') then 2
+                                   else 0
+                                   end                   konva,
+                               nbn.phone_work,
+                               before_value_string       before_status,
+                               after_value_string        after_status,
+                               date_created,
+                               nbn.created_by
+               FROM suitecrm.jc_meetings_netbynet nbn
+                        left join suitecrm.jc_meetings_netbynet_cstm nbn_cstm on nbn.id = nbn_cstm.id_c
+                        left join suitecrm.jc_meetings_netbynet_audit nbn_audit on nbn.id = nbn_audit.parent_id
+                        left join contacts on nbn.phone_work = contacts.phone_work
+               WHERE date(nbn.date_entered) >= '2023-03-01'
+                 AND (nbn.status <> 'Error' and nbn.status <> 'doubled' and
+                      nbn.status <> 'change_flat')
+                 and field_name = 'status'
+                 and nbn.deleted = 0) NBN
+         union all
+         select last_queue_c,
+                date_entered,
+                status,
+                konva,
+                rtkid,
+                if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
+                                           '')) <=
+                            10,
+                            concat(8,
+                                   replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
+                            concat(8,
+                                   right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
+                                                 ''), 10))) as phone_work,
+                assigned_user_id,
+                'MTS'                      start_project,
+                before_status,
+                after_status,
+                date(date_created)         date_created,
+                MTS.created_by
+         from (SELECT distinct mts.id                    rtkid,
+                               mts_cstm.last_queue_c,
+                               mts.assigned_user_id,
+                               date(mts.date_entered) as date_entered,
+                               mts.status                status,
+                               case
+                                   when mts.status in ('Held', 'Active') then 1
+                                   when mts.status in ('Created', 'provider_planned', 'dispetcher_grafik')
+                                       then 2
+                                   else 0
+                                   end                   konva,
+                               mts.phone_work,
+                               before_value_string       before_status,
+                               after_value_string        after_status,
+                               date_created,
+                               mts.created_by
+               FROM suitecrm.jc_meetings_mts mts
+                        left join suitecrm.jc_meetings_mts_cstm mts_cstm on mts.id = mts_cstm.id_c
+                        left join suitecrm.jc_meetings_mts_audit mts_audit on mts.id = mts_audit.parent_id
+                        left join contacts on mts.phone_work = contacts.phone_work
+               WHERE date(mts.date_entered) >= '2023-03-01'
+                 and (mts.status <> 'Error' and mts.status <> 'doubled' and
+                      mts.status <> 'change_flat')
+                 and field_name = 'status'
+                 and mts.deleted = 0) MTS
+     ) Meets

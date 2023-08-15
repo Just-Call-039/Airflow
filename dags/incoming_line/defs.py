@@ -103,10 +103,10 @@ def queue2(row):
 def project(row):
     if row['operator'] == '':
         return row['destination_project']
-    elif row['team_project'] == '':
-        return row['project_user']
-    else:
+    elif row['destination_project'] == '':
         return row['team_project']
+    else:
+        return row['destination_project']
     
 projects = ['BEELINE','MTS','яMTS','RTK','NBN','TTK','DOMRU','яBEELINE','яRTK','яNBN','яTTK','DR','яDR',
             'яDOMRU','JC','яJC','яMixtell JC','Mixtell JC','Beeline','Dom Ru','яBeeline','яDom Ru']

@@ -7,8 +7,10 @@ from airflow import DAG
 from airflow.providers.telegram.operators.telegram import TelegramOperator
 from airflow.operators.python_operator import PythonOperator
 
+#from dispetchers_4_50.disp_editer import disp_editor
 from fsp.repeat_download import sql_query_to_csv
 from commons_sawa.telegram import telegram_send
+
 
 
 default_args = {
@@ -19,6 +21,17 @@ default_args = {
     'retries': 3,
     'retry_delay': timedelta(minutes=5)
     }
+
+def disp_editor(path_to_files, req, path_result):
+    import pandas as pd
+
+    print('Request')
+    request = pd.read_csv(f'{path_to_files}{req}').fillna('')
+    request = request[['last_queue_c','proect','team_x','uid','fio_x','date_entered','status','konva','phone_work','supervisor']].rename(columns={'team_x':'team','fio_x':'fio'})
+
+    req_file = 'meeting_phones.csv'
+    print('Сохраняем файл')
+    request.to_csv(rf'{path_result}/{req_file}', index=False, sep=',', encoding='utf-8')
 
 dag = DAG(
     dag_id='dispetchers_4_50',
@@ -76,6 +89,14 @@ transfers_sql = PythonOperator(
     dag=dag
     )
 
+# Преобразование файлов после sql.
+request_editing = PythonOperator(
+    task_id='request_editing', 
+    python_callable=disp_editor, 
+    op_kwargs={'path_to_files': path_to_meetings, 'request': csv_meetings, 'path_result': path_to_file_sql_airflow}, 
+    dag=dag
+    )
+
 leads_telegram = PythonOperator(
     task_id='leads_telegram', 
     python_callable=telegram_send, 
@@ -97,14 +118,17 @@ transfers_telegram = PythonOperator(
     dag=dag
     )
 
-# meetings_telegram = PythonOperator(
-#     task_id='meetings_telegram', 
-#     python_callable=telegram_send, 
-#     op_kwargs={'text': text_meetings, 'token': token, 'chat_id': chat_id, 'filepath': path_to_meetings, 'filename': csv_meetings}, 
-#     dag=dag
-#     )
+
+
+meetings_telegram = PythonOperator(
+     task_id='meetings_telegram', 
+     python_callable=telegram_send, 
+     op_kwargs={'text': text_meetings, 'token': token, 'chat_id': chat_id, 'filepath': path_to_file_sql_airflow, 'filename': csv_meetings}, 
+     dag=dag
+     )
 
 leads_sql >> leads_telegram
 recalls_sql >> recalls_telegram
 transfers_sql >> transfers_telegram
-# [recalls_telegram,leads_telegram] >> meetings_telegram
+# [recalls_telegram,leads_telegram,transfers_telegram] >> 
+request_editing >> meetings_telegram

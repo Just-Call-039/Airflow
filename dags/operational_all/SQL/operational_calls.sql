@@ -23,25 +23,35 @@
                  where rw = 1),
      jc_today as (select last_queue_c,
                          id_c,
+                         phone_work,
                          town_c,
                          city_c,
-                         case when step_c not in ('', 0, 111,261,262,1) then 1 else 0 end talk,
-                         case when step_c not in ('', 0, 111,261,262,1) and contacts_status_c in ('refusing','MeetingWait','Wait','CallWait') then 1 else 0 end perevod,
-                         case when step_c not in ('', 0, 111,261,262,1) and contacts_status_c = 'MeetingWait' then 1 else 0 end meeting,
+                         case when step_c not in ('', 111,261,262,1,0,361,362,371,372) then 1 else 0 end talk,
+                         case
+                             when step_c not in ('', 111,261,262,1,0,361,362,371,372) and
+                                  contacts_status_c in ('refusing', 'MeetingWait', 'Wait', 'CallWait') then 1
+                             else 0 end                                                      perevod,
+                         case
+                             when step_c not in ('', 111,261,262,1,0,361,362,371,372) and contacts_status_c = 'MeetingWait' then 1
+                             else 0 end                                                      meeting,
                          marker_c,
                          count_good_calls_c,
-                         date(last_call_c)                                      calldate,
-                         hour(last_call_c)                                      callhour,
+                         date(last_call_c)                                                   calldate,
+                         hour(last_call_c)                                                   callhour,
                          ptv_c,
                          base_source_c,
                          network_provider_c,
-                         case when  base_source_c like '%^60^%' then 0
-                             when  base_source_c like '%^61^%' then 7 else '' end category,
-                         if(stoplist_c like '%^ao^%', 1, 0) stop_auto,
+                         case
+                             when base_source_c like '%^60^%' then 0
+                             when base_source_c like '%^62^%' then 1
+                             when base_source_c like '%^61^%' then 7
+                             else '' end                                                     category,
+                         if(stoplist_c like '%^ao^%', 1, 0)                                  stop_auto,
                          project.project
                   from suitecrm.contacts_cstm
+                  left join suitecrm.contacts on id_c = id
                            left join project on queue = last_queue_c
-                  where date(last_call_c) = date(now()) ),
+                  where date(last_call_c) = date(now())),
      jc_today1 as (select *,
                           case
                               when (ptv_c like '%^3^%'
@@ -105,31 +115,75 @@
                                   or ptv_c like '%^11_c1^%') then '����� 120 ����'
                               else 'Холод' end data,
                           case
-                                  when network_provider_c = '83' then 'МТС'
-                                  when network_provider_c = '80' then 'Билайн'
-                                  when network_provider_c = '82' then 'Мегафон'
-                                  when network_provider_c = '10' then 'Теле2'
-                                  when network_provider_c = '68' then 'Теле2'
-                                  else 'MVNO'
-                                 end network_provider
-                   from jc_today)
+                              when network_provider_c = '83' then 'МТС'
+                              when network_provider_c = '80' then 'Билайн'
+                              when network_provider_c = '82' then 'Мегафон'
+                              when network_provider_c = '10' then 'Теле2'
+                              when network_provider_c = '68' then 'Теле2'
+                              else 'MVNO'
+                              end              network_provider
+                   from jc_today),
+          campains as (select adial_campaign_contactscontacts_idb contact, queuenum_custom_c
+                  from suitecrm.adial_campaign_contacts_c
+                           left join suitecrm.adial_campaign_cstm
+                                     on adial_campaign_contactsadial_campaign_ida = adial_campaign_cstm.id_c),
+     jc_today2 as (select project,
+                          calldate,
+                          callhour,
+                          network_provider,
+                          count_good_calls_c,
+                          data,
+                          last_queue_c,
+                          if(queuenum_custom_c is not null and queuenum_custom_c != '' and queuenum_custom_c != 'default', queuenum_custom_c, last_queue_c) custom_queue_c,
+                          marker_c,
+                          town_c,
+                          city_c,
+                          category,
+                          stop_auto,
+                          talk,
+                          id_c,
+                          phone_work,
+                          perevod,
+                          meeting
+                   from jc_today1
+                            left join campains on id_c = contact)
 
+
+-- select project,
+--        calldate,
+--        callhour,
+--        network_provider,
+--        count_good_calls_c,
+--        data as      'База',
+--        last_queue_c,
+--        marker_c,
+--        town_c,
+--        city_c,
+--        category,
+--        stop_auto,
+--        sum(talk)    'Разговоры',
+--        count(id_c)  'Звонки',
+--        sum(perevod) 'Переводы',
+--        sum(meeting) 'Заявки'
+-- from jc_today2
+-- group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
 
 select project,
        calldate,
        callhour,
-        network_provider,
+       network_provider,
        count_good_calls_c,
-       data as 'База',
+       data,
        last_queue_c,
+       custom_queue_c,
        marker_c,
        town_c,
        city_c,
        category,
        stop_auto,
-       sum(talk)   'Разговоры',
-       count(id_c) 'Звонки',
-       sum(perevod) 'Переводы',
-       sum(meeting) 'Заявки'
-from jc_today1
-group by 1,2,3,4,5,6,7,8,9,10,11,12
+       talk,
+       phone_work,
+       id_c,
+       perevod,
+       meeting
+from jc_today2

@@ -33,8 +33,8 @@ dag = DAG(
     default_args=default_args
     )
 
-
 cloud_name = 'cloud_128'
+# cloud_name = '72'
 
 # Пути к sql запросам на сервере airflow
 path_to_sql_airflow = '/root/airflow/dags/operational_all/SQL/'

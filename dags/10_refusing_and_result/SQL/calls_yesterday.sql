@@ -1,4 +1,4 @@
-with callsAll as (select  date(calls.date_start) dateCall,
+with callsAll as (select  date(calls.date_entered) dateCall,
                          assigned_user_id       userid,
                          queue_c,
                          result_call_c,
@@ -11,10 +11,14 @@ with callsAll as (select  date(calls.date_start) dateCall,
                            left join calls_cstm on id = id_c
                            left join users on assigned_user_id = users.id
                   where direction = 'Inbound'
-                    and date(calls.date_start) >= '2023-07-01' and date(date_start)<curdate()),
+                    and DATE_FORMAT(calls.date_entered, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+  AND calls.date_entered < DATE_SUB(CURDATE(), INTERVAL 0 DAY)),
      robotlog as (select phone, city_c, assigned_user_id, call_date
                   from suitecrm_robot.jc_robot_log
-                  where last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372'))
+                  where last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372') and (call_date) != day (curdate())
+  and month (call_date) = month (curdate())
+  and year (call_date) = year (curdate()))
+
 
 select dateCall,
        userid,

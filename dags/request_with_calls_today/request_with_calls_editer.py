@@ -34,6 +34,8 @@ def request_editer(path_to_files, request, path_result, file_result):
  Requests = request_now.merge(Callreqfull, how = 'left', left_on=['my_phone_work','user'], right_on=['phone_number','assigned_user_id'])
 
  print(f'Заявки после соединиения {Requests.shape[0]}')
+
+ Requests = Requests[['project','request_date','user','super','status','last_queue_c','id_call','call_date','result_call_c','city','num','queue','assigned_user_id','rank']]
  
  Requests.to_csv(f'{path_result}/{file_result}',sep=',', index=False)
 
