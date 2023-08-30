@@ -20,7 +20,7 @@ default_args = {
 
 dag = DAG(
     dag_id='calls_with_request_current',
-    schedule_interval='58 5-17 * * *',
+    schedule_interval='50 5-17 * * *',
     start_date=pendulum.datetime(2023, 7, 7, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args

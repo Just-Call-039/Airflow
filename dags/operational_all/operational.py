@@ -77,7 +77,7 @@ path_to_sql_operational_operativ = f'{path_to_file_airflow}x/'
 
 
 # Путь к пользователям
-path_to_file_users = '/root/airflow/dags/fsp/Files/'
+path_to_file_users = '/root/airflow/dags/incoming_line/Files/sql_calls'
 
 # После обработки питоном (итог)
 path_to_operational_folder = f'{path_to_file_airflow}operational/'

@@ -20,7 +20,6 @@ select assigned_user_id,
        network_provider_c,
        city_c,
        region_c,
-       phone,
-       was_stepgroups
+       phone
 from suitecrm_robot.jc_robot_log
 where date(call_date) = date(now()) - interval {} day

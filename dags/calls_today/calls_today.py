@@ -34,12 +34,15 @@ csv_calls = 'Звонки сегодня.csv'
 # Пути к sql запросам на сервере airflow.
 path_to_sql_airflow = '/root/airflow/dags/calls_today/SQL/'
 sql_calls = f'{path_to_sql_airflow}Звонки сегодня.sql'
+sql_calls_10 = f'{path_to_sql_airflow}calls_now.sql'
 
 # Пути к файлам на сервере airflow.
 path_to_file_airflow = '/root/airflow/dags/calls_today/Files/'
+path_to_file_airflow_10 = '/root/airflow/dags/calls_today/Files/10/'
 
 # Пути к файлам на сервере dbs.
 path_to_file_dbs = '/4_report/new files/calls/'
+path_to_file_dbs_10 = '/10_otchet_partners/Calls/'
 
 # Блок выполнения SQL запросов.
 
@@ -47,6 +50,12 @@ calls_today = PythonOperator(
     task_id='calls_today', 
     python_callable=sql_query_to_csv, 
     op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_calls, 'path_csv_file': path_to_file_airflow, 'name_csv_file': csv_calls}, 
+    dag=dag
+    )
+calls_today_10 = PythonOperator(
+    task_id='calls_today_10', 
+    python_callable=sql_query_to_csv, 
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_calls_10, 'path_csv_file': path_to_file_airflow_10, 'name_csv_file': csv_calls}, 
     dag=dag
     )
 
@@ -58,8 +67,16 @@ calls_today_to_dbs = PythonOperator(
     op_kwargs={'from_path': path_to_file_airflow, 'to_path': path_to_file_dbs, 'file': csv_calls, 'db': 'DBS'}, 
     dag=dag
     )
+calls_today_10_to_dbs = PythonOperator(
+    task_id='calls_today_10_to_dbs', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_to_file_airflow_10, 'to_path': path_to_file_dbs_10, 'file': csv_calls, 'db': 'DBS'}, 
+    dag=dag
+    )
+
 
 calls_today >> calls_today_to_dbs 
+calls_today_10 >> calls_today_10_to_dbs 
 
 
 
