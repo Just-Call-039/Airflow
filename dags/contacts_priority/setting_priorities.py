@@ -30,39 +30,65 @@ def setting_priorities():
 
     sql_create = '''create table suitecrm_robot_ch.contacts
                         (
-                            phone_work         String,
-                            pr1          Nullable(String),
-                            pr2          Nullable(String)
+                            id_custom         String,
+                            ptv          Nullable(Int8),
+                            priority1          Nullable(String),
+                            priority2          Nullable(String)
 
                         ) ENGINE = TinyLog'''
     client.execute(sql_create)
 
     print('ЧАСТЬ ПЕРВАЯ ___________________________________________')
-    print('Выгружаем Нашу разметку')
+    print('Выгружаем всю разметку')
 
-    sql = '''select phone_work,
-                trim(BOTH ',' FROM replace(replace(concat(toString(ttk_pr),',',toString(mts_pr),',',toString(rtk_pr),',',toString(nbn_pr),',',toString(dom_pr),',',toString(bln_pr)),'0,',''),'0','')) list,
-                    trim(BOTH ',' FROM replace(replace(concat(toString(ttk_p),',',toString(mts_p),',',toString(rtk_p),',',toString(nbn_p),',',toString(dom_p),',',toString(bln_p)),'0,','') ,'0','')) list2
-                    from
-                (select phone_work,
-                        if(ptv_ttk = 1, ttk, 0) ttk_pr,
-                    if(ptv_mts = 1, mts, 0) mts_pr,
-                    if(ptv_rtk = 1, rtk, 0) rtk_pr,
-                    if(ptv_nbn = 1, nbn, 0) nbn_pr,
-                    if(ptv_dom = 1, dom, 0) dom_pr,
-                    if(ptv_bln = 1, bln, 0) bln_pr,
-                    if(ptv_ttk = 1, 'ttk', '0') ttk_p,
-                    if(ptv_mts = 1, 'mts', '0') mts_p,
-                    if(ptv_rtk = 1, 'rtk', '0') rtk_p,
-                    if(ptv_nbn = 1, 'nbn', '0') nbn_p,
-                    if(ptv_dom = 1, 'dom', '0') dom_p,
-                    if(ptv_bln = 1, 'bln', '0') bln_p
+    sql = '''select id_custom,
+       ptv,
+       ifNull(trim(BOTH ',' FROM replace(replace(concat(toString(ttk_pr), ',', toString(mts_pr), ',', toString(rtk_pr), ',',
+                                                 toString(nbn_pr), ',', toString(dom_pr), ',', toString(bln_pr)), '0,',
+                                          ''), '0', '')),'') list,
+       ifNull(trim(BOTH ',' FROM replace(replace(concat(toString(ttk_p), ',', toString(mts_p), ',', toString(rtk_p), ',',
+                                                 toString(nbn_p), ',', toString(dom_p), ',', toString(bln_p)), '0,',
+                                          ''), '0', '')),'') list2
+        from (select id as id_custom,
+             ptv,
+             case when ptv_ttk = 1 then ttk when ptv = 2 and ptv_fias_ttk = 1 then ttk else 0 end ttk_pr,
+             case when ptv_mts = 1 then mts when ptv = 2 and ptv_fias_mts = 1 then mts else 0 end mts_pr,
+             case when ptv_rtk = 1 then rtk when ptv = 2 and ptv_fias_rtk = 1 then rtk else 0 end rtk_pr,
+             case when ptv_nbn = 1 then nbn when ptv = 2 and ptv_fias_nbn = 1 then nbn else 0 end nbn_pr,
+             case when ptv_dom = 1 then dom when ptv = 2 and ptv_fias_dom = 1 then dom else 0 end dom_pr,
+             case when ptv_bln = 1 then bln when ptv = 2 and ptv_fias_bln = 1 then bln else 0 end bln_pr,
 
-                from (select *, if(ptv_rtk + ptv_ttk + ptv_mts + ptv_nbn + ptv_dom + ptv_bln > 0, 1, 0) as ptv_nasha
-                    from suitecrm_robot_ch.contacts_temp) as contacts
-                        left join (select *, 1 as ptv_nasha from suitecrm_robot_ch.priority_providers) priority
-                                on town_c = code_region and provider = network_provider and contacts.ptv_nasha = priority.ptv_nasha
-                where ptv_nasha = 1                ) tt
+             case
+                 when ptv_ttk = 1 and ttk is not null then 'ttk'
+                 when ptv = 2 and ptv_fias_ttk = 1 and ttk is not null then 'ttk'
+                 else '0' end                                                                     ttk_p,
+             case
+                 when ptv_mts = 1 and mts is not null then 'mts'
+                 when ptv = 2 and ptv_fias_mts = 1 and mts is not null then 'mts'
+                 else '0' end                                                                     mts_p,
+             case
+                 when ptv_rtk = 1 and rtk is not null then 'rtk'
+                 when ptv = 2 and ptv_fias_rtk = 1 and rtk is not null then 'rtk'
+                 else '0' end                                                                     rtk_p,
+             case
+                 when ptv_nbn = 1 and nbn is not null then 'nbn'
+                 when ptv = 2 and ptv_fias_nbn = 1 and nbn is not null then 'nbn'
+                 else '0' end                                                                     nbn_p,
+             case
+                 when ptv_dom = 1 and dom is not null then 'dom'
+                 when ptv = 2 and ptv_fias_dom = 1 and dom is not null then 'dom'
+                 else '0' end                                                                     dom_p,
+             case
+                 when ptv_bln = 1 and bln is not null then 'bln'
+                 when ptv = 2 and ptv_fias_bln = 1 and bln is not null then 'bln'
+                 else '0' end                                                                     bln_p
+      from suitecrm_robot_ch.contacts_temp
+               left join suitecrm_robot_ch.priority_providers on priority_providers.city_c = contacts_temp.city_c
+          and provider = network_provider
+          and contacts_temp.ptv = priority_providers.ptv_c
+          and contacts_temp.region_c = priority_providers.region_c
+      where ptv != 3
+    ) tt
                 '''
     
     df = pd.DataFrame(client.query_dataframe(sql))
@@ -80,18 +106,26 @@ def setting_priorities():
         pr2 = [x for _,x in sorted(zip(Y,X))][1:2]
         pr2 = str(pr2).replace('[','').replace(']','').replace("'",'')
         return pr2
-    
+
     print('Проставляем приоритеты')
+    print(1)
+    df['priority1'] = df.apply(lambda row: priority1(row), axis=1)
+    print(2)
+    df['priority2'] = df.apply(lambda row: priority2(row), axis=1)
 
-    df['pr1'] = df.apply(lambda row: priority1(row), axis=1)
-    df['pr2'] = df.apply(lambda row: priority2(row), axis=1)
+    bln = df[(df['ptv'] == 1) & ((df['priority1'] == 'bln') | (df['priority2'] == 'bln'))].id_custom.count()
+    mts = df[(df['ptv'] == 1) & ((df['priority1'] == 'mts') | (df['priority2'] == 'mts'))].id_custom.count()
+    ttk = df[(df['ptv'] == 1) & ((df['priority1'] == 'ttk') | (df['priority2'] == 'ttk'))].id_custom.count()
+    nbn = df[(df['ptv'] == 1) & ((df['priority1'] == 'nbn') | (df['priority2'] == 'nbn'))].id_custom.count()
+    dom = df[(df['ptv'] == 1) & ((df['priority1'] == 'dom') | (df['priority2'] == 'dom'))].id_custom.count()
+    rtk = df[(df['ptv'] == 1) & ((df['priority1'] == 'rtk') | (df['priority2'] == 'rtk'))].id_custom.count()
 
-    bln = df[(df['pr1'] == 'bln') | (df['pr2'] == 'bln')].phone_work.count()
-    mts = df[(df['pr1'] == 'mts') | (df['pr2'] == 'mts')].phone_work.count()
-    ttk = df[(df['pr1'] == 'ttk') | (df['pr2'] == 'ttk')].phone_work.count()
-    nbn = df[(df['pr1'] == 'nbn') | (df['pr2'] == 'nbn')].phone_work.count()
-    dom = df[(df['pr1'] == 'dom') | (df['pr2'] == 'dom')].phone_work.count()
-    rtk = df[(df['pr1'] == 'rtk') | (df['pr2'] == 'rtk')].phone_work.count()
+    bln2 = df[(df['ptv'] == 2) & ((df['priority1'] == 'bln') | (df['priority2'] == 'bln'))].id_custom.count()
+    mts2 = df[(df['ptv'] == 2) & ((df['priority1'] == 'mts') | (df['priority2'] == 'mts'))].id_custom.count()
+    ttk2 = df[(df['ptv'] == 2) & ((df['priority1'] == 'ttk') | (df['priority2'] == 'ttk'))].id_custom.count()
+    nbn2 = df[(df['ptv'] == 2) & ((df['priority1'] == 'nbn') | (df['priority2'] == 'nbn'))].id_custom.count()
+    dom2 = df[(df['ptv'] == 2) & ((df['priority1'] == 'dom') | (df['priority2'] == 'dom'))].id_custom.count()
+    rtk2 = df[(df['ptv'] == 2) & ((df['priority1'] == 'rtk') | (df['priority2'] == 'rtk'))].id_custom.count()
 
     print('Разметка Наша по приоритетам')
     print('')
@@ -101,94 +135,24 @@ def setting_priorities():
     print(f'НБН {nbn:,}'.replace(',', ' '))
     print(f'ДомРу {dom:,}'.replace(',', ' '))
     print(f'РТК {rtk:,}'.replace(',', ' '))
+    print('')
+    print('')
+    print('Разметка Не наша по приоритетам')
+    print('')
+    print(f'Билайн {bln2:,}'.replace(',', ' '))
+    print(f'МТС {mts2:,}'.replace(',', ' '))
+    print(f'ТТК {ttk2:,}'.replace(',', ' '))
+    print(f'НБН {nbn2:,}'.replace(',', ' '))
+    print(f'ДомРу {dom2:,}'.replace(',', ' '))
+    print(f'РТК {rtk2:,}'.replace(',', ' '))
+
+    df2 = df[df['priority1'] != ''][['id_custom',
+                               'ptv',
+                               'priority1','priority2']]
 
 
     print('Заливаем в итоговую таблицу')
     client = Client(host=host, port='9000', user=user, password=password,
                     database='suitecrm_robot_ch', settings={'use_numpy': True})
 
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.contacts VALUES', df[['phone_work','pr1','pr2']])
-
-
-
-
-
-
-    # print('ЧАСТЬ ВТОРАЯ ___________________________________________')
-    # print('Выгружаем Нашу разметку')
-
-    # sql = '''select phone_work,
-    #                 trim(BOTH ',' FROM replace(replace(concat(toString(ttk_pr), ',', toString(mts_pr), ',', toString(rtk_pr), ',',
-    #                                                             toString(nbn_pr), ',', toString(dom_pr), ',', toString(bln_pr)), '0,',
-    #                                                     ''), '0', '')) list,
-    #                 trim(BOTH ',' FROM replace(replace(concat(toString(ttk_p), ',', toString(mts_p), ',', toString(rtk_p), ',',
-    #                                                             toString(nbn_p), ',', toString(dom_p), ',', toString(bln_p)), '0,',
-    #                                                     ''), '0', '')) list2
-    #             from (select phone_work,
-    #                         if(ptv_fias_ttk = 1, ttk, 0)     ttk_pr,
-    #                         if(ptv_fias_mts = 1, mts, 0)     mts_pr,
-    #                         if(ptv_fias_rtk = 1, rtk, 0)     rtk_pr,
-    #                         if(ptv_fias_nbn = 1, nbn, 0)     nbn_pr,
-    #                         if(ptv_fias_dom = 1, dom, 0)     dom_pr,
-    #                         if(ptv_fias_bln = 1, bln, 0)     bln_pr,
-    #                         if(ptv_fias_ttk = 1, 'ttk', '0') ttk_p,
-    #                         if(ptv_fias_mts = 1, 'mts', '0') mts_p,
-    #                         if(ptv_fias_rtk = 1, 'rtk', '0') rtk_p,
-    #                         if(ptv_fias_nbn = 1, 'nbn', '0') nbn_p,
-    #                         if(ptv_fias_dom = 1, 'dom', '0') dom_p,
-    #                         if(ptv_fias_bln = 1, 'bln', '0') bln_p
-
-    #                 from (select *,
-    #                             case when (ptv_rtk + ptv_ttk + ptv_mts + ptv_nbn + ptv_dom + ptv_bln) > 1 then 0
-    #                             when (ptv_fias_ttk + ptv_fias_rtk + ptv_fias_mts + ptv_fias_bln + ptv_fias_nbn + ptv_fias_dom) > 0 then 1 else 0 end ptv_ne_nasha
-    #                         from suitecrm_robot_ch.contacts_temp) as contact
-    #                         left join (select *, 1 as ptv_ne_nasha from suitecrm_robot_ch.priority_providers) priority
-    #                                     on town_c = code_region and provider = network_provider
-    #                                             and contact.ptv_ne_nasha = priority.ptv_ne_nasha
-    #                 where contact.ptv_ne_nasha = 1
-    #                     ) tt
-    #             '''
-    
-    # df = pd.DataFrame(client.query_dataframe(sql))
-
-    # def priority1(row):
-    #     X = row['list2'].split(',')
-    #     Y = row['list'].split(',')
-    #     pr = [x for _,x in sorted(zip(Y,X))][0:1]
-    #     pr = str(pr).replace('[','').replace(']','').replace("'",'')
-    #     return pr
-
-    # def priority2(row):
-    #     X = row['list2'].split(',')
-    #     Y = row['list'].split(',')
-    #     pr2 = [x for _,x in sorted(zip(Y,X))][1:2]
-    #     pr2 = str(pr2).replace('[','').replace(']','').replace("'",'')
-    #     return pr2
-    
-    # print('Проставляем приоритеты')
-
-    # df['pr1'] = df.apply(lambda row: priority1(row), axis=1)
-    # df['pr2'] = df.apply(lambda row: priority2(row), axis=1)
-
-    # bln = df[(df['pr1'] == 'bln') | (df['pr2'] == 'bln')].phone_work.count()
-    # mts = df[(df['pr1'] == 'mts') | (df['pr2'] == 'mts')].phone_work.count()
-    # ttk = df[(df['pr1'] == 'ttk') | (df['pr2'] == 'ttk')].phone_work.count()
-    # nbn = df[(df['pr1'] == 'nbn') | (df['pr2'] == 'nbn')].phone_work.count()
-    # dom = df[(df['pr1'] == 'dom') | (df['pr2'] == 'dom')].phone_work.count()
-    # rtk = df[(df['pr1'] == 'rtk') | (df['pr2'] == 'rtk')].phone_work.count()
-
-    # print('Всего разметки по приоритетам')
-    # print('')
-    # print(f'Билайн {bln:,}'.replace(',', ' '))
-    # print(f'МТС {mts:,}'.replace(',', ' '))
-    # print(f'ТТК {ttk:,}'.replace(',', ' '))
-    # print(f'НБН {nbn:,}'.replace(',', ' '))
-    # print(f'ДомРу {dom:,}'.replace(',', ' '))
-    # print(f'РТК {rtk:,}'.replace(',', ' '))
-
-
-    # print('Заливаем в итоговую таблицу')
-    # client = Client(host=host, port='9000', user=user, password=password,
-    #                 database='suitecrm_robot_ch', settings={'use_numpy': True})
-
-    # client.insert_dataframe('INSERT INTO suitecrm_robot_ch.contacts VALUES', df[['phone_work','pr1','pr2']])
+    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.contacts VALUES', df2)

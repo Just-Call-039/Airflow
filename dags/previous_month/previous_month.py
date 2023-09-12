@@ -23,7 +23,7 @@ default_args = {
 dag = DAG(
     dag_id='previous_month',
     schedule_interval='20 5 1 * *',
-    start_date=pendulum.datetime(2023, 8, 30, tz='Europe/Kaliningrad'),
+    start_date=pendulum.datetime(2023, 9, 30, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args
     )
@@ -33,11 +33,10 @@ cloud_name = 'cloud_128'
 
 path_to_file_airflow = '/root/airflow/dags/previous_month/Files/'
 path_airflow_10_otchet = f'{path_to_file_airflow}10_otchet/'
-path_airflow_transfer = f'{path_to_file_airflow}transfer_robot/'
 path_airflow_working = f'{path_to_file_airflow}working/'
 path_airflow_calls = f'{path_to_file_airflow}calls/'
 path_airflow_calls_with_request = f'{path_to_file_airflow}calls_with_request/'
-
+path_airflow_transfer = '/root/airflow/dags/indicators_to_regions/Files/transfer/'
 
 path_dbs_calls_with_request = f'/4_report/new files/Звонки для заявок/'
 path_dbs_calls = '/4_report/new files/calls/'

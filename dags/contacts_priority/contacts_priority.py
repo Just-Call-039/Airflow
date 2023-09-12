@@ -27,7 +27,7 @@ default_args = {
 dag = DAG(
     dag_id='contacts_priority',
     schedule_interval='0 22 * * FRI',
-    start_date=pendulum.datetime(2023, 8, 22, tz='Europe/Kaliningrad'),
+    start_date=pendulum.datetime(2023, 9, 11, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args
     )

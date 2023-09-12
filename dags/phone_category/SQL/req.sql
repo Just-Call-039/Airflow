@@ -6,7 +6,7 @@ with requests as (select 'RTK'                              as project,
                                    replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
                             concat(8,
                                    right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
-                                                 ''), 10))) as my_phone_work,
+                                                 ''), 10))) as phone_request,
                          date(r.date_entered)               as request_date,
                          assigned_user_id                   as user,
                          user_id_c                          as super,
@@ -16,8 +16,8 @@ with requests as (select 'RTK'                              as project,
                            left join suitecrm.jc_meetings_rostelecom_cstm as r_c on r.id = r_c.id_c
                   where status != 'Error'
                     and status != 'doubled'
-                  and status != 'change_flat'
-                    and date(date_entered) >= '2023-07-01'
+                    and status != 'change_flat'
+                    and date(date_entered) >= '2022-04-01' and date(date_entered)< CURDATE()
                   union all
                   select 'Beeline'                          as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
@@ -27,7 +27,7 @@ with requests as (select 'RTK'                              as project,
                                    replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
                             concat(8,
                                    right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
-                                                 ''), 10))) as my_phone_work,
+                                                 ''), 10))) as phone_request,
                          date(b.date_entered)               as request_date,
                          assigned_user_id                   as user,
                          user_id_c                          as super,
@@ -37,8 +37,8 @@ with requests as (select 'RTK'                              as project,
                            left join suitecrm.jc_meetings_beeline_cstm as b_c on b.id = b_c.id_c
                   where status != 'Error'
                     and status != 'doubled'
-                  and status != 'change_flat'
-                    and date(date_entered) >= '2023-07-01'
+                    and status != 'change_flat'
+                    and date(date_entered) >= '2022-04-01' and date(date_entered)< CURDATE()
                   union all
                   select 'DOMRU'                            as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
@@ -58,8 +58,8 @@ with requests as (select 'RTK'                              as project,
                            left join suitecrm.jc_meetings_domru_cstm as d_c on d.id = d_c.id_c
                   where status != 'Error'
                     and status != 'doubled'
-                  and status != 'change_flat'
-                    and date(date_entered) >= '2023-07-01'
+                    and status != 'change_flat'
+                    and date(date_entered) >= '2022-04-01' and date(date_entered)< CURDATE()
                   union all
                   select 'TTK'                              as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
@@ -69,7 +69,7 @@ with requests as (select 'RTK'                              as project,
                                    replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
                             concat(8,
                                    right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
-                                                 ''), 10))) as my_phone_work,
+                                                 ''), 10))) as phone_request,
                          date(t.date_entered)               as request_date,
                          assigned_user_id                   as user,
                          user_id_c                          as super,
@@ -79,8 +79,8 @@ with requests as (select 'RTK'                              as project,
                            left join suitecrm.jc_meetings_ttk_cstm as t_c on t.id = t_c.id_c
                   where status != 'Error'
                     and status != 'doubled'
-                  and status != 'change_flat'
-                    and date(date_entered) >= '2023-07-01'
+                    and status != 'change_flat'
+                    and date(date_entered) >= '2022-04-01' and date(date_entered)< CURDATE()
                   union all
                   select 'NBN'                              as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
@@ -90,7 +90,7 @@ with requests as (select 'RTK'                              as project,
                                    replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
                             concat(8,
                                    right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
-                                                 ''), 10))) as my_phone_work,
+                                                 ''), 10))) as phone_request,
                          date(n.date_entered)               as request_date,
                          assigned_user_id                   as user,
                          user_id_c                          as super,
@@ -100,8 +100,8 @@ with requests as (select 'RTK'                              as project,
                            left join suitecrm.jc_meetings_netbynet_cstm as n_c on n.id = n_c.id_c
                   where status != 'Error'
                     and status != 'doubled'
-                  and status != 'change_flat'
-                    and date(date_entered) >= '2023-07-01'
+                    and status != 'change_flat'
+                    and date(date_entered) >= '2022-04-01' and date(date_entered)< CURDATE()
                   union all
                   select 'MTS'                              as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
@@ -111,7 +111,7 @@ with requests as (select 'RTK'                              as project,
                                    replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
                             concat(8,
                                    right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
-                                                 ''), 10))) as my_phone_work,
+                                                 ''), 10))) as phone_request,
                          date(m.date_entered)               as request_date,
                          assigned_user_id                   as user,
                          user_id_c                          as super,
@@ -121,8 +121,9 @@ with requests as (select 'RTK'                              as project,
                            left join suitecrm.jc_meetings_mts_cstm as m_c on m.id = m_c.id_c
                   where status != 'Error'
                     and status != 'doubled'
-                  and status != 'change_flat'
-                    and date(date_entered) >= '2023-07-01'union all
+                    and status != 'change_flat'
+                    and date(date_entered) >= '2022-04-01' and date(date_entered)< CURDATE()
+                  union all
                   select 'Other'                            as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                            '')) <=
@@ -131,7 +132,7 @@ with requests as (select 'RTK'                              as project,
                                    replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
                             concat(8,
                                    right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
-                                                 ''), 10))) as my_phone_work,
+                                                 ''), 10))) as phone_request,
                          date(m.date_entered)               as request_date,
                          assigned_user_id                   as user,
                          user_id_c                          as super,
@@ -142,18 +143,13 @@ with requests as (select 'RTK'                              as project,
                   where status != 'Error'
                     and status != 'doubled'
                     and status != 'change_flat'
-                    and date(date_entered) >= '2023-07-01')
+                    and date(date_entered) >= '2022-04-01' and date(date_entered)< CURDATE())
 
 
-
-         select project,
-                my_phone_work,
-                request_date,
-                user,
-                super,
-                status,
-                last_queue_c
-         from requests
-
-
-
+select project,
+       phone_request,
+       request_date,
+       user,
+       super,
+       status
+from requests;

@@ -5,7 +5,7 @@ def project_steps():
 
     host128 = "192.168.1.128"
     host = host128
-    Con = MySQLdb.Connect(host=host, user="base_dep_slave", passwd="QxPGHGdzCLao", db="suitecrm",
+    Con = MySQLdb.Connect(host=host, user="base_dep_slave", passwd="IyHBh9mDBdpg", db="suitecrm",
                         charset='utf8')
 
     sql_steps = '/root/airflow/dags/project_defenition/steps.sql'

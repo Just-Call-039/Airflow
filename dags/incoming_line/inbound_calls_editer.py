@@ -86,7 +86,7 @@ def inbound_editer(path_to_files, inbound, operator_calls, request,req_in, path_
     print(f'Операторские {calls_in_last.shape[0]}')
     print(f'Разница {calls_in.shape[0] - calls_in_last.shape[0]}')
 
-    calls_in_last = calls_in_last[['calltype','contact_id', 'asterisk_caller_id_c', 'calldate', 'assigned_user_id', 'result_call_c', 'otkaz_c', 'ne_reshena_c','reshena_c', 'operatorcalldate', 'operator','operatorqueue','operatorresultcall', 'direction']]
+    calls_in_last = calls_in_last[['calltype','contact_id', 'asterisk_caller_id_c', 'calldate', 'assigned_user_id', 'result_call_c', 'otkaz_c', 'ne_reshena_c','reshena_c','dialog', 'operatorcalldate', 'operator','operatorqueue','operatorresultcall', 'direction']]
     calls_in_last['calldate'] = pd.to_datetime(calls_in_last['calldate'])
     calls_in_last['asterisk_caller_id_c'] = calls_in_last['asterisk_caller_id_c'].astype('str')
 
@@ -121,7 +121,7 @@ def inbound_editer(path_to_files, inbound, operator_calls, request,req_in, path_
     calls_in_last_rn['first_queue']    = calls_in_last_rn.apply(lambda row: defs.queue2(row), axis=1 )
 
     calls_in_last_rn = calls_in_last_rn[['calltype','contact_id','asterisk_caller_id_c', 'calldate', 'assigned_user_id',
-       'result_call_c', 'otkaz_c', 'ne_reshena_c', 'reshena_c',
+       'result_call_c', 'otkaz_c', 'ne_reshena_c','dialog', 'reshena_c',
        'first_calldate', 'first_queue', 'operator','operatorresultcall','direction']]
 
     users = pd.read_csv('/root/airflow/dags/incoming_line/Files/sql_calls/users.csv')
@@ -176,7 +176,7 @@ def inbound_editer(path_to_files, inbound, operator_calls, request,req_in, path_
 
     calls_phones = calls_in_last_rnr[['calltype','contact_id','asterisk_caller_id_c', 'calldate',
     'assigned_user_id',
-   'result_call_c', 'otkaz_c', 'ne_reshena_c', 'reshena_c','direction',
+   'result_call_c', 'otkaz_c', 'ne_reshena_c', 'reshena_c','dialog','direction',
    'first_calldate', 'first_queue', 'operator','operatorresultcall',
    'projects', 'final_project','last_queue_c', 'date_entered', 'status', 'konva','date_created','before_status','after_status']].rename(columns={'final_project': 'request_project',
    'last_queue_c': 'request_queue'}).fillna('')
@@ -184,7 +184,7 @@ def inbound_editer(path_to_files, inbound, operator_calls, request,req_in, path_
     
     calls_in_last_rnr = calls_in_last_rnr[['calltype','contact_id', 'calldate',
     'assigned_user_id',
-   'result_call_c', 'otkaz_c', 'ne_reshena_c', 'reshena_c', 'direction',
+   'result_call_c', 'otkaz_c', 'ne_reshena_c', 'reshena_c','dialog', 'direction',
    'first_calldate', 'first_queue', 'operator','operatorresultcall',
    'projects', 'final_project','last_queue_c', 'date_entered', 'status', 'konva','date_created','before_status','after_status']].rename(columns={'final_project': 'request_project',
    'last_queue_c': 'request_queue'}).fillna('')
@@ -203,14 +203,14 @@ def inbound_editer(path_to_files, inbound, operator_calls, request,req_in, path_
 
     calls_phones_full = calls_phones_full[['calltype','contact_id','asterisk_caller_id_c', 'calldate',
     'assigned_user_id',
-   'result_call_c', 'otkaz_c', 'ne_reshena_c', 'reshena_c','direction',
+   'result_call_c', 'otkaz_c', 'ne_reshena_c', 'reshena_c','dialog','direction',
    'first_calldate', 'first_queue', 'operator','operatorresultcall',
    'projects', 'request_project','last_queue_c', 'date_entered_x', 'status_x', 'konva_x','date_created_x','before_status_x','after_status_x', 
    'created_by','assigned_user_id_x','date_entered_y', 'status_y', 'konva_y','date_created_y','before_status_y','after_status_y']].fillna('')
     
     
     calls_in_last_rnr = calls_phones_full[['calltype','contact_id', 'calldate',
-    'assigned_user_id','result_call_c', 'otkaz_c', 'ne_reshena_c', 'reshena_c','direction',
+    'assigned_user_id','result_call_c', 'otkaz_c', 'ne_reshena_c', 'reshena_c','dialog','direction',
    'first_calldate', 'first_queue', 'operator','operatorresultcall',
    'projects', 'request_project','last_queue_c', 'date_entered_x', 'status_x', 'konva_x','date_created_x','before_status_x','after_status_x', 'created_by',
    'assigned_user_id_x','date_entered_y', 'status_y', 'konva_y','date_created_y','before_status_y','after_status_y']].fillna('')
@@ -219,14 +219,14 @@ def inbound_editer(path_to_files, inbound, operator_calls, request,req_in, path_
 
     calls_phones_full1 = calls_phones_full1[['calltype','contact_id','asterisk_caller_id_c', 'calldate',
     'assigned_user_id',
-   'result_call_c', 'otkaz_c', 'ne_reshena_c', 'reshena_c','direction',
+   'result_call_c', 'otkaz_c', 'ne_reshena_c', 'reshena_c','dialog','direction',
    'first_calldate', 'first_queue', 'operator','operatorresultcall',
    'projects', 'request_project','last_queue_c', 'date_entered_x', 'status_x', 'konva_x','date_created_x','before_status_x','after_status_x', 
    'created_by','assigned_user_id_x','date_entered_y', 'status_y', 'konva_y','date_created_y','before_status_y','after_status_y', 'date_entered','status_cos','konva','start_project']].fillna('')
     
     
     calls_in_last_rnr = calls_phones_full1[['calltype','contact_id', 'calldate',
-    'assigned_user_id','result_call_c', 'otkaz_c', 'ne_reshena_c', 'reshena_c','direction',
+    'assigned_user_id','result_call_c', 'otkaz_c', 'ne_reshena_c', 'reshena_c','dialog','direction',
    'first_calldate', 'first_queue', 'operator','operatorresultcall',
    'projects', 'request_project','last_queue_c', 'date_entered_x', 'status_x', 'konva_x','date_created_x','before_status_x','after_status_x', 'created_by',
    'assigned_user_id_x','date_entered_y', 'status_y', 'konva_y','date_created_y','before_status_y','after_status_y','date_entered','status_cos','konva','start_project']].fillna('')
