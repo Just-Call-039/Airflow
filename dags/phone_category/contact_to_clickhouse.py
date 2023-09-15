@@ -5,7 +5,7 @@ def contact_editer(path_to_files, requests):
     from clickhouse_driver import Client
 
     requests = pd.read_csv(f'{path_to_files}/{requests}')
-
+    requests = requests.drop_duplicates(subset = 'phone_request', keep = 'first', inplace = False)
     print('Подключаемся к серверу')
     dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
     if dest:
@@ -80,18 +80,18 @@ def contact_editer(path_to_files, requests):
 
     print('Создаем таблицу req_id')
     sql_create_reqid = '''CREATE TABLE suitecrm_robot_ch.req_id
-                    (
-                        project       String,
-                        phone_request String,
-                        request_date  Date,
-                        user          String,
-                        super         String,
-                        status        String,,
-                        call_date     Nullable(DateTime),
-                        last_step     Nullable(String),
-                        uniqueid      Nullable(String)
-                    ) ENGINE = MergeTree()
-                        order by phone_request'''
+(
+    project       String,
+    phone_request String,
+    request_date  Date,
+    user          String,
+    super         String,
+    status        String,
+    call_date     Nullable(DateTime),
+    last_step     Nullable(String),
+    uniqueid      Nullable(String)
+) ENGINE = MergeTree()
+      order by phone_request'''
     client.execute(sql_create_reqid)
     print('Добавляем каждой заявке уникальный айди')
     sql_insert_reqid = '''insert into suitecrm_robot_ch.req_id
@@ -110,13 +110,11 @@ def contact_editer(path_to_files, requests):
                 from suitecrm_robot_ch.req_x as req
                           left join (select phone, call_date, uniqueid, last_step
                     from suitecrm_robot_ch.jc_robot_log
-                         --left join suitecrm_robot_ch.calls_log on calls_log.phone = jc_robot_log.phone and
-                         --                                      toDate(jc_robot_log.call_date) =
-                         --                                    toDate(calls_log.call_date)
+                         
                     where toDate(call_date) >= '2022-04-01'
                       and toDate(call_date) < today()
                       and
-                      --last_step not in ('', '0', '2', '111', '371', '372', '362', '361', '261', '262')
+                     
                             last_step in
                             ('7', '39', '41', '49', '51', '53', '55', '56', '57', '59', '61', '63', '65', '67', '69',
                              '71', '72', '73', '75', '76', '77', '79', '81', '82', '83', '84', '85', '86', '87', '88',
@@ -228,7 +226,7 @@ def contact_editer(path_to_files, requests):
      requests as (select toDate(requests.request_date) as request_date, requests.phone_request, uniqueid
                   from suitecrm_robot_ch.req_id as requests
                   where toDate(request_date) >= '2022-04-01'),
-     tab1 as (select jc_rl.call_date                                     dates,
+     tab1 as (select distinct jc_rl.call_date                                     dates,
                      jc_rl.phone                                         phones,
                      category_x.category                                 category,
                      jc_rl.ptv                                           ptv,
@@ -239,14 +237,14 @@ def contact_editer(path_to_files, requests):
                        left join suitecrm_robot_ch.category_x on jc_rl.phone = category_x.phone
                        left join requests on jc_rl.uniqueid = requests.uniqueid)
 
-    select dates,
-           phones,
-           category,
-           ptv,
-           region,
-           if(phone_request is null, null, request_date) request_date,
-           phone_request
-    from tab1'''
+        select  dates,
+            count(phones) c_phones,
+            category,
+            ptv,
+            region,
+            count(phone_request) c_phone_request
+            from tab1
+            group by dates, category,ptv,region'''
     
     client.execute(sql_insert_contact_of_req)
 

@@ -70,7 +70,7 @@ def meetings_transformation(path_to_users, name_users, path_to_folder, name_call
 
     konva_group = konva.groupby(['project', 'team', 'uid', 'fio_x', 'date', 'date_entered', 'status', 'konva', 'tarif',
                                 'department', 'marker', 'last_step', 'region', 'queue_c', 'destination_queue_c',
-                                'network_provider','organization',
+                                'network_provider','organization','directory',
                                 'city_c'], as_index=False, dropna=False).agg({'rtkid': 'count'}).rename(
         columns={'rtkid': 'vsego',
                 'date': 'calldate',

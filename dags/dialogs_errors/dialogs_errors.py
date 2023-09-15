@@ -24,7 +24,7 @@ default_args = {
 
 dag = DAG(
     dag_id='dialog_errors',
-    schedule_interval='0 22 * * *',
+    schedule_interval='20 19 * * *',
     start_date=pendulum.datetime(2023, 9, 11, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args
@@ -38,3 +38,13 @@ dialog_errors = PythonOperator(
     python_callable = dialog_errors, 
     dag=dag
     )
+
+send_telegram_message = TelegramOperator(
+        task_id='send_telegram_message',
+        telegram_conn_id='Telegram',
+        chat_id='-1001412983860',
+        text='Ошибки РО выгружены',
+        dag=dag
+    )
+
+dialog_errors >> send_telegram_message

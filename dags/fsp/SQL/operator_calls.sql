@@ -470,13 +470,16 @@
                                when jc_robot_log.network_provider_c = '68' then 'Теле2'
                                else 'MVNO'
                                end                               network_provider_c,
-                           if(jc_robot_log.city_c is null or jc_robot_log.city_c = '',concat(cm.town_c,'_t'),jc_robot_log.city_c) as city_c,
+                           # if(jc_robot_log.city_c is null or jc_robot_log.city_c = '',concat(cm.town_c,'_t'),jc_robot_log.city_c) as city_c,
+                           jc_robot_log.city_c,
                            jc_robot_log.region_c,
                            jc_robot_log.ptv_c,
                            jc_robot_log.uniqueid                 id,
                            jc_robot_log.phone,
                            marker,
-                           last_step
+                           last_step,
+                       if(inbound_call = 1, 1, 0) as inbound_call,
+                       directory
            FROM suitecrm_robot.jc_robot_log
                     left join suitecrm.contacts c on c.phone_work = jc_robot_log.phone
                     left join suitecrm.contacts_cstm cm on cm.id_c = c.id
@@ -488,8 +491,8 @@
              and jc_robot_log.deleted = 0
              AND jc_robot_log.assigned_user_id != '1'
              and step is not null
-             and (inbound_call = 0 or inbound_call = '')
-             and date(call_date) = date(now()) - interval {} day
+             # and (inbound_call = 0 or inbound_call = '')
+             and date(call_date) = date(now()) - interval {n} day
      ),
      Q1 as (select assigned_user_id,
                    base_source_c,
@@ -504,6 +507,8 @@
                    team,
                    marker,
                    last_step,
+                   inbound_call,
+                   directory,
                    case
                        when team = 555 and datec <= '2023-02-15' then 'NBN'
                        when team = 555 and datec > '2023-02-15' then 'RTK'
@@ -652,5 +657,7 @@
                    department,
                    id,
                    marker,
-                   last_step
+                   last_step,
+                   inbound_call,
+                   directory
             from Q3

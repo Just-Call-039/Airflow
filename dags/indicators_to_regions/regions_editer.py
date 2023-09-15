@@ -52,8 +52,8 @@ def region_editer(path_to_files, requests,calls, path_result, file_result_req,fi
  print('Переводы полностью прочитаны')
  calls.loc[calls['phone'] == '89922404564']
  transferfull.loc[transferfull['phone'] == '89922404564']
- calltransfer = calls.merge(transferfull, how='left', left_on=['phone', 'datecall', 'queue_c', 'hoursonly'],
-                           right_on=['phone', 'datecalls', 'destination_queue', 'hoursonly'])
+ calltransfer = calls.merge(transferfull, how='left', left_on=['phone', 'datecall', 'hoursonly'],
+                           right_on=['phone', 'datecalls', 'hoursonly'])
  print(calltransfer.head(10))
  calltransfer.loc[calltransfer['phone'] == '89922404564']
  calltransfer['phone'] = calltransfer['phone'].astype(str)

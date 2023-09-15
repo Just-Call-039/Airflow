@@ -66,6 +66,8 @@ def operator_calls_transformation(n, days, files_from_sql, main_folder, path_to_
                                 'department',
                                 'marker',
                                 'organization',
+                                'inbound_call',
+                                'directory',
                                 'last_step'], as_index=False, dropna=False).agg({'id_x': 'count'}).rename(
             columns={'region': 'region_c', 'id_x': 'count'})
         calls['summ_by'] = calls.groupby(['assigned_user_id', 'datec'], as_index=False)['count'].transform('sum')

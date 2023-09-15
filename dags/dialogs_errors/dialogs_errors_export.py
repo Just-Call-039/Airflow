@@ -4,6 +4,7 @@ def dialog_errors():
     from clickhouse_driver import Client
     from urllib.parse import quote_plus
     from sqlalchemy.engine import create_engine
+    import time
     
 
     print('Подключаемся к mysql')
@@ -59,8 +60,37 @@ def dialog_errors():
                 
                 
         except:
-            print(f'    server {n} Error {m}')
-            pass
+            time.sleep(30)
+
+            try:
+                print(f'    server {n} try again {m}')
+
+                sql_show = '''SHOW TABLES
+                                FROM robot'''
+                sql_show = sql_show.replace('\n','')
+
+                Con = pymysql.Connect(host=server, user=user, passwd=password, db='robot', charset='utf8')
+                df = pd.read_sql_query(sql_show, Con).drop_duplicates()
+                df.columns = ['tables']
+                tables = df.tables.to_list()
+
+                if 'dialogs_errors' in tables:
+                    sql = f'''SELECT *, '{m}' server_number
+                    FROM dialogs_errors
+                    where date(date) = date(now()) - interval 1 day
+                    '''
+                    sql = sql.replace('\n','')
+
+
+                    Con = pymysql.Connect(host=server, user=user, passwd=password, db='robot', charset='utf8')
+                    df = pd.read_sql_query(sql, Con).drop_duplicates()
+
+                    data = pd.concat([data,df], axis = 0)
+
+                    Con.close()
+            except:        
+                print(f'    server {n} Error {m}')
+                pass
 
     data[['id', 'clid', 'uniqueid', 'dialog_name', 'type', 'error','parsed', 'server_number']] = data[['id', 'clid', 'uniqueid', 'dialog_name', 'type', 'error','parsed', 'server_number']].astype('str')
 
@@ -90,18 +120,19 @@ def dialog_errors():
 
 
 
-    # drop table suitecrm_robot_ch.dialogs_errors;
+# drop table suitecrm_robot_ch.dialogs_errors;
 
-    # create table suitecrm_robot_ch.dialogs_errors
-    #                     (
-    #                         id Nullable(String),
-    #                         clid Nullable(String),
-    #                         uniqueid Nullable(String),
-    #                         dialog_name Nullable(String),
-    #                         date Nullable(DateTime),
-    #                         type Nullable(String),
-    #                         error Nullable(String),
-    #                         parsed Nullable(String),
-    #                         server_number Nullable(String)
+# create table suitecrm_robot_ch.dialogs_errors
+#                     (
+#                         id Nullable(String),
+#                         clid String,
+#                         uniqueid Nullable(String),
+#                         dialog_name Nullable(String),
+#                         date Nullable(DateTime),
+#                         type Nullable(String),
+#                         error Nullable(String),
+#                         parsed Nullable(String),
+#                         server_number Nullable(String)
 
-    #                     ) ENGINE = TinyLog
+#                     ) ENGINE = MergeTree
+# order by clid

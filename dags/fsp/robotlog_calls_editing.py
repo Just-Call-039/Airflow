@@ -68,6 +68,8 @@ def robotlog_calls_transformation(n, days, files_from_sql, main_folder, path_to_
                                 'trunk_id',
                                 'marker',
                                 'organization',
+                                'inbound_call',
+                                'directory',
                                 'last_step'], as_index=False, dropna = False).agg({'perevod': 'sum',
                                                                     'id_x': 'count',
                                                                     'billsec': 'sum',
@@ -83,9 +85,3 @@ def robotlog_calls_transformation(n, days, files_from_sql, main_folder, path_to_
 
         n += 1
 
-# robotlog_calls_transformation(n= 1,
-#                               days = 3,
-#                               files_from_sql = '/root/airflow/dags/fsp/Files/sql_robotlog_calls/',
-#                               main_folder = '/root/airflow/dags/fsp/Files/robotlog_calls/',
-#                               path_to_users = '/root/airflow/dags/fsp/Files/',
-#                               name_users = 'users.csv')

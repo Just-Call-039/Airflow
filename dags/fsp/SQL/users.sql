@@ -13,9 +13,9 @@ with fio as (select id, concat(first_name, ' ', last_name) fio, team
                                        when left(first_name, instr(first_name, ' ') - 1) > 0 and
                                             left(first_name, instr(first_name, ' ') - 1) < 10000
                                            then left(first_name, instr(first_name, ' ') - 1)
-                                       when left(first_name, 2) = 'ÿ_'
+                                       when left(first_name, 2) = 'Ñ_'
                                            then substring(first_name, 3, (instr(first_name, ' ') - 3))
-                                       when left(first_name, 1) = 'ÿ'
+                                       when left(first_name, 1) = 'Ñ'
                                            then substring(first_name, 2, (instr(first_name, ' ') - 1))
                                        else '' end)
                               end team
@@ -34,9 +34,9 @@ with fio as (select id, concat(first_name, ' ', last_name) fio, team
                              when left(first_name, instr(first_name, ' ') - 1) > 0 and
                                   left(first_name, instr(first_name, ' ') - 1) < 10000
                                  then left(first_name, instr(first_name, ' ') - 1)
-                             when left(first_name, 2) = 'ÿ_'
+                             when left(first_name, 2) = 'Ñ_'
                                  then substring(first_name, 3, (instr(first_name, ' ') - 3))
-                             when left(first_name, 1) = 'ÿ'
+                             when left(first_name, 1) = 'Ñ'
                                  then substring(first_name, 2, (instr(first_name, ' ') - 1))
                              else '' end)
                     end team,

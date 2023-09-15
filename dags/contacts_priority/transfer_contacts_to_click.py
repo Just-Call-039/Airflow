@@ -1,4 +1,4 @@
-def transfer_to_click(x, y, stop):
+def transfer_to_click(x, y, stop, general_create):
     import pandas as pd
     import pymysql
     from clickhouse_driver import Client
@@ -26,32 +26,10 @@ def transfer_to_click(x, y, stop):
                     database='suitecrm_robot_ch', settings={'use_numpy': True})
 
     sql_drop = '''drop table suitecrm_robot_ch.contacts_cstm'''
-    client.execute(sql_drop)
+    # client.execute(sql_drop)
 
     print('Создаем новую таблицу')
-    sql_create = '''create table suitecrm_robot_ch.contacts_cstm
-                    (
-                    id                 String,
-                    phone_work         String,
-                    last_call_c        DateTime,
-                    priority1          String,
-                    priority2          String,
-                    ptv_c              String,
-                    next_project       String,
-                    last_project       String,
-                    stoplist_c         String,
-                    base_source_c      String,
-                    town_c             String,
-                    city_c             String,
-                    marker_c           String,
-                    step_c             String,
-                    last_queue_c       String,
-                    region_c           String,
-                    network_provider_c String,
-                    otkaz_c            String,
-                    contacts_status_c  String
-                    ) ENGINE = MergeTree
-                        order by id'''
+    sql_create = open(general_create).read().replace('п»ї','').replace('﻿','').replace('\ufeff','')
     client.execute(sql_create)
 
     print('Подключаемся к mysql')

@@ -74,7 +74,7 @@ select distinct calls.id,
                 completed_c,
                 user_name login_user,
                 result_call_c,
-                if(otkaz_c is null, 'null_status_otkaz', otkaz_c)
+                if(otkaz_c is null, 'null_status_otkaz', otkaz_c) otkaz_c
 from calls
          left join ws on calls.user_call = ws.id_user
          left join users on calls.user_call = users.id
