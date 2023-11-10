@@ -7,8 +7,17 @@ def meetings_transformation(path_to_users, name_users, path_to_folder, name_call
     team_project['date'] = team_project['date'].astype('str')
     team_project['team'] = team_project['team'].astype('str')
 
+    print('steps')
+    steps2 = def_project_definition.step_perevod().drop_duplicates()
+    steps = str(list(dict.fromkeys(steps2.step.to_list()))).strip('[]')
+
     print('dialogi')
     dialogi = pd.read_csv(f'{path_to_folder}/{name_calls}')
+    dialogi['datecall'] = pd.to_datetime(dialogi['datecall'])
+    dialogi['last_step'] = dialogi['last_step'].fillna(0).astype('int').astype('str')
+    dialogi['queue'] = dialogi['queue'].fillna(0).astype('int').astype('str')
+
+    dialogi = dialogi.merge(steps2, how = 'left', left_on = ['queue','last_step','datecall'], right_on = ['ochered', 'step', 'date']).fillna('0').query('step != "0"')
 
     dialogi['RN'] = dialogi.sort_values(['datecall'], ascending=[True]).groupby(
         ['phone', 'assigned_user_id']).cumcount() + 1

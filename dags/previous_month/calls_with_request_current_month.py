@@ -23,7 +23,8 @@ dag = DAG(
     schedule_interval='50 5-17 * * *',
     start_date=pendulum.datetime(2023, 7, 7, tz='Europe/Kaliningrad'),
     catchup=False,
-    default_args=default_args
+    default_args=default_args,
+    max_active_runs=1 
     )
 
 

@@ -1,4 +1,4 @@
-def region_editer(path_to_files, requests,calls, path_result, file_result_req,file_result):
+def region_editer(path_to_files, requests, path_result, file_result_req,file_result):
  import pandas as pd
  import pymysql
  import gspread
@@ -10,8 +10,19 @@ def region_editer(path_to_files, requests,calls, path_result, file_result_req,fi
 
 
  print('Начинаем обработку данных')
- calls = pd.read_csv(f'{path_to_files}/{calls}')
  requests = pd.read_csv(f'{path_to_files}/{requests}')
+ print('Читаем звонки из папки')
+
+ csv_files = glob.glob('/root/airflow/dags/indicators_to_regions/Files/sql_files/callls/*.csv')
+ dataframes = []
+
+ for file in csv_files:
+    df = pd.read_csv(file)
+    dataframes.append(df)
+
+ calls = pd.concat(dataframes)
+
+ calls.reset_index(drop=True, inplace=True)
  print('Читаем переводы из папки')
 
  csv_files = glob.glob('/root/airflow/dags/indicators_to_regions/Files/transfer/*.csv')

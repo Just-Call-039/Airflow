@@ -1,3 +1,4 @@
+
 with work_time as (select rc.id_user,
                           rc.date,
                           row_number() over (partition by rc.id_user, rc.date)                                               as num,
@@ -30,9 +31,7 @@ with work_time as (select rc.id_user,
                             left join suitecrm.worktime_log as wt
                                       on rc.id_user = wt.id_user and date(rc.date) = date(wt.date)
                             left join users on rc.id_user = users.id
-                   where  (date(rc.date)) != day (curdate())
-  and month (date(rc.date)) = month (curdate())
-  and year (date(rc.date)) = year (curdate())
+                   where  date(rc.date) = date(now()) -interval 1 day
                      and rc.id_user not in ('1', '')
                      and rc.id_user is not null),
 
@@ -44,7 +43,7 @@ with work_time as (select rc.id_user,
                                  row_number() over (partition by user_id, date(start_status) order by stop_status desc) row
                           from status_log_history
                                    join users on user_id = users.id
-                          where (date(stop_status) >= '2023-08-01'
+                          where (date(stop_status) >= '2023-10-01'
                             and time(stop_status) <= '21:00:00')) tt
                  where row = 1
      ),
@@ -57,7 +56,7 @@ with work_time as (select rc.id_user,
                                   row_number() over (partition by user_id, date(start_status) order by start_status) rowstart
                            from status_log_history
                                     join users on user_id = users.id
-                           where date(start_status) >= '2023-07-01'
+                           where date(start_status) >= '2023-10-01'
                              and time(start_status) >= '02:00:00') tt
                   where rowstart = 1
      ),

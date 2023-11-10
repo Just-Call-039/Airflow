@@ -18,34 +18,56 @@ with ocheredi as (select *
                 select '42' team, 'Авито' department
                 union all
                 select '16' team, 'Банкроты' department),
- clear_users as (select id,
-                            concat(first_name, ' ', last_name) fio,
-                            first_name,
-                            case
-                                when substring_index(substring_index(first_name, ' ', 3), ' ', -1) REGEXP '^[0-9]+$'
-                                    then substring_index(substring_index(first_name, ' ', 3), ' ', -1)
-                                when substring_index(substring_index(first_name, ' ', 4), ' ', -1) REGEXP '^[0-9]+$'
-                                    then substring_index(substring_index(first_name, ' ', 4), ' ', -1)
-                                else
-                                    (case
-                                         when left(first_name, instr(first_name, ' ') - 1) > 0 and
-                                              left(first_name, instr(first_name, ' ') - 1) < 10000
-                                             then left(first_name, instr(first_name, ' ') - 1)
-                                         when left(first_name, 2) = 'я_'
-                                             then substring(first_name, 3, (instr(first_name, ' ') - 3))
-                                         when left(first_name, 1) = 'я'
-                                             then substring(first_name, 2, (instr(first_name, ' ') - 1))
-                                         else '' end)
-                                end                            teams
-                     from suitecrm.users),
-     supervisors as (select id as super, fio as super_fio, replace(teams, ' ', '') team
-                     from clear_users
-                     where id in (select distinct supervisor
-                                  from suitecrm.worktime_supervisor)),
-     teams as (select clear_users.id, fio, date(date_start) start, if(date_stop is null, date(now()), date(date_stop)-interval 1 day) stop, super as supervisor, supervisors.team
-         from clear_users
-         left join suitecrm.worktime_supervisor on clear_users.id = id_user
-         left join supervisors on super = supervisor),
+ # clear_users as (select id,
+ #                            concat(first_name, ' ', last_name) fio,
+ #                            first_name,
+ #                            case
+ #                                when substring_index(substring_index(first_name, ' ', 3), ' ', -1) REGEXP '^[0-9]+$'
+ #                                    then substring_index(substring_index(first_name, ' ', 3), ' ', -1)
+ #                                when substring_index(substring_index(first_name, ' ', 4), ' ', -1) REGEXP '^[0-9]+$'
+ #                                    then substring_index(substring_index(first_name, ' ', 4), ' ', -1)
+ #                                else
+ #                                    (case
+ #                                         when left(first_name, instr(first_name, ' ') - 1) > 0 and
+ #                                              left(first_name, instr(first_name, ' ') - 1) < 10000
+ #                                             then left(first_name, instr(first_name, ' ') - 1)
+ #                                         when left(first_name, 2) = 'я_'
+ #                                             then substring(first_name, 3, (instr(first_name, ' ') - 3))
+ #                                         when left(first_name, 1) = 'я'
+ #                                             then substring(first_name, 2, (instr(first_name, ' ') - 1))
+ #                                         else '' end)
+ #                                end                            teams
+ #                     from suitecrm.users),
+ #     supervisors as (select id as super, fio as super_fio, replace(teams, ' ', '') team
+ #                     from clear_users
+ #                     where id in (select distinct supervisor
+ #                                  from suitecrm.worktime_supervisor)),
+ #     teams as (select clear_users.id, fio, date(date_start) start, if(date_stop is null, date(now()), date(date_stop)-interval 1 day) stop, super as supervisor, supervisors.team
+ #         from clear_users
+ #         left join suitecrm.worktime_supervisor on clear_users.id = id_user
+ #         left join supervisors on super = supervisor),
+         teams as (select *,
+                      case
+                          when left(first_name, instr(first_name, ' ') - 1) > 0 and
+                               left(first_name, instr(first_name, ' ') - 1) < 10000
+                              then left(first_name, instr(first_name, ' ') - 1)
+                          when left(first_name, 2) = '�_'
+                              then substring(first_name, 3, (instr(first_name, ' ') - 3))
+                          when left(first_name, 1) = '�'
+                              then substring(first_name, 2, (instr(first_name, ' ') - 1))
+                          when first_name > 0 then first_name
+                          else '' end team
+               from (
+                        SELECT id,
+                               concat(first_name, ' ', last_name) fio,
+                               case
+                                   when substring_index(substring_index(first_name, ' ', 3), ' ', -1) REGEXP '^[0-9]+$'
+                                       then substring_index(substring_index(first_name, ' ', 3), ' ', -1)
+                                   when substring_index(substring_index(first_name, ' ', 4), ' ', -1) REGEXP '^[0-9]+$'
+                                       then substring_index(substring_index(first_name, ' ', 4), ' ', -1)
+                                   else first_name
+                                   end                            first_name
+                        FROM suitecrm.users) user),
  config as (select D.name                                        'Название диалога',
                    step.name                                     'Название шага перевода',
                    index_number                                  'step',
@@ -581,7 +603,7 @@ with ocheredi as (select *
 #          left join ocheredi on (destination_queue = ocheredi.queue and call_date = ocheredi.date)
                  left join ocheredi on (destination_queue = ocheredi.queue)
                  left join teams on R.assigned_user_id = teams.id
-                 where (call_date between start and stop) or start is null
+                 # where (call_date between start and stop) or start is null
                  ),
  R3 as (select R2.*,
                case

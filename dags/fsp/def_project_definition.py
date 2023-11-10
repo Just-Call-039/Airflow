@@ -100,3 +100,27 @@ def queue_project2():
     project_queue = project_queue[project_queue['RN'] == 1][['Очередь', 'type_ro', 'date']]
 
     return project_queue
+
+def step_perevod():
+    path = '/root/airflow/dags/project_defenition/projects/steps'
+    files = glob.glob(path + "/*.csv")
+    steps = pd.DataFrame()
+    n = 0
+    num_of_files = len(os.listdir(path))
+    print(f'Всего файлов {num_of_files}')
+
+    for i in files:
+        n += 1
+        df = pd.read_csv(i)
+        steps = steps.append(df)
+    del df
+
+    steps['step'] = steps['step'].fillna(0).astype('int').astype('str')
+    steps['ochered'] = steps['ochered'].fillna(0).astype('int').astype('str')
+    steps['date'] = pd.to_datetime(steps['date'])
+    # steps['step'] = steps['step'].astype('int')
+
+    steps['RN'] = steps.groupby(['step', 'ochered', 'date']).cumcount() + 1
+    steps = steps[steps['RN'] == 1][['step', 'ochered', 'date']]
+
+    return steps

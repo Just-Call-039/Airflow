@@ -26,13 +26,17 @@
                          phone_work,
                          town_c,
                          city_c,
-                         case when step_c not in ('', 111,261,262,1,0,361,362,371,372) then 1 else 0 end talk,
+                         case when step_c not in ('', 111,261,262,1,0,361,362,371,372) then 1 
+                         when contacts_status_c in ('refusing', 'MeetingWait', 'Wait', 'CallWait') and last_queue_c = 9091 then 1
+                         else 0 end talk,
                          case
                              when step_c not in ('', 111,261,262,1,0,361,362,371,372) and
                                   contacts_status_c in ('refusing', 'MeetingWait', 'Wait', 'CallWait') then 1
+                             when contacts_status_c in ('refusing', 'MeetingWait', 'Wait', 'CallWait') and last_queue_c = 9091 then 1
                              else 0 end                                                      perevod,
                          case
                              when step_c not in ('', 111,261,262,1,0,361,362,371,372) and contacts_status_c = 'MeetingWait' then 1
+                             when contacts_status_c = 'MeetingWait' and last_queue_c = 9091 then 1
                              else 0 end                                                      meeting,
                          marker_c,
                          count_good_calls_c,

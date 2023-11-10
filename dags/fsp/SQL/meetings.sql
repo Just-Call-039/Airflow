@@ -18,34 +18,56 @@ with ocheredi as (select distinct *
                     select '42' team, 'Авито' department
                     union all
                     select '16' team, 'Банкроты' department),
-clear_users as (select id,
-                            concat(first_name, ' ', last_name) fio,
-                            first_name,
-                            case
-                                when substring_index(substring_index(first_name, ' ', 3), ' ', -1) REGEXP '^[0-9]+$'
-                                    then substring_index(substring_index(first_name, ' ', 3), ' ', -1)
-                                when substring_index(substring_index(first_name, ' ', 4), ' ', -1) REGEXP '^[0-9]+$'
-                                    then substring_index(substring_index(first_name, ' ', 4), ' ', -1)
-                                else
-                                    (case
-                                         when left(first_name, instr(first_name, ' ') - 1) > 0 and
-                                              left(first_name, instr(first_name, ' ') - 1) < 10000
-                                             then left(first_name, instr(first_name, ' ') - 1)
-                                         when left(first_name, 2) = 'я_'
-                                             then substring(first_name, 3, (instr(first_name, ' ') - 3))
-                                         when left(first_name, 1) = 'я'
-                                             then substring(first_name, 2, (instr(first_name, ' ') - 1))
-                                         else '' end)
-                                end                            teams
-                     from suitecrm.users),
-     supervisors as (select id as super, fio as super_fio, replace(teams, ' ', '') team
-                     from clear_users
-                     where id in (select distinct supervisor
-                                  from suitecrm.worktime_supervisor)),
-     teams as (select clear_users.id, fio, date(date_start) start, if(date_stop is null, date(now()), date(date_stop)-interval 1 day) stop, super as supervisor, supervisors.team
-         from clear_users
-         left join suitecrm.worktime_supervisor on clear_users.id = id_user
-         left join supervisors on super = supervisor),
+          teams as (select *,
+                      case
+                          when left(first_name, instr(first_name, ' ') - 1) > 0 and
+                               left(first_name, instr(first_name, ' ') - 1) < 10000
+                              then left(first_name, instr(first_name, ' ') - 1)
+                          when left(first_name, 2) = '�_'
+                              then substring(first_name, 3, (instr(first_name, ' ') - 3))
+                          when left(first_name, 1) = '�'
+                              then substring(first_name, 2, (instr(first_name, ' ') - 1))
+                          when first_name > 0 then first_name
+                          else '' end team
+               from (
+                        SELECT id,
+                               concat(first_name, ' ', last_name) fio,
+                               case
+                                   when substring_index(substring_index(first_name, ' ', 3), ' ', -1) REGEXP '^[0-9]+$'
+                                       then substring_index(substring_index(first_name, ' ', 3), ' ', -1)
+                                   when substring_index(substring_index(first_name, ' ', 4), ' ', -1) REGEXP '^[0-9]+$'
+                                       then substring_index(substring_index(first_name, ' ', 4), ' ', -1)
+                                   else first_name
+                                   end                            first_name
+                        FROM suitecrm.users) user),
+# clear_users as (select id,
+#                             concat(first_name, ' ', last_name) fio,
+#                             first_name,
+#                             case
+#                                 when substring_index(substring_index(first_name, ' ', 3), ' ', -1) REGEXP '^[0-9]+$'
+#                                     then substring_index(substring_index(first_name, ' ', 3), ' ', -1)
+#                                 when substring_index(substring_index(first_name, ' ', 4), ' ', -1) REGEXP '^[0-9]+$'
+#                                     then substring_index(substring_index(first_name, ' ', 4), ' ', -1)
+#                                 else
+#                                     (case
+#                                          when left(first_name, instr(first_name, ' ') - 1) > 0 and
+#                                               left(first_name, instr(first_name, ' ') - 1) < 10000
+#                                              then left(first_name, instr(first_name, ' ') - 1)
+#                                          when left(first_name, 2) = 'я_'
+#                                              then substring(first_name, 3, (instr(first_name, ' ') - 3))
+#                                          when left(first_name, 1) = 'я'
+#                                              then substring(first_name, 2, (instr(first_name, ' ') - 1))
+#                                          else '' end)
+#                                 end                            teams
+#                      from suitecrm.users),
+#      supervisors as (select id as super, fio as super_fio, replace(teams, ' ', '') team
+#                      from clear_users
+#                      where id in (select distinct supervisor
+#                                   from suitecrm.worktime_supervisor)),
+#      teams as (select clear_users.id, fio, date(date_start) start, if(date_stop is null, date(now()), date(date_stop)-interval 1 day) stop, super as supervisor, supervisors.team
+#          from clear_users
+#          left join suitecrm.worktime_supervisor on clear_users.id = id_user
+#          left join supervisors on super = supervisor),
      contacts as (select phone_work, if(city_c is null or city_c = '',concat(contacts_cstm.town_c,'_t'),city_c) as city, town_c, city_c
                                          from suitecrm.contacts
                                                   left join suitecrm.contacts_cstm on id = id_c)
@@ -70,9 +92,10 @@ from (
                 active_date,
                 city_c,
 #                 if(date_entered < '2023-04-01', city_c, city) city_c,
-                town_c,
-                                     start,
-                                     stop
+                town_c
+#                 ,
+#                                      start,
+#                                      stop
          from (select R.*,
                       case
                           when team in (12, 50, 4) then 'RTK'
@@ -103,9 +126,10 @@ from (
                                      rtk.phone_work,
                                      city_c,
                                      city,
-                                     town_c,
-                                     start,
-                                     stop
+                                     town_c
+#                                      ,
+#                                      start,
+#                                      stop
                      FROM suitecrm.jc_meetings_rostelecom rtk
                               left join suitecrm.jc_meetings_rostelecom_cstm rtk_cstm on rtk.id = rtk_cstm.id_c
                               left join teams on rtk.assigned_user_id = teams.id
@@ -129,9 +153,10 @@ from (
                 '' active_date,
                 city_c,
 #                 if(date_entered < '2023-04-01', city_c, city) city_c,
-                town_c,
-                                     start,
-                                     stop
+                town_c
+#                 ,
+#                                      start,
+#                                      stop
          from (select R.*,
                       case
                           when team in (12, 50, 4) then 'BEELINE'
@@ -159,9 +184,10 @@ from (
                                      bln.phone_work,
                                      city_c,
                                      city,
-                                     contacts.town_c,
-                                     start,
-                                     stop
+                                     contacts.town_c
+#                                      ,
+#                                      start,
+#                                      stop
                      FROM suitecrm.jc_meetings_beeline bln
                               left join suitecrm.jc_meetings_beeline_cstm bln_cstm on bln.id = bln_cstm.id_c
                               left join teams on bln.assigned_user_id = teams.id
@@ -184,9 +210,10 @@ from (
                 '' active_date,
                 city_c,
 #                 if(date_entered < '2023-04-01', city_c, city) city_c,
-                town_c,
-                                     start,
-                                     stop
+                town_c
+#                 ,
+#                                      start,
+#                                      stop
          from (select distinct R.*,
                                case
                                    when packet_service in ('tel', 'tel_RB', 'tel_R', 'tel_B') then 'DOMRU Dop'
@@ -228,9 +255,10 @@ from (
                                      dom.phone_work,
                                      city_c,
                                      city,
-                                     town_c,
-                                     start,
-                                     stop
+                                     town_c
+#                                      ,
+#                                      start,
+#                                      stop
 
                      FROM suitecrm.jc_meetings_domru dom
                               left join suitecrm.jc_meetings_domru_cstm dom_cstm on id_c = id
@@ -254,9 +282,10 @@ from (
                 '' active_date,
                 city_c,
 #                 if(date_entered < '2023-04-01', city_c, city) city_c,
-                town_c,
-                                     start,
-                                     stop
+                town_c
+#                 ,
+#                                      start,
+#                                      stop
          from (select R.*,
                       case
                           when team in (19, 42, 80, 107, 13) then 'TTK'
@@ -291,9 +320,10 @@ from (
                                      ttk.phone_work,
                                      city_c,
                                      city,
-                                     town_c,
-                                     start,
-                                     stop
+                                     town_c
+#                                      ,
+#                                      start,
+#                                      stop
                      FROM suitecrm.jc_meetings_ttk ttk
                               left join suitecrm.jc_meetings_ttk_cstm ttk_cstm on ttk.id = ttk_cstm.id_c
                               left join teams on ttk.assigned_user_id = teams.id
@@ -317,9 +347,10 @@ from (
                 '' active_date,
                 city_c,
 #                 if(date_entered < '2023-04-01', city_c, city) city_c,
-                town_c,
-                                     start,
-                                     stop
+                town_c
+#                 ,
+#                                      start,
+#                                      stop
          from (select R.*,
                       case
                           when team in (12, 50, 4) then 'NBN'
@@ -342,9 +373,10 @@ from (
                                      nbn.phone_work,
                                      city_c,
                                      city,
-                                     contacts.town_c,
-                                     start,
-                                     stop
+                                     contacts.town_c
+#                                      ,
+#                                      start,
+#                                      stop
                      FROM suitecrm.jc_meetings_netbynet nbn
                               left join suitecrm.jc_meetings_netbynet_cstm nbn_cstm on nbn.id = nbn_cstm.id_c
                               left join teams on nbn.assigned_user_id = teams.id
@@ -369,9 +401,10 @@ from (
                 '' active_date,
                 city_c,
 #                 if(date_entered < '2023-04-01', city_c, city) city_c,
-                town_c,
-                                     start,
-                                     stop
+                town_c
+#                 ,
+#                                      start,
+#                                      stop
          from (select rtkid,
                       last_queue_c,
                       tmts.team,
@@ -391,9 +424,10 @@ from (
                                (6, 18, 23, 55, 56, 57, 58, 64, 65, 73, 74, 76, 77, 81, 87, 91, 102, 103, 104, 117, 122,
                                 202) then 'MTS LIDS'
                           else 'MTS LIDS' end proect,
-                      tarif,
-                                     start,
-                                     stop
+                      tarif
+#                       ,
+#                                      start,
+#                                      stop
                from (SELECT distinct mts.id                    rtkid,
                                      mts_cstm.last_queue_c,
                                      teams.team,
@@ -411,9 +445,10 @@ from (
                                      mts.phone_work,
                                      city_c,
                                      city,
-                                     town_c,
-                                     start,
-                                     stop
+                                     town_c
+#                                      ,
+#                                      start,
+#                                      stop
                      FROM suitecrm.jc_meetings_mts mts
                               left join suitecrm.jc_meetings_mts_cstm mts_cstm on mts.id = mts_cstm.id_c
                               left join ocheredi on mts_cstm.last_queue_c = ocheredi.queue

@@ -11,6 +11,8 @@ def rtk_reg_r(row):
         else:
             return row['RTK_town']
         
+
+        
 def ttk_reg_r(row):
     if row['TTK_city'] not in ['', ' ']:
         return row['TTK_city']

@@ -37,16 +37,22 @@ sql_transfer = f'{path_to_sql}TransferRobot.sql'
 
 path_to_files = '/root/airflow/dags/indicators_to_regions/Files/'
 path_to_file_sql = f'{path_to_files}sql_files/'
+path_to_file_sql_calls = f'{path_to_files}sql_files/callls/'
 path_to_file = f'{path_to_files}total/'
 path_to_transfer_sql = f'{path_to_files}transfer/'
 
 csv_request = 'request.csv'
 csv_request_result = 'Requests.csv'
 csv_transfer = 'Transfer текущий.csv'
-csv_calls = 'calls.csv'
-csv_result = 'CallsTest.csv'
+csv_calls = 'calls текущий.csv'
+csv_result = 'CallsTotal текущий.csv'
+csv_result2 = 'CallsTotal архив.csv'
 
-dbs_result = '/Отчеты BI/Показатели до регионов/'
+
+
+
+dbs_result1 = '/Отчеты BI/Показатели до регионов/'
+dbs_result2 = '/Отчеты BI/Показатели до регионов/CallsTotal/'
 dbs_result_transfer = '/Отчеты BI/Показатели до регионов/TransferRobot/'
 
 
@@ -61,7 +67,7 @@ request_sql = PythonOperator(
 calls_sql = PythonOperator(
     task_id='calls_sql', 
     python_callable=sql_query_to_csv, 
-    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_calls, 'path_csv_file': path_to_file_sql, 'name_csv_file': csv_calls}, 
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_calls, 'path_csv_file': path_to_file_sql_calls, 'name_csv_file': csv_calls}, 
     dag=dag
     )
 transfer_sql = PythonOperator(
@@ -83,13 +89,13 @@ region_editing = PythonOperator(
 calls_to_dbs = PythonOperator(
     task_id='calls_to_dbs', 
     python_callable=transfer_file_to_dbs, 
-    op_kwargs={'from_path': path_to_file, 'to_path': dbs_result, 'file': csv_result, 'db': 'DBS'}, 
+    op_kwargs={'from_path': path_to_file, 'to_path': dbs_result2, 'file': csv_result, 'db': 'DBS'}, 
     dag=dag
     )
 request_to_dbs = PythonOperator(
     task_id='request_to_dbs', 
     python_callable=transfer_file_to_dbs, 
-    op_kwargs={'from_path': path_to_file, 'to_path': dbs_result, 'file': csv_request_result, 'db': 'DBS'}, 
+    op_kwargs={'from_path': path_to_file, 'to_path': dbs_result1, 'file': csv_request_result, 'db': 'DBS'}, 
     dag=dag
     )
 transfer_to_dbs = PythonOperator(

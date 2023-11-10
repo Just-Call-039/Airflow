@@ -12,6 +12,7 @@ from airflow.models import Variable
 from contacts_priority.priority_providers import priority_providers
 from contacts_priority.transfer_contacts_to_click import transfer_to_click
 from contacts_priority.to_temp_table import temp_table
+from contacts_priority.data import data_table
 from contacts_priority.setting_priorities_ptv import setting_priorities_ptv
 from contacts_priority.setting_priorities_holod import setting_priorities_holod
 from contacts_priority.create_priority_table import create_priority_table
@@ -29,8 +30,8 @@ default_args = {
 
 dag = DAG(
     dag_id='contacts_priority',
-    schedule_interval='0 16 * * FRI',
-    start_date=pendulum.datetime(2023, 9, 11, tz='Europe/Kaliningrad'),
+    schedule_interval='8 16 * * FRI',
+    start_date=pendulum.datetime(2023, 9, 15, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args
     )
@@ -51,6 +52,9 @@ sql_temp_insert = f'{path_sql}/temp_insert.sql'
 sql_settings_priorities_ptv = f'{path_sql}/settings_priorities_ptv.sql'
 sql_settings_priorities_holod = f'{path_sql}/settings_priorities_holod.sql'
 
+sql_data_create = f'{path_sql}/data_create.sql'
+sql_data_insert = f'{path_sql}/data_insert.sql'
+
 
 
 
@@ -66,6 +70,13 @@ priority_providers_table = PythonOperator(
     task_id='priority_providers_table', 
     python_callable = priority_providers, 
     op_kwargs={'file': priority_providers_file}, 
+    dag=dag
+    )
+
+data_table = PythonOperator(
+    task_id='data_table', 
+    python_callable = data_table, 
+    op_kwargs={'data_create': sql_data_create, 'data_insert': sql_data_insert}, 
     dag=dag
     )
 
@@ -108,20 +119,11 @@ send_telegram_message = TelegramOperator(
 
 # Очередности выполнения задач.
 
-# create_temp_table >> create_priority_table
+create_temp_table >> create_priority_table
 [transfer_contacts_to_click >> create_temp_table] >> create_priority_table
 priority_providers_table >> create_priority_table
+transfer_contacts_to_click >> data_table 
 create_priority_table >> set_priorities_ptv >> send_telegram_message
 create_priority_table >> set_priorities_holod >> send_telegram_message
-
-
-
-
-
-
-
-
-
-
 
 

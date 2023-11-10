@@ -43,12 +43,20 @@ def setting_priorities_holod(path_sql_file):
     dom = 0
     rtk = 0
 
+    client = Client(host=host, port='9000', user=user, password=password,
+                database='suitecrm_robot_ch', settings={'use_numpy': True})
+    
+    sql0 = '''select count(*) from suitecrm_robot_ch.contacts where ptv = 3'''
+    df0 = pd.DataFrame(client.query_dataframe(sql0))
+
     print('ЧАСТЬ ТРЕТЬЯ ___________________________________________')
     print('Выгружаем холод')
 
+    print(f'Всего строк с 3 ptv {df0}')
+
     for i in range(0,22):
 
-        print(f'Выгружаем {i} кусок')
+        print(f'Выгружаем {i} кусок ______________________')
 
         client = Client(host=host, port='9000', user=user, password=password,
                         database='suitecrm_robot_ch', settings={'use_numpy': True})

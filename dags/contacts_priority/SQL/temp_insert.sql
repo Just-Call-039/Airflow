@@ -240,4 +240,4 @@ insert into suitecrm_robot_ch.contacts
 
                         from suitecrm_robot_ch.contacts_cstm) contacts
 
-                        limit 10000000, 10000000
+                        -- limit 10000000, 10000000

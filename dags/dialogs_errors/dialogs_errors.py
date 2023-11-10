@@ -24,7 +24,7 @@ default_args = {
 
 dag = DAG(
     dag_id='dialog_errors',
-    schedule_interval='20 19 * * *',
+    schedule_interval='20 09 * * *',
     start_date=pendulum.datetime(2023, 9, 11, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args

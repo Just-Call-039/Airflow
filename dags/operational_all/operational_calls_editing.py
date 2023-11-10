@@ -106,7 +106,7 @@ from suitecrm_robot_ch.temp_operational2
 
     df = df.groupby(['project',
         'calldate',
-        'callhour',
+        # 'callhour',
         'network_provider',
         'count_good_calls_c',
         'data',

@@ -18,6 +18,6 @@ select name,
        queue_c
 from suitecrm.calls
          left join suitecrm.calls_cstm on id = id_c
-where date(date_start) between '2023-03-01' and date(now()) - interval 1 day
+where date(date_start) between '2023-05-01' and date(now()) - interval 1 day
   and queue_c != 90003
   and name = 'Входящий звонок'

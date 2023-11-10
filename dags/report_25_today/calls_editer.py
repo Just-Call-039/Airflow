@@ -48,6 +48,7 @@ def robotlog_calls_transformation(path_to_sql_calls, sql_calls, path_to_sql_tran
     calls.fillna('', inplace=True)
 
     print('Редактируем')
+    print(calls.head())
     calls['call_hour'] = pd.to_datetime(calls['call_date']).apply(lambda x: x.hour + 3)
     calls['call_minute'] = pd.to_datetime(calls['call_date']).apply(lambda x: x.minute)
     calls['call_date'] = pd.to_datetime(calls['call_date']).apply(lambda x: x.date())

@@ -26,7 +26,7 @@ def transfer_to_click(x, y, stop, general_create):
                     database='suitecrm_robot_ch', settings={'use_numpy': True})
 
     sql_drop = '''drop table suitecrm_robot_ch.contacts_cstm'''
-    # client.execute(sql_drop)
+    client.execute(sql_drop)
 
     print('Создаем новую таблицу')
     sql_create = open(general_create).read().replace('п»ї','').replace('﻿','').replace('\ufeff','')

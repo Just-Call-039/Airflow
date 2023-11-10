@@ -24,7 +24,8 @@ dag = DAG(
     schedule_interval='10 6-18 * * *',
     start_date=pendulum.datetime(2023, 7, 7, tz='Europe/Kaliningrad'),
     catchup=False,
-    default_args=default_args
+    default_args=default_args,
+    max_active_runs=1 
     )
 
 
