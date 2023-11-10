@@ -66,7 +66,7 @@ file_name_steps = 'steps_today.csv'
 
 path_to_steps_files = '/root/airflow/dags/project_defenition/projects/steps'
 
-
+#test
 # Пути к файлам на сервере airflow.
 # Сразу после sql
 path_to_file_airflow = '/root/airflow/dags/fsp/Files/' # Сюда падают users и worktime
