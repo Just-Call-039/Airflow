@@ -8,7 +8,7 @@ def markers_archive():
     data = pd.read_csv(r'\\10.88.22.128\dbs\scripts fsp\Current Files\Маркера.csv')
     n = 0
     num_of_files = len(os.listdir(path))
-    #print
+
     print(f'Всего файлов {num_of_files}')
 
     for i in files:
