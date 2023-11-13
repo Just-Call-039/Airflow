@@ -9,6 +9,6 @@ select distinct phone,
                 if(client_status = 'MeetingWait', 1, 0)                                    meeting
 from suitecrm_robot.jc_robot_log
 where last_step not in ('', '0', '111', '371', '372', '362', '361', '261', '262')
-  and date(call_date) = date(now()) 
+  and date(call_date) = date(now()) - interval 1 day
   and (deleted = 0 or deleted is null)
   and (inbound_call = 0 or inbound_call is null)

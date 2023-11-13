@@ -14,6 +14,6 @@ select distinct cl.id,
        result_call_c
 from suitecrm.calls as cl
          left join suitecrm.calls_cstm as cl_c on cl.id = cl_c.id_c
-where date(cl.date_entered) = date(now())  and direction='Inbound'
+where date(cl.date_entered) = date(now()) - interval 1 day and direction='Inbound'
 
 

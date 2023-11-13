@@ -4,7 +4,7 @@ with incoming_calls as (select cl.date_entered           as call_date,
                                   cl.assigned_user_id)   as user_call
                         from suitecrm.calls as cl
                                  left join suitecrm.calls_cstm as cl_c on cl.id = cl_c.id_c
-                        where date(cl.date_entered) = date(now()) 
+                        where date(cl.date_entered) = date(now()) - interval 1 day
                           and direction='Inbound'
                           and duration_minutes < 10),
 
@@ -16,7 +16,7 @@ with incoming_calls as (select cl.date_entered           as call_date,
                                   cl.assigned_user_id)          as user_call
                         from suitecrm.calls as cl
                                  left join suitecrm.calls_cstm as cl_c on cl.id = cl_c.id_c
-                        where date(cl.date_entered) = date(now()) 
+                        where date(cl.date_entered) = date(now()) - interval 1 day
                           and direction = 'Outbound'
          group by phone,date(call_date),user_call)
 

@@ -86,6 +86,7 @@ def robotlog_calls_transformation(path_to_sql_calls, sql_calls, path_to_sql_tran
         calls = calls.merge(queue_project, how='left',left_on=['queue','call_date'],right_on=['queue','date'])
 
         print('Определяем шаги')
+        calls['hello_end'] = calls['hello_end'].astype('str')
         calls['description'] = calls.apply(lambda row: defs.last_step(row), axis=1)
         calls['etv'] = calls.apply(lambda row: defs.etv(row), axis=1)
 

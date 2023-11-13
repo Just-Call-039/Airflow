@@ -58,6 +58,7 @@ def robotlog_calls_transformation(path_to_sql_calls, sql_calls, path_to_sql_tran
     calls['region'] = calls.apply(lambda row: defs.region(row), axis=1)
 
     print('Определяем шаги')
+    calls['hello_end'] = calls['hello_end'].astype('str')
     calls['description'] = calls.apply(lambda row: defs.last_step(row), axis=1)
     calls['etv'] = calls.apply(lambda row: defs.etv(row), axis=1)
 
