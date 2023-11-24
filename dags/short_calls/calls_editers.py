@@ -13,6 +13,18 @@ def short_editer(path_to_files, calls,calls_out,robot, path_result,file_result):
  robot = pd.read_csv(f'{path_to_files}/{robot}')
  print('Все файлы прочитаны')
 
+ robot['hours'] = robot['hours'].astype(str)
+ robot['phone'] = robot['phone'].astype(str)
+ calls['hours'] = calls['hours'].astype(str)
+ calls['phone'] = calls['phone'].astype(str)
+ calls_out['phone'] = calls_out['phone'].astype(str)
+ calls['hours'] = calls['hours'].apply(lambda x: x.replace('.0',''))
+ calls['phone'] = calls['phone'].apply(lambda x: x.replace('.0',''))
+ robot['hours'] = robot['hours'].apply(lambda x: x.replace('.0',''))
+ calls['phone'] = calls['phone'].apply(lambda x: x.replace('.0',''))
+ calls_out['phone'] = calls_out['phone'].apply(lambda x: x.replace('.0',''))
+
+
  short_callsv = robot.merge(calls, left_on = ['phone','calldate','hours'], 
                           right_on = ['phone','call_date','hours'], how = 'left').fillna('')
  

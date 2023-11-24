@@ -95,6 +95,8 @@ from (
 
                 if(((stoplist_c not like '%^s^%' and stoplist_c not like '%^sb^%' and stoplist_c not like '%^ao^%') or
                     stoplist_c is NULL or stoplist_c = ''), 0, 1)                                       general_stop,
+
+               --  if(((stoplist_c like '%^s^%' or stoplist_c like '%^sb^%' or stoplist_c like '%^ao^%') , 1, 0)                                       general_stop,
                 if(ptv_c not like '%^n^%', 0, 1)                                                        ntv_ptv,
                 if((step_c not in ('105', '106', '107', '318') or step_c is null), 0, 1)                ntv_step,
 

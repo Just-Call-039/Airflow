@@ -11,6 +11,10 @@ def connect_db(file):
         dest = '/root/airflow/dags/not_share/cloud_my_sql_117.csv'
     elif file == 'cloud_128':
         dest = '/root/airflow/dags/not_share/cloud_my_sql_128.csv'
+    elif file == 'cloud_182':
+        dest = '/root/airflow/dags/not_share/cloud_my_sql_182.csv'
+    elif file == 'cloud_183':
+        dest = '/root/airflow/dags/not_share/cloud_my_sql_183.csv'
     elif file == '72':
         dest = '/root/airflow/dags/not_share/Second_cloud_72.csv'
     elif file == 'Combat':

@@ -23,6 +23,11 @@ default_args = {
     'retry_delay': timedelta(minutes=3)
     }
 
+def print_file_contents(file_path):
+    with open(file_path, 'r') as file:
+        file_contents = file.read()
+        print(file_contents)
+
 dag = DAG(
     dag_id='short_calls',
     schedule_interval='55 6 * * *',
@@ -52,12 +57,24 @@ previous_date = today - datetime.timedelta(days=1)
 year = previous_date.year
 month = previous_date.month
 day = previous_date.day
-file_total_2 = 'transfers 10_11_2023.csv' 
+file_total_2 = 'transfers 22_11_2023.csv' 
 file_total = f'transfers {day}_{month}_{year}.csv' 
 calls_csv = 'calls.csv'
 calls_out_csv = 'calls_out.csv'
 robot_csv = 'robot.csv'
 emissions_csv = 'emissions.csv'
+
+file_path = '/root/airflow/dags/not_share/cloud_my_sql_182.csv'
+
+
+
+
+print_task = PythonOperator(
+    task_id='print_file_contents_task',
+    python_callable=print_file_contents,
+    op_args=[file_path],
+    dag=dag,
+)
 
 
 # Блок выполнения SQL запросов.
@@ -119,8 +136,7 @@ clear_folders = PythonOperator(
     dag=dag
     )
 
-
-[calls_sql, calls_out_sql, robot_sql] >> short_calls_editing >> transfer_to_dbs >> clear_folders
+print_task >> [calls_sql, calls_out_sql, robot_sql] >> short_calls_editing >> transfer_to_dbs >> clear_folders
 emissions_sql >> transfer_emissions_to_dbs
 
 

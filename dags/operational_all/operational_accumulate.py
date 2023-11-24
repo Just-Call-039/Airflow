@@ -13,10 +13,11 @@ from airflow.models import Variable
 
 from commons.transfer_file_to_dbs import transfer_file_to_dbs
 from fsp.repeat_download import sql_query_to_csv
-from commons_li.clear_folder import clear_folder
 from fsp.transfer_files_to_dbs import transfer_files_to_dbs
+from commons_li.clear_folder import clear_folder
 
 
+from operational_all.operational_accumulate_dozvon import transfer_files_to_click
 from operational_all.operational_accumulate_update import update_operational
 
 
@@ -39,7 +40,6 @@ dag = DAG(
     catchup=False,
     default_args=default_args
     )
-
 
 
 
@@ -67,6 +67,7 @@ day = today.day
 file_name_autofilling = f'Автозаливки_{month:02}_{day:02}.csv' 
 file_name_operational = 'Оперативный_архив_{}.csv'
 file_name_etv = 'ЕТВ.csv'
+file_name_dozvon = 'Дозвон.csv'
 
 
 # Пути к файлам на сервере airflow
@@ -98,6 +99,7 @@ sql_autofilling = PythonOperator(
     )
 
 
+# Блок отправки обработка оперативного архива и отправка файлов в clickhouse.
 
 update_operational_accumulate= PythonOperator(
     task_id='update_operational_accumulate', 
@@ -124,14 +126,25 @@ transfer_autofilling = PythonOperator(
     dag=dag
     )
 
-
-transfer_operational_main = PythonOperator(
-    task_id='operational_transfer_main', 
+transfer_operational = PythonOperator(
+    task_id='transfer_operational', 
     python_callable=transfer_files_to_dbs, 
     op_kwargs={'from_path': path_to_sql_operational_folder, 'to_path': dbs_operational, 'db': 'DBS'}, 
     dag=dag
     )
 
+
+
+# Блок отправки  файлов в clickhouse.
+
+transfer_dozvon_to_click = PythonOperator(
+    task_id='transfer_dozvon_to_click', 
+    python_callable=transfer_files_to_click, 
+    op_kwargs={'path_to_file': path_to_sql_operational_folder2, 'files': file_name_dozvon}, 
+    dag=dag
+    )
+
+# Очистка папки
 clear_folders = PythonOperator(
     task_id='clear_folders', 
     python_callable=clear_folder, 
@@ -139,5 +152,5 @@ clear_folders = PythonOperator(
     dag=dag
     )
 
-sql_etv >> transfer_etv 
-sql_autofilling >> transfer_autofilling >> update_operational_accumulate >> transfer_operational_main >> clear_folders
+sql_etv >> transfer_etv >> transfer_dozvon_to_click
+sql_autofilling >> transfer_autofilling >>  update_operational_accumulate >> transfer_operational >> clear_folders

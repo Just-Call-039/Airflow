@@ -18,6 +18,37 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
     team_project = def_project_definition.team_project()
     queue_project = def_project_definition.queue_project()
 
+
+    # Вычисляем дату предыдущих 14 дней
+    today = datetime.date.today()
+    previous_date = today - datetime.timedelta(days=15)
+
+    print('Подключаемся к clickhouse')
+    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
+    if dest:
+        with open(dest) as file:
+            for now in file:
+                now = now.strip().split('=')
+                first, second = now[0].strip(), now[1].strip()
+                if first == 'host':
+                    host = second
+                elif first == 'user':
+                    user = second
+                elif first == 'password':
+                    password = second
+        # return host, user, password
+
+
+    client = Client(host=host, port='9000', user=user, password=password,
+                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+
+
+    # Формируем SQL-запрос для удаления строк
+    sql = f'''ALTER TABLE suitecrm_robot_ch.operational DELETE WHERE calldate >= toDate('{previous_date}') AND calldate < toDate('{today}')'''
+
+    # Отправляем запрос
+    client.execute(sql)
+
     for i in range(0, stop):
         print(f'start {i}')
         print(datetime.datetime.now() - datetime.timedelta(days=n))
@@ -179,9 +210,47 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
         'category',
         'category_calls',
         'last_step'], as_index=False, dropna=False).agg({'calls': 'sum', 'trafic1': 'sum', 'trafic': 'sum'}).rename(columns={'trafic': 'full_trafic','trafic1': 'trafic'})
+        
+        
+        df[['project','dialog','destination_queue','calldate','client_status',
+        'was_repeat','marker','route','source','perevod','region','holod',
+        'city_c','otkaz','trunk_id','autootvet','category_stat','stretched',
+        'category','category_calls','last_step']] =  df[['project',
+                        'dialog','destination_queue','calldate','client_status',
+                        'was_repeat','marker','route','source','perevod','region','holod',
+                        'city_c','otkaz','trunk_id','autootvet','category_stat','stretched',
+                        'category','category_calls','last_step']].astype('str').fillna('')
+        
+
+        df[['calls','trafic','full_trafic']] = df[['calls','trafic','full_trafic']].astype('int64').fillna(0)
+
 
         print('Сохраняем')
         df.to_csv(to_save, index=False)
+
+
+        print('Подключаемся к clickhouse')
+        dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
+        if dest:
+            with open(dest) as file:
+                for now in file:
+                    now = now.strip().split('=')
+                    first, second = now[0].strip(), now[1].strip()
+                    if first == 'host':
+                        host = second
+                    elif first == 'user':
+                        user = second
+                    elif first == 'password':
+                        password = second
+        # return host, user, password
+
+
+        client = Client(host=host, port='9000', user=user, password=password,
+                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+        
+        print('Отправляем запрос')
+        client.insert_dataframe('INSERT INTO suitecrm_robot_ch.operational VALUES', df)
+
 
         n += 1
         print(f'----------------- the end {i}')
