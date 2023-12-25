@@ -21,7 +21,7 @@ default_args = {
 
 dag = DAG(
     dag_id='indicators_to_regions',
-    schedule_interval='50 7 * * *',
+    schedule_interval='50 6 * * *',
     start_date=pendulum.datetime(2023, 8, 24, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args
@@ -44,6 +44,7 @@ path_to_transfer_sql = f'{path_to_files}transfer/'
 csv_request = 'request.csv'
 csv_request_result = 'Requests.csv'
 csv_transfer = 'Transfer текущий.csv'
+csv_calls2 = 'calls 11_2023.csv'
 csv_calls = 'calls текущий.csv'
 csv_result = 'CallsTotal текущий.csv'
 csv_result2 = 'CallsTotal архив.csv'

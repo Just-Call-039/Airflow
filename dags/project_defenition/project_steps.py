@@ -17,6 +17,7 @@ def project_steps():
     sql_steps = sql_steps.read()
     steps = pd.read_sql_query(sql_steps, Con)
     steps['date'] = datetime.datetime.now().strftime('%Y-%m-%d')
+    steps = steps[['step','ochered','date','type_steps']]
     steps.to_csv(to_save_steps, index=False)
 
 

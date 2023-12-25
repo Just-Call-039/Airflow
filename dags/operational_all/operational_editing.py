@@ -122,6 +122,7 @@ from suitecrm_robot_ch.temp_operational
         'route',
         'source',
         'perevod',
+        'lids',
         'region',
         'holod',
         'city_c',

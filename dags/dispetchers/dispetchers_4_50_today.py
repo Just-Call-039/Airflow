@@ -9,6 +9,7 @@ from airflow.operators.python_operator import PythonOperator
 
 from fsp.repeat_download import sql_query_to_csv
 from commons_sawa.telegram import telegram_send
+from dispetchers.disp_editer import disp_editors
 
 
 
@@ -23,8 +24,8 @@ default_args = {
 
 
 dag = DAG(
-    dag_id='dispetchers_4_50',
-    schedule_interval='50 4 * * *',
+    dag_id='dispetchers_4_50_today',
+    schedule_interval='0 21 * * *',
     start_date=pendulum.datetime(2022, 11, 22, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args
@@ -43,18 +44,18 @@ text_recalls = today_date+' Отправляем файл Перезвонов'
 text_transfers = 'Отправляем файл с переводами за вчера'
 text_meetings = today_date+' Отправляем файл с Заявками за три месяца'
 
-path_to_sql = '/root/airflow/dags/dispetchers 4-50/SQL/'
+path_to_sql = '/root/airflow/dags/dispetchers/SQL_today/'
 sql_leads = f'{path_to_sql}Leads_4_50.sql'
 sql_recalls = f'{path_to_sql}Recalls_4_50.sql'
 sql_transfers = f'{path_to_sql}Transfers.sql'
 sql_request = f'{path_to_sql}Request_Ksusha.sql'
 
-path_to_file_sql_airflow = '/root/airflow/dags/dispetchers 4-50/Files/'
+path_to_file_sql_airflow = '/root/airflow/dags/dispetchers/Files/'
 
-csv_leads = 'leads_4_50.csv'
-csv_recalls = 'recalls_4_50.csv'
-csv_transfers = 'transfers.csv'
-csv_meetings = 'meeting.csv'
+csv_leads = 'leads_4_50_today.csv'
+csv_recalls = 'recalls_4_50_today.csv'
+csv_transfers = 'transfers_today.csv'
+csv_meetings = 'meeting_today.csv'
 
 # Блок выполнения SQL запросов.
 leads_sql = PythonOperator(
@@ -82,6 +83,13 @@ request_sql = PythonOperator(
     task_id='request_sql', 
     python_callable=sql_query_to_csv, 
     op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_request, 'path_csv_file': path_to_file_sql_airflow, 'name_csv_file': csv_meetings}, 
+    dag=dag
+    )
+
+lids_upgrade = PythonOperator(
+    task_id='lids_upgrade', 
+    python_callable=disp_editors, 
+    op_kwargs={'path_to_files': path_to_file_sql_airflow, 'lids': csv_leads, 'path_result': path_to_file_sql_airflow}, 
     dag=dag
     )
 
@@ -114,7 +122,7 @@ meetings_telegram = PythonOperator(
      dag=dag
      )
 
-leads_sql >> leads_telegram
+leads_sql >> lids_upgrade >> leads_telegram
 recalls_sql >> recalls_telegram
 transfers_sql >> transfers_telegram
 request_sql >> meetings_telegram

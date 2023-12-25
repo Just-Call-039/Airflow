@@ -46,20 +46,23 @@ with etv as (SELECT substring(turn, 11, 4)                                      
                       INNER JOIN suitecrm.jc_robot_reportconfig_cstm ON id = id_C
              WHERE deleted = 0
                and have_ptv is not null),
-     config as (select D.name                                        'Название диалога',
-                       step.name                                     'Название шага перевода',
+     config as (select D.name                                        '???????? ???????',
+                       step.name                                     '???????? ???? ????????',
                        index_number                                  'step',
                        replace(replace(queue, '_NEW^', ''), '^', '') 'dialogs',
-                       custom_queue_c                                'Принимающая очередь'
+                       custom_queue_c                                '??????????? ???????',
+                       case when action_type>0 and check_exit = 1 then '0'
+                        when action_type>0 and check_exit = 0 then '1' end type_steps
                 from suitecrm.jc_robconfig_step step
                          left join suitecrm.jc_robconfig_step_cstm cstm on step.id = cstm.id_c
                          left join suitecrm.jc_robconfig_dialog_jc_robconfig_step_c sv
                                    on step.id = sv.jc_robconfig_dialog_jc_robconfig_stepjc_robconfig_step_idb
                          left join suitecrm.jc_robconfig_dialog D
                                    on D.id = sv.jc_robconfig_dialog_jc_robconfig_stepjc_robconfig_dialog_ida
-                where action_type > 0),
+                where action_type > 0 ),
      tabeue as (select step,
                        dialogs,
+                       type_steps,
                        SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 1), ',', -1) as queue_1,
                        case
                            when
@@ -339,125 +342,124 @@ with etv as (SELECT substring(turn, 11, 4)                                      
                   and dialogs != ''),
      steps as (select *
                from (
-                        select step,
-                               queue_1 as ochered
+                        select step, queue_1 as ochered, type_steps
                         from tabeue
                         union all
-                        select step, queue_2
+                        select step, queue_2,type_steps
                         from tabeue
                         union all
-                        select step, queue_3
+                        select step, queue_3,type_steps
                         from tabeue
                         union all
-                        select step, queue_4
+                        select step, queue_4,type_steps
                         from tabeue
                         union all
-                        select step, queue_5
+                        select step, queue_5,type_steps
                         from tabeue
                         union all
-                        select step, queue_6
+                        select step, queue_6,type_steps
                         from tabeue
                         union all
-                        select step, queue_7
+                        select step, queue_7,type_steps
                         from tabeue
                         union all
-                        select step, queue_8
+                        select step, queue_8,type_steps
                         from tabeue
                         union all
-                        select step, queue_9
+                        select step, queue_9,type_steps
                         from tabeue
                         union all
-                        select step, queue_10
+                        select step, queue_10,type_steps
                         from tabeue
                         union all
-                        select step, queue_11
+                        select step, queue_11,type_steps
                         from tabeue
                         union all
-                        select step, queue_12
+                        select step, queue_12,type_steps
                         from tabeue
                         union all
-                        select step, queue_13
+                        select step, queue_13,type_steps
                         from tabeue
                         union all
-                        select step, queue_14
+                        select step, queue_14,type_steps
                         from tabeue
                         union all
-                        select step, queue_15
+                        select step, queue_15,type_steps
                         from tabeue
                         union all
-                        select step, queue_16
+                        select step, queue_16,type_steps
                         from tabeue
                         union all
-                        select step, queue_17
+                        select step, queue_17,type_steps
                         from tabeue
                         union all
-                        select step, queue_18
+                        select step, queue_18,type_steps
                         from tabeue
                         union all
-                        select step, queue_19
+                        select step, queue_19,type_steps
                         from tabeue
                         union all
-                        select step, queue_20
+                        select step, queue_20,type_steps
                         from tabeue
                         union all
-                        select step, queue_21
+                        select step, queue_21,type_steps
                         from tabeue
                         union all
-                        select step, queue_22
+                        select step, queue_22,type_steps
                         from tabeue
                         union all
-                        select step, queue_23
+                        select step, queue_23,type_steps
                         from tabeue
                         union all
-                        select step, queue_24
+                        select step, queue_24,type_steps
                         from tabeue
                         union all
-                        select step, queue_25
+                        select step, queue_25,type_steps
                         from tabeue
                         union all
-                        select step, queue_26
+                        select step, queue_26,type_steps
                         from tabeue
                         union all
-                        select step, queue_27
+                        select step, queue_27,type_steps
                         from tabeue
                         union all
-                        select step, queue_28
+                        select step, queue_28,type_steps
                         from tabeue
                         union all
-                        select step, queue_29
+                        select step, queue_29,type_steps
                         from tabeue
                         union all
-                        select step, queue_30
+                        select step, queue_30,type_steps
                         from tabeue
                         union all
-                        select step, queue_31
+                        select step, queue_31,type_steps
                         from tabeue
                         union all
-                        select step, queue_32
+                        select step, queue_32,type_steps
                         from tabeue
                         union all
-                        select step, queue_33
+                        select step, queue_33,type_steps
                         from tabeue
                         union all
-                        select step, queue_34
+                        select step, queue_34,type_steps
                         from tabeue
                         union all
-                        select step, queue_35
+                        select step, queue_35,type_steps
                         from tabeue
                         union all
-                        select step, queue_36
+                        select step, queue_36,type_steps
                         from tabeue
                         union all
-                        select step, queue_37
+                        select step, queue_37,type_steps
                         from tabeue
                         union all
-                        select step, queue_38
+                        select step, queue_38,type_steps
                         from tabeue
                         union all
-                        select step, queue_39
+                        select step, queue_39,type_steps
                         from tabeue
                         union all
-                        select step, queue_40
+                        select step, queue_40,type_steps
                         from tabeue
                     ) as t2
                where ochered is not null),
@@ -507,7 +509,8 @@ with etv as (SELECT substring(turn, 11, 4)                                      
                                   route,
                                   jc.assigned_user_id,
                                   last_step,
-                                  case when step is not null then 1 else 0 end                          perevod,
+                                  case when type_steps = 1  then 1 else 0 end                          perevod,
+                                  case when type_steps = 0  then 1 else 0 end                          lids,
                                   jc.ptv_c,
                                   jc.region_c,
                                   if(jc.city_c is null or jc.city_c = '',concat(cstm.town_c,'_t'),jc.city_c) city_c,
@@ -741,6 +744,7 @@ team,
        route,
        otkaz,
        perevod,
+       lids,
        1 calls,
        region,
        holod,

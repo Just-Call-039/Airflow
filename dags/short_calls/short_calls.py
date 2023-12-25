@@ -43,7 +43,7 @@ path_to_file_airflow = '/root/airflow/dags/short_calls/Files/'
 path_airflow_sql = f'{path_to_file_airflow}sql_files/'
 path_airflow_total = f'{path_to_file_airflow}total_file/'
 
-path_dbs_total = '/short calls/'
+path_dbs_total = '/short calls/Звонки/'
 path_dbs_emissions = '/scripts fsp/Current Files/'
 
 sql_calls = '/root/airflow/dags/short_calls/SQL/calls_short.sql'

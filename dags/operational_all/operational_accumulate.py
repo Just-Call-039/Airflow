@@ -153,4 +153,4 @@ clear_folders = PythonOperator(
     )
 
 sql_etv >> transfer_etv >> transfer_dozvon_to_click
-sql_autofilling >> transfer_autofilling >>  update_operational_accumulate >> transfer_operational >> clear_folders
+sql_autofilling >> transfer_autofilling >> update_operational_accumulate >> transfer_operational >> clear_folders

@@ -58,13 +58,13 @@ path_to_data_folder = f'{path_to_file_airflow}data/'
 path_to_file_dbs = '/scripts fsp/Current Files/Базы/'
 
 # Выполнение SQL запросов
-# sql_data = PythonOperator(
-#     task_id='data_sql',
-#     python_callable=repeat_download_data,
-#     op_kwargs={'x': x, 'y': y, 'count_repeats': count_repeats, 'limit_list': limit_list, 'cloud': cloud_name, 'path_sql_file': sql_data, 'path_csv_file': path_to_sql_data_folder,
-#                 'name_csv_file': file_data, 'timeout': 240},
-#     dag=dag
-#     )
+sql_data = PythonOperator(
+    task_id='data_sql',
+    python_callable=repeat_download_data,
+    op_kwargs={'x': x, 'y': y, 'count_repeats': count_repeats, 'limit_list': limit_list, 'cloud': cloud_name, 'path_sql_file': sql_data, 'path_csv_file': path_to_sql_data_folder,
+                'name_csv_file': file_data, 'timeout': 240},
+    dag=dag
+    )
 
 # Преобразование файлов после sql.
 transformation_data = PythonOperator(
@@ -82,12 +82,12 @@ transfer_data = PythonOperator(
     dag=dag
     )
 
-# remove_files_from_airflow = PythonOperator(
-#     task_id='remove_sql_files_from_airflow', 
-#     python_callable=remove_files_from_airflow, 
-#     op_kwargs={'paths': [path_to_sql_data_folder, path_to_data_folder]}, 
-#     dag=dag
-#     )
+remove_files_from_airflow = PythonOperator(
+    task_id='remove_sql_files_from_airflow', 
+    python_callable=remove_files_from_airflow, 
+    op_kwargs={'paths': [path_to_sql_data_folder, path_to_data_folder]}, 
+    dag=dag
+    )
 
 # Отправка уведомления об ошибке в Telegram.
 send_telegram_message = TelegramOperator(

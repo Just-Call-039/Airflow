@@ -11,9 +11,12 @@ select distinct cl.id,
        duration_minutes                    as call_sec,
        if(cl.duration_minutes <= 10, 1, 0) as short_calls,
        completed_c,
-       result_call_c
+       result_call_c,
+        otkaz_c
 from suitecrm.calls as cl
          left join suitecrm.calls_cstm as cl_c on cl.id = cl_c.id_c
 where date(cl.date_entered) = date(now()) - interval 1 day and direction='Inbound'
+
+
 
 

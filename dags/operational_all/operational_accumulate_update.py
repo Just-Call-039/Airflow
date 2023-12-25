@@ -5,6 +5,9 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
     import os
     import fsp.def_project_definition as def_project_definition
     from clickhouse_driver import Client
+    import datetime
+    import os
+    import glob
 
 
     file_to_delete = f'{path_del}{file_deleted}'   # Замените на имя файла, который вы хотите удалить
@@ -21,7 +24,7 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
 
     # Вычисляем дату предыдущих 14 дней
     today = datetime.date.today()
-    previous_date = today - datetime.timedelta(days=15)
+    previous_date = today - datetime.timedelta(days=14)
 
     print('Подключаемся к clickhouse')
     dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
@@ -186,6 +189,44 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
 
         print('Цепим категори')
         df = df.merge(category, how='left', on='phone')
+        csv_files = glob.glob('/root/airflow/dags/project_defenition/projects/steps/*.csv')
+        dataframes  = []
+
+        for file in csv_files:
+            df1 = pd.read_csv(file)
+            dataframes.append(df1)
+        print('Цепим шаги')
+        steps = pd.concat(dataframes)
+        steps['step'] = steps['step'].astype(str).apply(lambda x: x.replace('.0',''))
+        steps['ochered'] = steps['ochered'].astype(str).apply(lambda x: x.replace('.0',''))
+        steps['date'] = pd.to_datetime(steps['date'])
+        steps['type_steps'] = steps['type_steps'].astype('str').apply(lambda x: x.replace('.0',''))
+        df['last_step'] = df['last_step'].astype(str).apply(lambda x: x.replace('.0',''))
+        df['dialog'] = df['dialog'].astype(str).apply(lambda x: x.replace('.0',''))    
+        df['calldate'] = pd.to_datetime(df['calldate'])
+   
+        df = df.merge(steps, left_on = ['last_step','dialog','calldate'], 
+                          right_on = ['step','ochered','date'], how = 'left').fillna('')
+        
+
+        print('Цепим переводы')
+        df['perevod'] = ''
+        def check_1(row):
+            if row['type_steps'] == '1':
+                return '1'
+            else:
+                return '0'
+        df['perevod'] = df.apply(check_1, axis=1)
+
+        print('Цепим лиды')
+        df['lids'] = ''
+        def check_2(row):
+            if row['type_steps'] == '0':
+                return '1'
+            else:
+                return '0'
+        df['lids'] = df.apply(check_2, axis=1)
+
 
     # df['category'] = ''
         print('Группируем')
@@ -199,6 +240,7 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
         'route',
         'source',
         'perevod',
+        'lids',
         'region',
         'holod',
         'city_c',
@@ -213,11 +255,11 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
         
         
         df[['project','dialog','destination_queue','calldate','client_status',
-        'was_repeat','marker','route','source','perevod','region','holod',
+        'was_repeat','marker','route','source','perevod','lids','region','holod',
         'city_c','otkaz','trunk_id','autootvet','category_stat','stretched',
         'category','category_calls','last_step']] =  df[['project',
                         'dialog','destination_queue','calldate','client_status',
-                        'was_repeat','marker','route','source','perevod','region','holod',
+                        'was_repeat','marker','route','source','perevod','lids','region','holod',
                         'city_c','otkaz','trunk_id','autootvet','category_stat','stretched',
                         'category','category_calls','last_step']].astype('str').fillna('')
         

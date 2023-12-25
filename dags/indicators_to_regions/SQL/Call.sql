@@ -19,4 +19,4 @@ from suitecrm.calls
          left join suitecrm.calls_cstm on id = id_c
          left join suitecrm.users on assigned_user_id = users.id
 where direction = 'Inbound'
-  and date(calls.date_entered) >= '2023-11-01' and  date(calls.date_entered)< date(now())
+  and date(calls.date_entered) >= '2023-12-01' and  date(calls.date_entered) < date(now())

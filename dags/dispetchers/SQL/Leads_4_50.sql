@@ -171,7 +171,7 @@ with town_c as (select 0 town_c, '0 РФ' Город
                 select 92, '92 Севастополь'),
      BP as (select phone phone_bp, date_start date_start_bp
             from suitecrm.jc_planned_calls jpc
-            where date(date_start) > date(now())- interval 1 day),
+            where date(date_start) > date(now()) - interval 1 day),
      Meets_90 as (SELECT phone_work
                   from (SELECT rtk.phone_work phone_work, date_entered, status, deleted
                         FROM suitecrm.jc_meetings_rostelecom rtk
@@ -318,7 +318,7 @@ with town_c as (select 0 town_c, '0 РФ' Город
                                  from suitecrm.calls
                                           left join suitecrm.calls_cstm ON calls_cstm.id_c = calls.id
                                  where name in ('Входящий звонок', 'Исходящий звонок')
-                                   and date(date_start) = date(now())- interval 1 day
+                                   and date(date_start) = date(now()) - interval 1 day
                                    and asterisk_caller_id_c is not null
                                    and not (duration_minutes = 0
                                      and otkaz_c is null
@@ -510,7 +510,161 @@ with town_c as (select 0 town_c, '0 РФ' Город
                                    SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 17), ',', -1)
                                then null
                            else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 18), ',', -1)
-                           end                                                    as queue_18
+                           end                                                    as queue_18,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 19), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 18), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 19), ',', -1)
+                           end                                                    as queue_19,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 20), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 19), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 20), ',', -1)
+                           end                                                    as queue_20,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 21), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 20), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 21), ',', -1)
+                           end                                                    as queue_21,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 22), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 21), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 22), ',', -1)
+                           end                                                    as queue_22,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 23), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 22), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 23), ',', -1)
+                           end                                                    as queue_23,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 24), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 23), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 24), ',', -1)
+                           end                                                    as queue_24,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 25), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 24), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 25), ',', -1)
+                           end                                                    as queue_25,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 26), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 25), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 26), ',', -1)
+                           end                                                    as queue_26,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 27), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 26), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 27), ',', -1)
+                           end                                                    as queue_27,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 28), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 27), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 28), ',', -1)
+                           end                                                    as queue_28,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 29), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 28), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 29), ',', -1)
+                           end                                                    as queue_29,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 30), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 29), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 30), ',', -1)
+                           end                                                    as queue_30,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 31), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 20), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 31), ',', -1)
+                           end                                                    as queue_31,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 32), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 31), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 32), ',', -1)
+                           end                                                    as queue_32,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 33), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 32), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 33), ',', -1)
+                           end                                                    as queue_33,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 34), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 33), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 34), ',', -1)
+                           end                                                    as queue_34,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 35), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 34), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 35), ',', -1)
+                           end                                                    as queue_35,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 36), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 35), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 36), ',', -1)
+                           end                                                    as queue_36,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 37), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 36), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 37), ',', -1)
+                           end                                                    as queue_37,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 38), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 37), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 38), ',', -1)
+                           end                                                    as queue_38,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 39), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 38), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 39), ',', -1)
+                           end                                                    as queue_39,
+                       case
+                           when
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 40), ',', -1) =
+                                   SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 39), ',', -1)
+                               then null
+                           else SUBSTRING_INDEX(SUBSTRING_INDEX(dialogs, ',', 40), ',', -1)
+                           end                                                    as queue_40
                 from config
                 where dialogs is not null
                   and dialogs != ''),
@@ -572,34 +726,75 @@ with town_c as (select 0 town_c, '0 РФ' Город
                         union all
                         select step, queue_18, name, description
                         from tabeue
+                        union all
+                        select step, queue_19, name, description
+                        from tabeue
+                        union all
+                        select step, queue_20, name, description
+                        from tabeue
+                        union all
+                        select step, queue_21, name, description
+                        from tabeue
+                        union all
+                        select step, queue_22, name, description
+                        from tabeue
+                        union all
+                        select step, queue_23, name, description
+                        from tabeue
+                        union all
+                        select step, queue_24, name, description
+                        from tabeue
+                        union all
+                        select step, queue_25, name, description
+                        from tabeue
+                        union all
+                        select step, queue_26, name, description
+                        from tabeue
+                        union all
+                        select step, queue_27, name, description
+                        from tabeue
+                        union all
+                        select step, queue_28, name, description
+                        from tabeue
+                        union all
+                        select step, queue_29, name, description
+                        from tabeue
+                        union all
+                        select step, queue_30, name, description
+                        from tabeue
+                        union all
+                        select step, queue_31, name, description
+                        from tabeue
+                        union all
+                        select step, queue_32, name, description
+                        from tabeue
+                        union all
+                        select step, queue_33, name, description
+                        from tabeue
+                        union all
+                        select step, queue_34, name, description
+                        from tabeue
+                        union all
+                        select step, queue_35, name, description
+                        from tabeue
+                        union all
+                        select step, queue_36, name, description
+                        from tabeue
+                        union all
+                        select step, queue_37, name, description
+                        from tabeue
+                        union all
+                        select step, queue_38, name, description
+                        from tabeue
+                        union all
+                        select step, queue_39, name, description
+                        from tabeue
+                        union all
+                        select step, queue_40, name, description
+                        from tabeue
                     ) as t2
                where ochered is not null),
-     ocheredi as (select *
-                  from (select queue,
-                               project_name,
-                               date,
-                               (row_number() over (partition by queue order by date desc)) as rw
-                        from (select queue,
-                                     date,
-                                     case
-                                         when project = 11 and project_type = 1 then 'MTS LIDS'
-                                         when project = 11 then 'MTS'
-                                         when project = 10 and project_type = 1 then 'BEELINE LIDS'
-                                         when project = 10 then 'BEELINE'
-                                         when project = 19 and project_type = 1 then 'NBN LIDS'
-                                         when project = 19 then 'NBN'
-                                         when project = 3 and project_type = 1 then 'DOMRU LIDS'
-                                         when project = 3 then 'DOMRU'
-                                         when project = 5 and project_type = 1 then 'RTK LIDS'
-                                         when project = 5 then 'RTK'
-                                         when project = 6 and project_type = 1 then 'TTK LIDS'
-                                         when project = 6 then 'TTK'
-                                         when project in (12, 13) then 'BEELINE (sim)'
-                                         else 'DR' end project_name
-                              from suitecrm.queue_project
-                              where date >= '2022-02-01') tb1) as tb2
-                  where rw = 1
-                  order by 3),
+
      osnova as (select substring(jrl.dialog, 11, 4)     Диалог_лиды,
                        if(substring(log.dialog, 11, 4) is null, substring(jrl.dialog, 11, 4),
                           substring(log.dialog, 11, 4)) Диалог_лог,
@@ -656,10 +851,8 @@ with town_c as (select 0 town_c, '0 РФ' Город
                   and (Причина_отказа in ('Автоответчик', 'Нет ответа', 'Обрыв разговора', '') or
                        Причина_отказа is null)
                   and (duration_minutes <= 20 or duration_minutes is null)),
-     lids as (select project_name Проект,
-                     osnova.*
-              from osnova
-                       left join ocheredi on Принимающая_очередь = queue)
+     lids as (select osnova.*
+              from osnova)
 
 select *
 from lids

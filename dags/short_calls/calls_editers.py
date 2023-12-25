@@ -52,8 +52,8 @@ def short_editer(path_to_files, calls,calls_out,robot, path_result,file_result):
        (short_calls2['set_queue'] == short_calls2['ochered']) & 
        (short_calls2['date'] == short_calls2['calldate']), 'perevod'] = 1
  
- short_calls = short_calls2[['phone','calldate','hours',	'set_queue','perevod','talk','meeting',
-                            'name','queue','user_call','call_sec','short_calls','completed_c','result_call_c','countout']]
+ short_calls = short_calls2[['phone','calldate','hours','set_queue','perevod','talk','meeting',
+                            'name','queue','user_call','call_sec','short_calls','completed_c','result_call_c','countout','otkaz_c']]
  
  short_calls = short_calls.groupby(['calldate',	
                                     'hours',
@@ -68,7 +68,7 @@ def short_editer(path_to_files, calls,calls_out,robot, path_result,file_result):
                 'short_calls',
                 'completed_c',
                 'result_call_c',
-                'countout'],as_index=False, dropna=False).agg({'phone':'count'}).rename(columns={'phone': 'calls'})
+                'countout','otkaz_c'],as_index=False, dropna=False).agg({'phone':'count'}).rename(columns={'phone': 'calls'})
  
  
  print('Записывается в файл')
