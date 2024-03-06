@@ -73,8 +73,12 @@ create table suitecrm_robot_ch.data
     stop_nbn               Nullable(String),
     stop_2com              Nullable(String),
     alive                  Nullable(String),
+    data_mts               Nullable(String),
+    data_rtk               Nullable(String),
+    data_oper              Nullable(String),
     priority1              Nullable(String),
     priority2              Nullable(String),
+    mob_phone              Nullable(String),
     rest_days              Nullable(Int64),
 
 

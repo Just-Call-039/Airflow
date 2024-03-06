@@ -436,35 +436,69 @@ with town_c as (select 0 town_c, '0 РФ' Город
                                  and assigned_user_id not in ('', '1')) jc2
                                   left join ocheredi_new
                                             on (jc2.destination_queue = ocheredi_new.queue and call_date = date)) jc3),
-     users_crm as (select *,
-                      case
-                           when left(first_name, instr(first_name, ' ') - 1) > 0 and
-                                left(first_name, instr(first_name, ' ') - 1) < 10000
-                               then left(first_name, instr(first_name, ' ') - 1)
-                           when left(first_name, 2) = 'я_'
-                               then substring(first_name, 3, (instr(first_name, ' ') - 3))
-                           when left(first_name, 1) = 'я'
-                               then substring(first_name, 2, (instr(first_name, ' ') - 1))
-                          when first_name > 0 then first_name
-                           else '' end team
-               from (
-                        SELECT id,
-                               concat(first_name, ' ', last_name) fio,
-                               case
-                                   when substring_index(substring_index(first_name, ' ', 3), ' ', -1) REGEXP '^[0-9]+$'
-                                       then substring_index(substring_index(first_name, ' ', 3), ' ', -1)
-                                   when substring_index(substring_index(first_name, ' ', 4), ' ', -1) REGEXP '^[0-9]+$'
-                                       then substring_index(substring_index(first_name, ' ', 4), ' ', -1)
-                                   else first_name
-                                   end                            first_name
-                        FROM suitecrm.users) user),
+     fio as (select id, concat(first_name, ' ', last_name) fio, team
+             from (select id,
+                          first_name,
+                          last_name,
+                          department_c,
+                          case
+                              when substring_index(substring_index(first_name, ' ', 3), ' ', -1) REGEXP '^[0-9]+$'
+                                  then substring_index(substring_index(first_name, ' ', 3), ' ', -1)
+                              when substring_index(substring_index(first_name, ' ', 4), ' ', -1) REGEXP '^[0-9]+$'
+                                  then substring_index(substring_index(first_name, ' ', 4), ' ', -1)
+                              else
+                                  (case
+                                       when left(first_name, instr(first_name, ' ') - 1) > 0 and
+                                            left(first_name, instr(first_name, ' ') - 1) < 10000
+                                           then left(first_name, instr(first_name, ' ') - 1)
+                                       when left(first_name, 2) = '�_'
+                                           then substring(first_name, 3, (instr(first_name, ' ') - 3))
+                                       when left(first_name, 1) = '�'
+                                           then substring(first_name, 2, (instr(first_name, ' ') - 1))
+                                       else '' end)
+                              end team
+                   from suitecrm.users
+                            left join suitecrm.users_cstm on users.id = users_cstm.id_c
+                   where id in (select distinct supervisor from suitecrm.worktime_supervisor)) R1),
+     userrr as (SELECT distinct users.id,
+                                concat(first_name, ' ', last_name) fio,
+                                case
+                                    when substring_index(substring_index(first_name, ' ', 3), ' ', -1) REGEXP '^[0-9]+$'
+                                        then substring_index(substring_index(first_name, ' ', 3), ' ', -1)
+                                    when substring_index(substring_index(first_name, ' ', 4), ' ', -1) REGEXP '^[0-9]+$'
+                                        then substring_index(substring_index(first_name, ' ', 4), ' ', -1)
+                                    else
+                                        (case
+                                             when left(first_name, instr(first_name, ' ') - 1) > 0 and
+                                                  left(first_name, instr(first_name, ' ') - 1) < 10000
+                                                 then left(first_name, instr(first_name, ' ') - 1)
+                                             when left(first_name, 2) = '�_'
+                                                 then substring(first_name, 3, (instr(first_name, ' ') - 3))
+                                             when left(first_name, 1) = '�'
+                                                 then substring(first_name, 2, (instr(first_name, ' ') - 1))
+                                             else '' end)
+                                    end                            team,
+                                fio.fio                            supervisor
+                FROM suitecrm.users
+                         left join (select id_user, supervisor
+                                    from (select id_user,
+                                                 supervisor,
+                                                 date(date_start),
+                                                 row_number() over (partition by id_user order by date_start desc) rn
+                                          from suitecrm.worktime_supervisor) R
+                                    where rn = 1) worktime_supervisor on users.id = id_user
+                         left join fio on supervisor = fio.id),
+
+     usersss as (select id, fio, replace(team, ' ', '') team, supervisor
+                 from userrr),
      osnova as (select distinct
        case when robot_log.project is null and ocheredi_new.project is null then ocheredi_new2.project
             when robot_log.project is null then ocheredi_new.project else robot_log.project end Проект,
        REPLACE(REPLACE(jpc.description, CHAR(13), ','), CHAR(10), ',')   description,
        jpc.assigned_user_id,
-       users_crm.fio,
-       users_crm.team,
+       usersss.fio,
+       usersss.team,
+       supervisor,
        jpc.date_entered,
        jpc.date_start,
        Статус,
@@ -491,7 +525,7 @@ from suitecrm.jc_planned_calls jpc
          left join robot_log ON (jp.phone = robot_log.phone and robot_log.call_date = date(jp.date_entered))
          left join ocheredi_new on (ocheredi_new.date = date(jp.date_entered) and ocheredi_new.mother = jp.last_queue_c)
          left join ocheredi_new2 on (ocheredi_new2.date = date(jp.date_entered) and ocheredi_new2.queue = jp.last_queue_c)
-         left join users_crm on jpc.assigned_user_id = users_crm.id
+         left join usersss on jpc.assigned_user_id = usersss.id
 where date(jpc.date_start) = date(now())- interval 1 day)
 
 select distinct *
@@ -501,6 +535,7 @@ select distinct *
        assigned_user_id as 'Ответственный перезвона',
        fio 'ФИО',
        team 'Команда',
+        supervisor,
        date_entered 'Дата создания',
        date_start    'Дата и время звонка',
        Статус,
@@ -513,10 +548,12 @@ select distinct *
        duration_minutes  'Дл. разговора',
        Результат_звонка  'Результат',
        Причина_отказа  'Причина отказа',
-       Последний_шаг 'Последний шаг'
+       Последний_шаг 'Последний шаг',
+        row_number() over (partition by phone) row
 from osnova
 where date_start_bp is null
 and phone_work is null
-and (Причина_отказа in ('Автоответчик','Нет ответа','Обрыв разговора', '') or Причина_отказа is null) 
+and (Причина_отказа in ('Автоответчик','Нет ответа','Обрыв разговора', '') or Причина_отказа is null)
 and (duration_minutes <= 20 or duration_minutes is null)
 ) SS
+where row =1

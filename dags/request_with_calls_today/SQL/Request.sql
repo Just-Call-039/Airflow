@@ -1,4 +1,4 @@
-with requests as (select 'Ростелеком'                       as project,
+with requests as (select 'RTK'                              as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                            '')) <=
                             10,
@@ -8,7 +8,7 @@ with requests as (select 'Ростелеком'                       as project
                                    right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                                  ''), 10))) as my_phone_work,
                          date(r.date_entered)               as request_date,
-                         hour(r.date_entered) + 3              request_hour,
+                         hour(r.date_entered) + 2              request_hour,
                          assigned_user_id                   as user,
                          user_id_c                          as super,
                          status,
@@ -19,9 +19,9 @@ with requests as (select 'Ростелеком'                       as project
                   where status != 'Error'
                     and status != 'doubled'
                     and status != 'change_flat'
-                    and date(date_entered) >= '2023-07-01'
+                    and date(date_entered) >= '2023-12-01'
                   union all
-                  select 'Билайн'                           as project,
+                  select 'BEELINE'                          as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                            '')) <=
                             10,
@@ -31,7 +31,7 @@ with requests as (select 'Ростелеком'                       as project
                                    right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                                  ''), 10))) as my_phone_work,
                          date(b.date_entered)               as request_date,
-                         hour(b.date_entered) + 3              request_hour,
+                         hour(b.date_entered) + 2              request_hour,
 
                          assigned_user_id                   as user,
                          user_id_c                          as super,
@@ -43,9 +43,9 @@ with requests as (select 'Ростелеком'                       as project
                   where status != 'Error'
                     and status != 'doubled'
                     and status != 'change_flat'
-                    and date(date_entered) >= '2023-07-01'
+                    and date(date_entered) >= '2023-12-01'
                   union all
-                  select 'Дом ру'                           as project,
+                  select 'DOMRU'                            as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                            '')) <=
                             10,
@@ -55,7 +55,7 @@ with requests as (select 'Ростелеком'                       as project
                                    right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                                  ''), 10))) as my_phone_work,
                          date(d.date_entered)               as request_date,
-                         hour(d.date_entered) + 3              request_hour,
+                         hour(d.date_entered) + 2              request_hour,
 
                          assigned_user_id                   as user,
                          user_id_c                          as super,
@@ -67,9 +67,9 @@ with requests as (select 'Ростелеком'                       as project
                   where status != 'Error'
                     and status != 'doubled'
                     and status != 'change_flat'
-                    and date(date_entered) >= '2023-07-01'
+                    and date(date_entered) >= '2023-12-01'
                   union all
-                  select 'ТТК'                              as project,
+                  select 'TTK'                              as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                            '')) <=
                             10,
@@ -79,7 +79,7 @@ with requests as (select 'Ростелеком'                       as project
                                    right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                                  ''), 10))) as my_phone_work,
                          date(t.date_entered)               as request_date,
-                         hour(t.date_entered) + 3              request_hour,
+                         hour(t.date_entered) + 2              request_hour,
                          assigned_user_id                   as user,
                          user_id_c                          as super,
                          status,
@@ -90,9 +90,9 @@ with requests as (select 'Ростелеком'                       as project
                   where status != 'Error'
                     and status != 'doubled'
                     and status != 'change_flat'
-                    and date(date_entered) >= '2023-07-01'
+                    and date(date_entered) >= '2023-12-01'
                   union all
-                  select 'Мегафон'                          as project,
+                  select 'NBN'                              as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                            '')) <=
                             10,
@@ -102,7 +102,7 @@ with requests as (select 'Ростелеком'                       as project
                                    right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                                  ''), 10))) as my_phone_work,
                          date(n.date_entered)               as request_date,
-                         hour(n.date_entered) + 3              request_hour,
+                         hour(n.date_entered) + 2              request_hour,
 
                          assigned_user_id                   as user,
                          user_id_c                          as super,
@@ -114,9 +114,9 @@ with requests as (select 'Ростелеком'                       as project
                   where status != 'Error'
                     and status != 'doubled'
                     and status != 'change_flat'
-                    and date(date_entered) >= '2023-07-01'
+                    and date(date_entered) >= '2023-12-01'
                   union all
-                  select 'МТС'                              as project,
+                  select 'MTS'                              as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                            '')) <=
                             10,
@@ -126,7 +126,7 @@ with requests as (select 'Ростелеком'                       as project
                                    right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                                  ''), 10))) as my_phone_work,
                          date(m.date_entered)               as request_date,
-                         hour(m.date_entered) + 3              request_hour,
+                         hour(m.date_entered) + 2              request_hour,
 
                          assigned_user_id                   as user,
                          user_id_c                          as super,
@@ -141,21 +141,21 @@ with requests as (select 'Ростелеком'                       as project
                   where status != 'Error'
                     and status != 'doubled'
                     and status != 'change_flat'
-                    and date(date_entered) >= '2023-07-01'
+                    and date(date_entered) >= '2023-12-01'
                   union all
                   select case
-                             when project = 'tele2' then 'Теле2'
+                             when project = 'tele2' then 'TELE2'
                              when project = 'selection' then 'Подбор'
                              when project = 'project_10' then 'проект10'
                              when project = 'project_9' then 'проект9'
-                             when project = 'project_8' then 'Гольфстрим'
-                             when project = 'project_7' then 'проект10'
-                             when project = 'project_6' then 'проект10'
-                             when project = 'project_5' then 'проект10'
-                             when project = 'project_4' then 'проект10'
-                             when project = 'project_3' then 'проект10'
+                             when project = 'project_8' then 'GULFSTREAM'
+                             when project = 'project_7' then 'проект7'
+                             when project = 'project_6' then 'проект6'
+                             when project = 'project_5' then 'проект5'
+                             when project = 'project_4' then 'проект4'
+                             when project = 'project_3' then 'проект3'
                              when project = 'project_2' then 'ВСК Страхование'
-                             when project = 'project_1' then 'Таттелеком'
+                             when project = 'project_1' then 'TATTELEKOM'
                              when project = 'bankruptcy' then 'Банкротство'
                              when project = 'hr' then 'HR'
                              else '' end                    as project,
@@ -167,32 +167,31 @@ with requests as (select 'Ростелеком'                       as project
                             concat(8,
                                    right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                                  ''), 10))) as my_phone_work,
-                         date(m.date_entered)               as request_date,
-                         hour(m.date_entered) + 3              request_hour,
+                         date(o.date_entered)               as request_date,
+                         hour(o.date_entered) + 2              request_hour,
 
                          assigned_user_id                   as user,
                          user_id_c                          as super,
                          status,
                          last_queue_c,
                          'Остальные проекты'                   district_c
-                  from suitecrm.jc_meetings_other as m
-                           left join suitecrm.jc_meetings_other_cstm as m_c on m.id = m_c.id_c
+                  from suitecrm.jc_meetings_other as o
+                           left join suitecrm.jc_meetings_other_cstm as o_c on o.id = o_c.id_c
+                      and date(o.date_entered) >= '2023-12-01'
                   where status != 'Error'
-                    and status != 'doubled'
-                    and status != 'change_flat'
-                    and date(date_entered) >= '2023-07-01')
-
+                    and status != 'doubled')
 
 select project,
        my_phone_work,
        request_date,
-       request_hour,
+       if(request_hour=25, 24, request_hour)request_hour,
        user,
        super,
        status,
        last_queue_c,
        district_c
 from requests
+WHERE request_date >='2023-12-01'
 
 
 

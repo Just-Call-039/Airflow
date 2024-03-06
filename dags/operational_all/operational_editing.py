@@ -119,7 +119,7 @@ from suitecrm_robot_ch.temp_operational
         'client_status',
         'was_repeat',
         'marker',
-        'route',
+        # 'route',
         'source',
         'perevod',
         'lids',

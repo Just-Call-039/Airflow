@@ -1,5 +1,7 @@
 select TT.*,
-       id contact_id
+       id contact_id,
+       town_c,
+       city_c
 from (select if(calls.name = 'Входящий звонок', 1, 0) name,
              direction,
              calls.assigned_user_id,
@@ -16,7 +18,7 @@ from (select if(calls.name = 'Входящий звонок', 1, 0) name,
              otkaz_c,
              ne_reshena_c,
              reshena_c,
-             date(date_start)                         calldate,
+             date(calls.date_entered)                         calldate,
              substring(dialog, 11, 4)                 dialog,
              duration_minutes
       from suitecrm.calls
@@ -24,9 +26,10 @@ from (select if(calls.name = 'Входящий звонок', 1, 0) name,
                left join users on assigned_user_id = users.id
                left join suitecrm_robot.jc_robot_log
                          on phone = asterisk_caller_id_c and date(call_date) = date(calls.date_entered)
-      where date(date_start) between '2023-08-01' and date(now()) - interval 1 day
-        and queue_c = 90003
+      where date(date_start) between '2023-09-01' and date(now()) - interval 1 day
+        and (queue_c = 90003 or queue_c = 9018)
         and duration_minutes > 0
      ) TT
          left join suitecrm.contacts
                    on asterisk_caller_id_c = phone_work
+left join suitecrm.contacts_cstm on id=id_c

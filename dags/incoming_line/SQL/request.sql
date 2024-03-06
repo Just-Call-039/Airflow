@@ -13,18 +13,15 @@ from (
                 konva,
                 rtkid,
                 if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
-                                           '')) <=
-                            10,
-                            concat(8,
-                                   replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
-                            concat(8,
-                                   right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
-                                                 ''), 10))) as phone_work,
+                                  '')) <=
+                   10,
+                   concat(8,
+                          replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
+                   concat(8,
+                          right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
+                                        ''), 10))) as phone_work,
                 assigned_user_id,
-                'RTK'                      start_project,
-                before_status,
-                after_status,
-                date(date_created)         date_created,
+                'RTK'                                 start_project,
                 created_by
          from (SELECT distinct rtk.id                    rtkid,
                                rtk_cstm.last_queue_c,
@@ -38,18 +35,13 @@ from (
                                    end                   konva,
                                packet_service_c          tarif,
                                rtk.phone_work,
-                               before_value_string       before_status,
-                               after_value_string        after_status,
-                               date_created,
                                rtk.created_by
                FROM suitecrm.jc_meetings_rostelecom rtk
                         left join suitecrm.jc_meetings_rostelecom_cstm rtk_cstm on rtk.id = rtk_cstm.id_c
-                        left join suitecrm.jc_meetings_rostelecom_audit rtk_audit on rtk.id = rtk_audit.parent_id
                         left join contacts on rtk.phone_work = contacts.phone_work
-               WHERE date(rtk.date_entered) >= '2023-03-01'
+               WHERE date(rtk.date_entered) >= '2023-08-01'
                  AND (rtk.status <> 'Error' and rtk.status <> 'doubled' and
                       rtk.status <> 'change_flat')
-                 and field_name = 'status'
                  and rtk.deleted = 0
               ) RTK
          union all
@@ -59,18 +51,15 @@ from (
                 konva,
                 rtkid,
                 if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
-                                           '')) <=
-                            10,
-                            concat(8,
-                                   replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
-                            concat(8,
-                                   right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
-                                                 ''), 10))) as phone_work,
+                                  '')) <=
+                   10,
+                   concat(8,
+                          replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
+                   concat(8,
+                          right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
+                                        ''), 10))) as phone_work,
                 assigned_user_id,
-                'BEELINE'                  start_project,
-                before_status,
-                after_status,
-                date(date_created)         date_created,
+                'BEELINE'                             start_project,
                 created_by
          from (SELECT distinct bln.id                    rtkid,
                                bln_cstm.last_queue_c,
@@ -83,18 +72,13 @@ from (
                                    else 0
                                    end                   konva,
                                bln.phone_work,
-                               before_value_string       before_status,
-                               after_value_string        after_status,
-                               date_created,
                                bln.created_by
                FROM suitecrm.jc_meetings_beeline bln
                         left join suitecrm.jc_meetings_beeline_cstm bln_cstm on bln.id = bln_cstm.id_c
-                        left join suitecrm.jc_meetings_beeline_audit bln_audit on bln.id = bln_audit.parent_id
                         left join contacts on bln.phone_work = contacts.phone_work
-               WHERE date(bln.date_entered) >= '2023-03-01'
+               WHERE date(bln.date_entered) >= '2023-08-01'
                  AND (bln.status <> 'Error' and bln.status <> 'doubled' and
                       bln.status <> 'change_flat')
-                 and field_name = 'status'
                  and bln.deleted = 0) BLN
          union all
          select last_queue_c,
@@ -103,18 +87,15 @@ from (
                 konva,
                 rtkid,
                 if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
-                                           '')) <=
-                            10,
-                            concat(8,
-                                   replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
-                            concat(8,
-                                   right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
-                                                 ''), 10))) as phone_work,
+                                  '')) <=
+                   10,
+                   concat(8,
+                          replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
+                   concat(8,
+                          right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
+                                        ''), 10))) as phone_work,
                 assigned_user_id,
-                'DOMRU'                    start_project,
-                before_status,
-                after_status,
-                date(date_created)         date_created,
+                'DOMRU'                               start_project,
                 DOM.created_by
          from (SELECT distinct dom.id                    rtkid,
                                dom.last_queue_c,
@@ -127,18 +108,13 @@ from (
                                    else 0
                                    end                   konva,
                                dom.phone_work,
-                               before_value_string       before_status,
-                               after_value_string        after_status,
-                               date_created,
                                dom.created_by
                FROM suitecrm.jc_meetings_domru dom
                         left join suitecrm.jc_meetings_domru_cstm dom_cstm on id_c = id
-                        left join suitecrm.jc_meetings_domru_audit dom_audit on dom.id = parent_id
                         left join contacts on dom.phone_work = contacts.phone_work
-               WHERE date(dom.date_entered) >= '2023-03-01'
+               WHERE date(dom.date_entered) >= '2023-08-01'
                  and (dom.status <> 'Error' and dom.status <> 'doubled' and
                       dom.status <> 'change_flat')
-                 and field_name = 'status'
                  and dom.deleted = 0) DOM
          union all
          select last_queue_c,
@@ -147,18 +123,15 @@ from (
                 konva,
                 rtkid,
                 if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
-                                           '')) <=
-                            10,
-                            concat(8,
-                                   replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
-                            concat(8,
-                                   right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
-                                                 ''), 10))) as phone_work,
+                                  '')) <=
+                   10,
+                   concat(8,
+                          replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
+                   concat(8,
+                          right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
+                                        ''), 10))) as phone_work,
                 assigned_user_id,
-                'TTK'                      start_project,
-                before_status,
-                after_status,
-                date(date_created)         date_created,
+                'TTK'                                 start_project,
                 TTK.created_by
          from (SELECT distinct ttk.id                    rtkid,
                                ttk_cstm.last_queue_c,
@@ -171,19 +144,14 @@ from (
                                    else 0
                                    end                   konva,
                                ttk.phone_work,
-                               before_value_string       before_status,
-                               after_value_string        after_status,
-                               date_created,
                                ttk.created_by
                FROM suitecrm.jc_meetings_ttk ttk
                         left join suitecrm.jc_meetings_ttk_cstm ttk_cstm on ttk.id = ttk_cstm.id_c
-                        left join suitecrm.jc_meetings_ttk_audit ttk_audit on ttk.id = parent_id
                         left join contacts
                                   on ttk.phone_work = contacts.phone_work
-               WHERE date(ttk.date_entered) >= '2023-03-01'
+               WHERE date(ttk.date_entered) >= '2023-08-01'
                  AND (ttk.status <> 'Error' and ttk.status <> 'doubled' and
                       ttk.status <> 'change_flat')
-                 and field_name = 'status'
                  and ttk.deleted = 0) TTK
          union all
          select last_queue_c,
@@ -192,18 +160,16 @@ from (
                 konva,
                 rtkid,
                 if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
-                                           '')) <=
-                            10,
-                            concat(8,
-                                   replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
-                            concat(8,
-                                   right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
-                                                 ''), 10))) as phone_work,
+                                  '')) <=
+                   10,
+                   concat(8,
+                          replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
+                   concat(8,
+                          right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
+                                        ''), 10))) as phone_work,
                 assigned_user_id,
-                'NBN'                      start_project,
-                before_status,
-                after_status,
-                date(date_created)         date_created, NBN.created_by
+                'NBN'                                 start_project,
+                NBN.created_by
          from (SELECT distinct nbn.id                    rtkid,
                                nbn_cstm.last_queue_c,
                                nbn.assigned_user_id,
@@ -215,18 +181,13 @@ from (
                                    else 0
                                    end                   konva,
                                nbn.phone_work,
-                               before_value_string       before_status,
-                               after_value_string        after_status,
-                               date_created,
                                nbn.created_by
                FROM suitecrm.jc_meetings_netbynet nbn
                         left join suitecrm.jc_meetings_netbynet_cstm nbn_cstm on nbn.id = nbn_cstm.id_c
-                        left join suitecrm.jc_meetings_netbynet_audit nbn_audit on nbn.id = nbn_audit.parent_id
                         left join contacts on nbn.phone_work = contacts.phone_work
-               WHERE date(nbn.date_entered) >= '2023-03-01'
+               WHERE date(nbn.date_entered) >= '2023-08-01'
                  AND (nbn.status <> 'Error' and nbn.status <> 'doubled' and
                       nbn.status <> 'change_flat')
-                 and field_name = 'status'
                  and nbn.deleted = 0) NBN
          union all
          select last_queue_c,
@@ -235,18 +196,15 @@ from (
                 konva,
                 rtkid,
                 if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
-                                           '')) <=
-                            10,
-                            concat(8,
-                                   replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
-                            concat(8,
-                                   right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
-                                                 ''), 10))) as phone_work,
+                                  '')) <=
+                   10,
+                   concat(8,
+                          replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ', '')),
+                   concat(8,
+                          right(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
+                                        ''), 10))) as phone_work,
                 assigned_user_id,
-                'MTS'                      start_project,
-                before_status,
-                after_status,
-                date(date_created)         date_created,
+                'MTS'                                 start_project,
                 MTS.created_by
          from (SELECT distinct mts.id                    rtkid,
                                mts_cstm.last_queue_c,
@@ -260,17 +218,12 @@ from (
                                    else 0
                                    end                   konva,
                                mts.phone_work,
-                               before_value_string       before_status,
-                               after_value_string        after_status,
-                               date_created,
                                mts.created_by
                FROM suitecrm.jc_meetings_mts mts
                         left join suitecrm.jc_meetings_mts_cstm mts_cstm on mts.id = mts_cstm.id_c
-                        left join suitecrm.jc_meetings_mts_audit mts_audit on mts.id = mts_audit.parent_id
                         left join contacts on mts.phone_work = contacts.phone_work
-               WHERE date(mts.date_entered) >= '2023-03-01'
+               WHERE date(mts.date_entered) >= '2023-08-01'
                  and (mts.status <> 'Error' and mts.status <> 'doubled' and
                       mts.status <> 'change_flat')
-                 and field_name = 'status'
                  and mts.deleted = 0) MTS
      ) Meets

@@ -72,8 +72,12 @@ select town_c,
        stop_nbn,
        stop_2com,
        alive,
+       data_mts,
+       data_rtk,
+       data_oper,
        priority1,
        priority2,
+       mob_phone,
        rest_days,
 
 
@@ -216,14 +220,47 @@ from (
                     when (base_source_c like '%^60^%'
                         or base_source_c like '%^61^%'
                         or base_source_c like '%^62^%'
-                        or base_source_c like '%^31^%'
+                        -- or base_source_c like '%^31^%'
                         or base_source_c like '62'
-                        or base_source_c like '31'
-                        or base_source_c like '32'
-                        or base_source_c like '%^32^%') and base_source_c not like '%^52^%' then 1
+                        -- or base_source_c like '31'
+                        -- or base_source_c like '32'
+                        -- or base_source_c like '%^32^%'
+                        ) and base_source_c not like '%^52^%' then 1
                     else 0 end                                                                          alive,
+                    case
+                    when base_source_c like '%^31^%' or base_source_c like '31' then 1
+                    else 0 end                                                                          data_mts,
+                    case
+                    when base_source_c like '%^32^%' or base_source_c like '32' then 1
+                    else 0 end                                                                          data_rtk,
+                    case
+                    when (
+                     -- base_source_c like '%^119^%'
+                     --       or base_source_c like '%^120^%'
+                     --       or base_source_c like '%^121^%'
+                     --       or base_source_c like '%^122^%'
+                     --       or base_source_c like '%^123^%'
+                     --       or base_source_c like '%^124^%'
+                     --       or base_source_c like '%^127^%'
+                     --       or base_source_c like '%^128^%'
+                     --       or base_source_c like '%^140^%'
+                     --       or base_source_c like '%^142^%'
+                     --       or base_source_c like '%^143^%'
+
+
+                           base_source_c like '%^224^%'
+                           or base_source_c like '%^223^%'
+                           or base_source_c like '%^222^%'
+                           or base_source_c like '%^221^%'
+                           or base_source_c like '%^220^%'
+
+                           )
+                    then 1
+                    else 0 end                                                                          data_oper,
+
                     priority1,
                     priority2,
+                    if(phone_work like '89%',1,0) mob_phone,
 
                     if(last_call_c is null or last_call_c > now() + interval 1 day ,20000, toDate(now()) - toDate(last_call_c)) rest_days
 
@@ -306,6 +343,10 @@ group by town_c,
          stop_nbn,
          stop_2com,
          alive,
+         data_mts,
+         data_rtk,
+         data_oper,
          priority1,
          priority2,
+         mob_phone,
          rest_days

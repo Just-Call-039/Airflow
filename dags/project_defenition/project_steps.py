@@ -3,7 +3,7 @@ def project_steps():
     import datetime
     import MySQLdb
 
-    host128 = "192.168.1.128"
+    host128 = "192.168.1.183"
     host = host128
     Con = MySQLdb.Connect(host=host, user="base_dep_slave", passwd="IyHBh9mDBdpg", db="suitecrm",
                         charset='utf8')
@@ -16,7 +16,9 @@ def project_steps():
     sql_steps = open(sql_steps, 'r')
     sql_steps = sql_steps.read()
     steps = pd.read_sql_query(sql_steps, Con)
-    steps['date'] = datetime.datetime.now().strftime('%Y-%m-%d')
+    current_date = datetime.datetime.now()
+    yesterday_date = current_date - datetime.timedelta(days=0)
+    steps['date'] = yesterday_date.strftime('%Y-%m-%d')
     steps = steps[['step','ochered','date','type_steps']]
     steps.to_csv(to_save_steps, index=False)
 

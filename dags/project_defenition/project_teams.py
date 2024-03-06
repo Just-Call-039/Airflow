@@ -40,6 +40,8 @@ def project_teams():
     df = teams_jc[['№ команды','Проект','CRM СВ']].append(teams_od[['№ команды','Проект','CRM СВ']])
     df = df.append(teams_lids[['№ команды','Проект','CRM СВ']])
 
+    
+
 
     def project_correct(row):
         if row == 'РТК Lids':
@@ -63,16 +65,25 @@ def project_teams():
         elif row == 'РТК Лиды':
             return 'RTK LIDS'
         else:
-            'DR'
+            return row
 
 
     df['project'] = df['Проект'].apply(lambda row: project_correct(row))
     df = df[['№ команды','project','CRM СВ']].rename(columns={'№ команды': 'team', 'CRM СВ': 'supervisor'})
     df['date'] = datetime.datetime.now().strftime('%Y-%m-%d')
+    df['team'] = df['team'].astype('str').apply(lambda x: x.replace('я',''))
+    df['team'] = df['team'].astype('str').apply(lambda x: x.replace('.0',''))
+    df['team'] = df['team'].astype('str').apply(lambda x: x.replace('nan',''))
+
+
+
 
 
     team_paths = '/root/airflow/dags/project_defenition/projects/teams/teams_{}.csv'
-    to_save = team_paths.format(datetime.datetime.now().strftime("%Y_%m_%d"))
+
+    сurrent_date = datetime.datetime.now()
+    yesterday_date = сurrent_date - datetime.timedelta(days=0)
+    to_save = team_paths.format(yesterday_date.strftime("%Y_%m_%d"))
     df.to_csv(to_save, index=False)
 
 

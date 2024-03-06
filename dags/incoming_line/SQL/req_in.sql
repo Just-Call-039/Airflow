@@ -38,7 +38,7 @@ with contacts as (select phone_work,
                                   left join suitecrm.jc_meetings_rostelecom_cstm rtk_cstm on rtk.id = rtk_cstm.id_c
                                   left join suitecrm.jc_meetings_rostelecom_audit rtk_audit on rtk.id = rtk_audit.parent_id
                                   left join contacts on rtk.phone_work = contacts.phone_work
-                         WHERE date(rtk.date_entered) >= '2023-03-01'
+                         WHERE date(rtk.date_entered) >= '2023-08-01'
                            AND (rtk.status <> 'Error' and rtk.status <> 'doubled' and
                                 rtk.status <> 'change_flat')
                            and rtk.deleted = 0
@@ -74,7 +74,7 @@ with contacts as (select phone_work,
                                   left join suitecrm.jc_meetings_beeline_cstm bln_cstm on bln.id = bln_cstm.id_c
                                   left join suitecrm.jc_meetings_beeline_audit bln_audit on bln.id = bln_audit.parent_id
                                   left join contacts on bln.phone_work = contacts.phone_work
-                         WHERE date(bln.date_entered) >= '2023-03-01'
+                         WHERE date(bln.date_entered) >= '2023-08-01'
                            AND (bln.status <> 'Error' and bln.status <> 'doubled' and
                                 bln.status <> 'change_flat')
                            and bln.deleted = 0) BLN
@@ -109,7 +109,7 @@ with contacts as (select phone_work,
                                   left join suitecrm.jc_meetings_domru_cstm dom_cstm on id_c = id
                                   left join suitecrm.jc_meetings_domru_audit dom_audit on dom.id = parent_id
                                   left join contacts on dom.phone_work = contacts.phone_work
-                         WHERE date(dom.date_entered) >= '2023-03-01'
+                         WHERE date(dom.date_entered) >= '2023-08-01'
                            and (dom.status <> 'Error' and dom.status <> 'doubled' and
                                 dom.status <> 'change_flat')
                            and dom.deleted = 0) DOM
@@ -147,7 +147,7 @@ with contacts as (select phone_work,
                                   left join suitecrm.jc_meetings_ttk_audit ttk_audit on ttk.id = parent_id
                                   left join contacts
                                             on ttk.phone_work = contacts.phone_work
-                         WHERE date(ttk.date_entered) >= '2023-03-01'
+                         WHERE date(ttk.date_entered) >= '2023-08-01'
                            AND (ttk.status <> 'Error' and ttk.status <> 'doubled' and
                                 ttk.status <> 'change_flat')
                            and ttk.deleted = 0) TTK
@@ -182,7 +182,7 @@ with contacts as (select phone_work,
                                   left join suitecrm.jc_meetings_netbynet_cstm nbn_cstm on nbn.id = nbn_cstm.id_c
                                   left join suitecrm.jc_meetings_netbynet_audit nbn_audit on nbn.id = nbn_audit.parent_id
                                   left join contacts on nbn.phone_work = contacts.phone_work
-                         WHERE date(nbn.date_entered) >= '2023-03-01'
+                         WHERE date(nbn.date_entered) >= '2023-08-01'
                            AND (nbn.status <> 'Error' and nbn.status <> 'doubled' and
                                 nbn.status <> 'change_flat')
                            and nbn.deleted = 0) NBN
@@ -218,7 +218,7 @@ with contacts as (select phone_work,
                                   left join suitecrm.jc_meetings_mts_cstm mts_cstm on mts.id = mts_cstm.id_c
                                   left join suitecrm.jc_meetings_mts_audit mts_audit on mts.id = mts_audit.parent_id
                                   left join contacts on mts.phone_work = contacts.phone_work
-                         WHERE date(mts.date_entered) >= '2023-03-01'
+                         WHERE date(mts.date_entered) >= '2023-08-01'
                            and (mts.status <> 'Error' and mts.status <> 'doubled' and
                                 mts.status <> 'change_flat')
                            and mts.deleted = 0) MTS

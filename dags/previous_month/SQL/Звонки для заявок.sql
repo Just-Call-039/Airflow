@@ -8,7 +8,7 @@ from (select cl.id                                                              
                  when con.city_c in ('', ' ') then concat(town_c, 'OBL')
                  else con.city_c
                  end                                                                             as city,
-             row_number() over (partition by cl_c.asterisk_caller_id_c order by cl.date_entered desc) as num,
+             row_number() over (partition by cl_c.asterisk_caller_id_c,date(cl.date_entered) order by cl.date_entered desc) as num,
              substring(dialog, 11, 4)                                                               queue,
              cl.assigned_user_id
       from suitecrm.calls as cl
@@ -20,4 +20,4 @@ from (select cl.id                                                              
   and month (cl.date_entered) = month (curdate())
   and year (cl.date_entered) = year (curdate())
         and last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372')) as temp
-where num = 1
+where num = 1 

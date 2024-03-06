@@ -49,6 +49,8 @@ sql_leads = f'{path_to_sql}Leads_4_50.sql'
 sql_recalls = f'{path_to_sql}Recalls_4_50.sql'
 sql_transfers = f'{path_to_sql}Transfers.sql'
 sql_request = f'{path_to_sql}Request_Ksusha.sql'
+sql_recalls_edit = f'{path_to_sql}Recalls_4_50_edit.sql'
+
 
 path_to_file_sql_airflow = '/root/airflow/dags/dispetchers/Files/'
 
@@ -56,6 +58,10 @@ csv_leads = 'leads_4_50.csv'
 csv_recalls = 'recalls_4_50.csv'
 csv_transfers = 'transfers.csv'
 csv_meetings = 'meeting.csv'
+csv_recalls_edit = 'recalls_4_50_edit.csv'
+csv_recalls_edit1 = 'Перезвоны обработанный.xlsx'
+
+
 
 # Блок выполнения SQL запросов.
 leads_sql = PythonOperator(
@@ -85,11 +91,18 @@ request_sql = PythonOperator(
     op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_request, 'path_csv_file': path_to_file_sql_airflow, 'name_csv_file': csv_meetings}, 
     dag=dag
     )
+recalls_edit_sql = PythonOperator(
+    task_id='recalls_edit_sql', 
+    python_callable=sql_query_to_csv, 
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_recalls_edit, 'path_csv_file': path_to_file_sql_airflow, 'name_csv_file': csv_recalls_edit}, 
+    dag=dag
+    )
+
 
 lids_upgrade = PythonOperator(
     task_id='lids_upgrade', 
     python_callable=disp_editors, 
-    op_kwargs={'path_to_files': path_to_file_sql_airflow, 'lids': csv_leads, 'path_result': path_to_file_sql_airflow}, 
+    op_kwargs={'path_to_files': path_to_file_sql_airflow, 'lids': csv_leads, 'path_result': path_to_file_sql_airflow, 'calls' : csv_recalls_edit}, 
     dag=dag
     )
 
@@ -122,7 +135,14 @@ meetings_telegram = PythonOperator(
      dag=dag
      )
 
-leads_sql >> lids_upgrade >> leads_telegram
+recall_edit_telegram = PythonOperator(
+     task_id='recall_edit_telegram', 
+     python_callable=telegram_send, 
+     op_kwargs={'text': text_meetings, 'token': token, 'chat_id': chat_id, 'filepath': path_to_file_sql_airflow, 'filename': csv_recalls_edit1}, 
+     dag=dag
+     )
+
+[leads_sql,recalls_edit_sql] >> lids_upgrade >> [leads_telegram,recall_edit_telegram]
 recalls_sql >> recalls_telegram
 transfers_sql >> transfers_telegram
 request_sql >> meetings_telegram

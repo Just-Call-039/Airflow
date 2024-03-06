@@ -17,7 +17,12 @@ def team_project():
         project_team = pd.concat([project_team,df], axis = 0)
     del df
 
-    project_team['team'] = project_team['team'].fillna(0).astype('int').astype('str')
+
+    project_team['team'] = project_team['team'].astype('str').apply(lambda x: x.replace('я',''))
+    project_team['team'] = project_team['team'].astype('str').apply(lambda x: x.replace('.0',''))
+    project_team['team'] = project_team['team'].astype('str').apply(lambda x: x.replace('nan','0'))
+
+    project_team['team'] = project_team['team'].fillna('0').astype('int').astype('str')
     project_team = project_team.rename(columns={'project': 'team_project'})
     project_team['date'] = project_team['date'].astype('str')
     project_team['team'] = project_team['team'].astype('str')
@@ -68,10 +73,19 @@ def project(row):
         return row['team_project']
 
 def organization(row):
-    if row['team'] in ['4','12','50']:
-        return 'Лиды'
+    if row['team'] in ['4','12','50','13']:
+        return 'КЦ'
+        # return 'Лиды'
+    elif row['team'] in ['8','123']:
+        return 'КЦ'
+    elif ' RO' in row['project']:
+        return 'Just Robots'
     elif 'LIDS' in row['project']:
         return 'Лиды'
+    elif 'Job' in row['project']:
+        return 'Just Job'
+    elif row['queue'] in [9251,9251.0,'9251','9251.0']:
+        return 'Just Job'
     else:
         return 'КЦ'
     

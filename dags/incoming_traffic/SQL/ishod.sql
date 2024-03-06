@@ -49,15 +49,35 @@ with fio as (select id, concat(first_name, ' ', last_name) fio, team
                                                  row_number() over (partition by id_user order by date_start desc) rn
                                           from suitecrm.worktime_supervisor) R
                                     where rn = 1) worktime_supervisor on users.id = id_user
-                         left join fio on supervisor = fio.id)
+                         left join fio on supervisor = fio.id),
 
-select id,
-       fio,
-       replace(team, ' ', '')  team,
-       supervisor,
-       IF(supervisor LIKE '%JC%', substring_index(substring_index(fio, ' ', 2), ' ', -1),
-          replace(replace(replace(concat(SUBSTRING_INDEX(supervisor, ' ', 1), ' ', 'LIDS'), 'я', ''), '_', ''),
-                  'Dom',
-                  'DOMRU')) AS proj
-from userrr
+     usersss as (select id, fio, replace(team, ' ', '') team, supervisor
+                 from userrr)
+
+
+select distinct TT.*
+from (select direction,
+             calls.assigned_user_id,
+             fio,
+             if(length(replace(replace(replace(replace(asterisk_caller_id_c, '-', ''), ')', ''), '(', ''), ' ',
+                               '')) <=
+                10,
+                concat(8,
+                       replace(replace(replace(replace(asterisk_caller_id_c, '-', ''), ')', ''), '(', ''), ' ', '')),
+                concat(8,
+                       right(replace(replace(replace(replace(asterisk_caller_id_c, '-', ''), ')', ''), '(', ''), ' ',
+                                     ''), 10))) as phone ,
+             date(calls.date_entered)              calldate,
+             queue_c
+      from suitecrm.calls
+               left join suitecrm.calls_cstm on id = id_c
+               left join usersss on assigned_user_id = usersss.id
+      where DATE_FORMAT(calls.date_entered, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+  AND calls.date_entered < DATE_SUB(CURDATE(), INTERVAL 0 DAY)
+        and direction = 'Inbound'
+        and team not in ('12', '4')
+        and result_call_c = 'refusing'
+        and (otkaz_c = 'otkaz_23' or otkaz_c = 'otkaz_42' or otkaz_c = 'no_answer')
+        and duration_minutes <= 10
+     ) TT
 

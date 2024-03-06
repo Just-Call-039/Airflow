@@ -58,6 +58,8 @@ def region_editer(path_to_files, requests, path_result, file_result_req,file_res
  transferfull['city_c'] = transferfull['city_c'].apply(lambda x: x.replace('.0', ''))
  transferfull['town'] = transferfull['town'].astype(str)
  transferfull['town'] = transferfull['town'].apply(lambda x: x.replace('.0', ''))
+ requests['contact'] = requests['contact'].astype(str)
+ requests['contact'] = requests['contact'].apply(lambda x: x.replace('.0', ''))
  print(transferfull.head(10))
  print(calls.head(10))
  print('Переводы полностью прочитаны')

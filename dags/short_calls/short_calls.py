@@ -57,7 +57,7 @@ previous_date = today - datetime.timedelta(days=1)
 year = previous_date.year
 month = previous_date.month
 day = previous_date.day
-file_total_2 = 'transfers 22_11_2023.csv' 
+
 file_total = f'transfers {day}_{month}_{year}.csv' 
 calls_csv = 'calls.csv'
 calls_out_csv = 'calls_out.csv'

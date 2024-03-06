@@ -180,13 +180,13 @@ insert into suitecrm_robot_ch.contacts
                                     when network_provider_c = '68' then 'Теле2'
                                     else 'MVNO'
                                     end                                                                             network_provider,
-                                if((base_source_c like '%^88^%'
-                                    or base_source_c like '%^87^%' or base_source_c like '%^85^%'
-                                    or base_source_c like '%^90^%'
-                                    or base_source_c like '%^100^%'
-                                    or base_source_c like '%^89^%'
-                                    or base_source_c like '32' 
-                                    or base_source_c like '%^32^%'), 1, 0)                                       as agreed_rtk,
+                                if((base_source_c like '%^82^%'
+                                    or base_source_c like '%^84^%' 
+                                    or base_source_c like '%^80^%'
+                                    or base_source_c like '%^79^%'
+                                    or base_source_c like '%^78^%'
+                                    or base_source_c like '%^77^%'), 1, 0)                                       as agreed_rtk,
+
 
                                 if(((stoplist_c not like '%^s^%' and stoplist_c not like '%^sb^%' and stoplist_c not like '%^ao^%') or
                                     stoplist_c is NULL or stoplist_c = ''), 0, 1)                                   general_stop,

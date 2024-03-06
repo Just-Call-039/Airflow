@@ -518,5 +518,5 @@ from osnova
 where date_start_bp is null
 and phone_work is null
 and (Причина_отказа in ('Автоответчик','Нет ответа','Обрыв разговора', '') or Причина_отказа is null)
-and (duration_minutes <= 20 or duration_minutes is null)
+and (duration_minutes <= 20 or duration_minutes is null) 
 ) SS

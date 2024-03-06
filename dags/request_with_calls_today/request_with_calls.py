@@ -21,7 +21,7 @@ default_args = {
 
 dag = DAG(
     dag_id='request_today',
-    schedule_interval='10 6-19 * * *',
+    schedule_interval='*/20 6-19 * * *',
     start_date=pendulum.datetime(2023, 7, 7, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args,
@@ -33,6 +33,8 @@ cloud_name = 'cloud_128'
 
 path_to_sql = '/root/airflow/dags/request_with_calls_today/SQL/'
 sql_request = f'{path_to_sql}Request.sql'
+sql_user = '/root/airflow/dags/incoming_line/SQL/Пользователи.sql'
+
 
 path_to_files = '/root/airflow/dags/request_with_calls_today/Files/'
 path_to_file_sql = f'{path_to_files}sql_total/'
@@ -40,6 +42,9 @@ path_to_file = f'{path_to_files}request/'
 
 csv_request = 'request.csv'
 csv_result = 'Заявки.csv'
+csv_user = 'users.csv'
+
+
 
 dbs_result = '/4_report/new files/'
 
@@ -51,6 +56,12 @@ request_sql = PythonOperator(
     task_id='request_sql', 
     python_callable=sql_query_to_csv, 
     op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_request, 'path_csv_file': path_to_file_sql, 'name_csv_file': csv_request}, 
+    dag=dag
+    )
+users_sql = PythonOperator(
+    task_id='users_sql', 
+    python_callable=sql_query_to_csv, 
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_user, 'path_csv_file': path_to_files, 'name_csv_file': csv_user}, 
     dag=dag
     )
 

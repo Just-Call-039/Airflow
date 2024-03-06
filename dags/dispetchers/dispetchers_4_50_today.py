@@ -9,7 +9,7 @@ from airflow.operators.python_operator import PythonOperator
 
 from fsp.repeat_download import sql_query_to_csv
 from commons_sawa.telegram import telegram_send
-from dispetchers.disp_editer import disp_editors
+from dispetchers.disp_editer_copy import disp_editors
 
 
 

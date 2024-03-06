@@ -20,7 +20,7 @@ def beeline_clickhouse(path_to_files, calls, work, otkaz):
     work_time['time_start_status'] = work_time['time_start_status'].astype(str)
     work_time['date'] = work_time['date'].astype(str)
     work_time['time_stop_status'] = work_time['time_stop_status'].astype(str)
-    users = pd.read_csv('/root/airflow/dags/incoming_line/Files/sql_calls/users.csv',  sep=',', encoding='utf-8')
+    users = pd.read_csv('/root/airflow/dags/request_with_calls_today/Files/users.csv',  sep=',', encoding='utf-8')
 
 
     path_to_credential = '/root/airflow/dags/quotas-338711-1e6d339f9a93.json' 
