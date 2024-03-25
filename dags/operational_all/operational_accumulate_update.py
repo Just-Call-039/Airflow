@@ -45,9 +45,10 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
     client = Client(host=host, port='9000', user=user, password=password,
                     database='suitecrm_robot_ch', settings={'use_numpy': True})
 
+    print('Удаляем данные за последние 14 дней')
 
     # Формируем SQL-запрос для удаления строк
-    sql = f'''ALTER TABLE suitecrm_robot_ch.operational_new DELETE WHERE calldate >= toDate('{previous_date}') AND calldate < toDate('{today}')'''
+    sql = f'''ALTER TABLE suitecrm_robot_ch.operational DELETE WHERE calldate >= toDate('{previous_date}') AND calldate < toDate('{today}')'''
 
     # Отправляем запрос
     client.execute(sql)
@@ -208,68 +209,116 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
                           right_on = ['step','ochered','date'], how = 'left').fillna('')
         
 
-            print('Цепим переводы')
-            df['perevod'] = ''
-            def check_1(row):
-                if row['type_steps'] == '1':
-                    return '1'
-                else:
-                    return '0'
-            df['perevod'] = df.apply(check_1, axis=1)
-
-            print('Цепим лиды')
-            df['lids'] = ''
-            def check_2(row):
-                if row['type_steps'] == '0':
-                    return '1'
-                else:
-                    return '0'
-            df['lids'] = df.apply(check_2, axis=1)
-
 
     # df['category'] = ''
             print('Группируем')
             df = df.groupby(['project',
-            'dialog',
-            'destination_queue',
-            'calldate',
-            'client_status',
-            'was_repeat',
-            'marker',
-            'route',
-            'source',
-            'perevod',
-            'lids',
-            'region',
-            'holod',
-            'city_c',
-            'otkaz',
-            'trunk_id',
-            'autootvet',
-            'category_stat',
-            'stretched',
-            'category',
-            'category_calls',
-            'last_step'], as_index=False, dropna=False).agg({'calls': 'sum', 'trafic1': 'sum', 'trafic': 'sum'}).rename(columns={'trafic': 'full_trafic','trafic1': 'trafic'})
-        
-        
+        'dialog',
+        'destination_queue',
+        'calldate',
+        'client_status',
+        'was_repeat',
+        'marker',
+        'route',
+        'source',
+        'type_steps',
+        'region',
+        'holod',
+        'city_c',
+        'otkaz',
+        'trunk_id',
+        'autootvet',
+        'category_stat',
+        'stretched',
+        'category',
+        'category_calls',
+        'last_step'], as_index=False, dropna=False).agg({'calls': 'sum',
+                                                         'trafic1': 'sum',
+                                                         'trafic': 'sum'}).rename(columns={'trafic': 'full_trafic',
+                                                                                           'trafic1': 'trafic'})
+            
+            print('Объединяем с ЕТВ')
+            
+            etv = pd.read_csv('/root/airflow/dags/operational_all/Files/operational/ЕТВ.csv',  sep=',', encoding='utf-8').fillna('').astype('str')
+            df = df.merge(etv, how='left', left_on='dialog', right_on='queue').fillna('').astype('str')
+            df['have_ptv_1'] = df['have_ptv_1'].astype('str').apply(lambda x: x.replace('.0',''))
+            df['have_ptv_2'] = df['have_ptv_2'].astype('str').apply(lambda x: x.replace('.0',''))
+            df['have_ptv_3'] = df['have_ptv_3'].astype('str').apply(lambda x: x.replace('.0',''))
+            df['have_ptv_4'] = df['have_ptv_4'].astype('str').apply(lambda x: x.replace('.0',''))
+            df['have_ptv_5'] = df['have_ptv_5'].astype('str').apply(lambda x: x.replace('.0',''))
+            df['have_ptv_6'] = df['have_ptv_6'].astype('str').apply(lambda x: x.replace('.0',''))
+            df['have_ptv_7'] = df['have_ptv_7'].astype('str').apply(lambda x: x.replace('.0',''))
+
+
+            df['etv'] = ''
+            def check_conditions(row):
+                if (row['was_repeat'] == '1') and (row['route'].find(row['have_ptv_1']) != -1):
+                    row['etv'] = '1'
+                elif (row['was_repeat'] == '1') and (row['route'].find(row['have_ptv_2']) != -1):
+                    row['etv'] = '1'
+                elif (row['was_repeat'] == '1') and (row['route'].find(row['have_ptv_3']) != -1):
+                    row['etv'] = '1'
+                elif (row['was_repeat'] == '1') and (row['route'].find(row['have_ptv_4']) != -1):
+                    row['etv'] = '1'
+                elif (row['was_repeat'] == '1') and (row['route'].find(row['have_ptv_5']) != -1):
+                    row['etv'] = '1'
+                elif (row['was_repeat'] == '1') and (row['route'].find(row['have_ptv_6']) != -1):
+                    row['etv'] = '1'
+                elif (row['was_repeat'] == '1') and (row['route'].find(row['have_ptv_7']) != -1):
+                    row['etv'] = '1'
+                else:
+                    row['etv'] = '0'
+
+            df.apply(check_conditions, axis=1)
+
+
             df[['project','dialog','destination_queue','calldate','client_status',
         'was_repeat','marker',
-        # 'route',
-        'source','perevod','lids','region','holod',
+
+        'source','type_steps','region','holod',
         'city_c','otkaz','trunk_id','autootvet','category_stat','stretched',
-        'category','category_calls','last_step']] =  df[['project',
+        'category','category_calls','last_step','etv']] =  df[['project',
                         'dialog','destination_queue','calldate','client_status',
                         'was_repeat','marker',
-                        # 'route',
-                        'source','perevod','lids','region','holod',
+                        'source','type_steps','region','holod',
                         'city_c','otkaz','trunk_id','autootvet','category_stat','stretched',
-                        'category','category_calls','last_step']].astype('str').fillna('')
-        
+                        'category','category_calls','last_step','etv']].astype('str').fillna('')
+
+            df[['calls','trafic','full_trafic']] = df[['calls','trafic','full_trafic']].astype('int64').fillna(0)
+
+            print('Группируем для выгрузки в ClickHouse')
+            df = df.groupby(['project',
+        'dialog',
+        'destination_queue',
+        'calldate',
+        'client_status',
+        'was_repeat',
+        'marker',
+        'source',
+        'type_steps',
+        'region',
+        'holod',
+        'city_c',
+        'otkaz',
+        'trunk_id',
+        'autootvet',
+        'category_stat',
+        'stretched',
+        'category',
+        'category_calls',
+        'last_step',
+        'etv'], as_index=False, dropna=False).agg({'calls': 'sum',
+                                                         'trafic': 'sum',
+                                                         'full_trafic': 'sum'})
+            df['calldate'] = pd.to_datetime(df['calldate'])
 
             df[['calls','trafic','full_trafic']] = df[['calls','trafic','full_trafic']].astype('int64').fillna(0)
 
 
+            df['trunk_id'] = df['trunk_id'].astype('str').apply(lambda x: x.replace('.0',''))
+            df['was_repeat'] = df['was_repeat'].astype('str').apply(lambda x: x.replace('.0',''))
+            df['type_steps'] = df['type_steps'].astype('str').apply(lambda x: x.replace('.0',''))
+            df['etv'] = df['etv'].astype('str').apply(lambda x: x.replace('.0',''))
             print('Сохраняем')
             df.to_csv(to_save, index=False)
 
@@ -294,7 +343,7 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
                     database='suitecrm_robot_ch', settings={'use_numpy': True})
         
             print('Отправляем запрос')
-            client.insert_dataframe('INSERT INTO suitecrm_robot_ch.operational_new VALUES', df)
+            client.insert_dataframe('INSERT INTO suitecrm_robot_ch.operational VALUES', df)
 
 
             n += 1

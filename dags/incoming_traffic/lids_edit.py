@@ -26,11 +26,12 @@ def lids_editing (waiters,lids,dop,path_to_file,file, path_file):
 
 
     df = lids.merge(tab, left_on = ['dialog','last_step'], right_on = ['Очередь','Шаг'], how = 'inner').fillna('')
-    waiters = waiters.astype('str')
-    waiters['Группировка']=''
-    dop['Группировка']=''
+    
 
-    df = df[['phone','calldate','dialog','town_c','last_step','ptv','type','Группировка']].astype('str')
+    waiters = waiters.astype('str')
+
+
+    df = df[['phone','calldate','dialog','town_c','last_step','ptv','type']].astype('str')
     tt = pd.concat([waiters, df, dop])
 
     tt['phone'] = tt['phone'].astype('str').apply(lambda x: x.replace('.0',''))
@@ -38,5 +39,7 @@ def lids_editing (waiters,lids,dop,path_to_file,file, path_file):
     tt['last_step'] = tt['last_step'].astype('str').apply(lambda x: x.replace('.0',''))
     tt['town_c'] = tt['town_c'].astype('str').apply(lambda x: x.replace('.0',''))
     tt['last_step'] = tt['last_step'].astype('str').apply(lambda x: x.replace('.0',''))
+    tt = tt.merge(tab, left_on = ['dialog','last_step'], right_on = ['Очередь','Шаг'], how = 'left').fillna('')
+    tt = tt[['phone','calldate','dialog','town_c','last_step','ptv','type','Группировка']].astype('str')
 
     tt.to_csv(rf'{path_file}/{file}', index=False, sep=',', encoding='utf-8')

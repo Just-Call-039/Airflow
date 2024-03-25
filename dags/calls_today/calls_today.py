@@ -7,6 +7,7 @@ from airflow.operators.python import PythonOperator
 
 from commons.transfer_file_to_dbs import transfer_file_to_dbs
 from fsp.repeat_download import sql_query_to_csv
+from calls_today.transfer_in_clickhouse import to_click
 
 default_args = {
     'owner': 'Lidiya Butenko',
@@ -30,7 +31,7 @@ dag = DAG(
 cloud_name = 'cloud_128'
 
 # Наименование файлов.
-csv_calls = 'Звонки сегодня.csv' 
+csv_calls = 'Звонки_сегодня.csv' 
 
 # Пути к sql запросам на сервере airflow.
 path_to_sql_airflow = '/root/airflow/dags/calls_today/SQL/'
@@ -75,8 +76,17 @@ calls_today_10_to_dbs = PythonOperator(
     dag=dag
     )
 
+# Блок отправки  файлов в clickhouse.
 
-calls_today >> calls_today_to_dbs 
+transfer_to_click = PythonOperator(
+    task_id='transfer_to_click', 
+    python_callable=to_click, 
+    op_kwargs={'path_file': path_to_file_airflow, 'calls': csv_calls}, 
+    dag=dag
+    )
+
+
+calls_today >> calls_today_to_dbs >> transfer_to_click
 calls_today_10 >> calls_today_10_to_dbs 
 
 

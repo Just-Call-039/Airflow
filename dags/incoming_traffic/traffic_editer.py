@@ -38,7 +38,7 @@ def traffic_in_editing (calls,robot,plancall,ishod,trafic, path_file, path_to_fi
     teams['team'] = teams['team'].astype('str').apply(lambda x: x.replace('.0',''))
     teams['date'] = pd.to_datetime(teams['date'])
 
-    users = pd.read_csv('/root/airflow/dags/incoming_line/Files/sql_calls/users.csv',  sep=',', encoding='utf-8').fillna('')
+    users = pd.read_csv('/root/airflow/dags/request_with_calls_today/Files/users.csv',  sep=',', encoding='utf-8').fillna('')
     users['team'] = users['team'].astype('str').apply(lambda x: x.replace('.0',''))
 
     csv_files = glob.glob('/root/airflow/dags/project_defenition/projects/queues/*.csv')

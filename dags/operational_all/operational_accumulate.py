@@ -19,6 +19,7 @@ from commons_li.clear_folder import clear_folder
 
 from operational_all.operational_accumulate_dozvon import transfer_files_to_click
 from operational_all.operational_accumulate_update import update_operational
+from operational_all.operational_etv import etv_universal
 
 
 
@@ -144,6 +145,13 @@ transfer_dozvon_to_click = PythonOperator(
     dag=dag
     )
 
+transfer_etv_to_click = PythonOperator(
+    task_id='transfer_etv_to_click', 
+    python_callable=etv_universal, 
+    # op_kwargs={}, 
+    dag=dag
+    )
+
 # Очистка папки
 clear_folders = PythonOperator(
     task_id='clear_folders', 
@@ -152,5 +160,5 @@ clear_folders = PythonOperator(
     dag=dag
     )
 
-sql_etv >> transfer_etv >> transfer_dozvon_to_click
+sql_etv >> transfer_etv >> transfer_dozvon_to_click >> transfer_etv_to_click
 sql_autofilling >> transfer_autofilling >> update_operational_accumulate >> transfer_operational >> clear_folders

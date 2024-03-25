@@ -64,7 +64,8 @@ select distinct calls.id,
                 calls.call_sec,
                 calls.short_calls,
                 dialog,
-                completed_c
+                completed_c,
+                calls.phone
 from calls
          left join ws on calls.user_call = ws.id_user
          left join robot j on calls.phone = j.phone and call_date = calldate and j.hours = calls.hours

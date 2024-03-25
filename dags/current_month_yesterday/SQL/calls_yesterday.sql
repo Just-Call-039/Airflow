@@ -1,4 +1,4 @@
-with callsAll as (select  date(calls.date_entered) dateCall,
+with callsAll as (select distinct date(calls.date_entered) dateCall,
                          assigned_user_id       userid,
                          queue_c,
                          result_call_c,

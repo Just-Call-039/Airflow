@@ -9,6 +9,7 @@ from commons.transfer_file_to_dbs import transfer_file_to_dbs
 from fsp.repeat_download import sql_query_to_csv
 from commons_li.sql_query_semicolon_to_csv import sql_query_to_csv_sc
 
+from current_month_yesterday.transfer_in_clickhouse import to_click
 
 default_args = {
     'owner': 'Lidiya Butenko',
@@ -31,14 +32,14 @@ dag = DAG(
 cloud_name = 'cloud_128'
 
 # Наименование файлов.
-csv_calls = 'Звонки вчера.csv' 
+csv_calls = 'Звонки_вчера.csv' 
 csv_call_wait = 'CallWaitUser.csv' 
 csv_login_user = 'LoginUsers.csv' 
 csv_user_total = 'Users_total.csv' 
 csv_working = 'working_time_current_month.csv' 
 
 # Пути к sql запросам на сервере airflow.
-path_to_sql_airflow = '/root/airflow/dags/10_refusing_and_result/SQL/'
+path_to_sql_airflow = '/root/airflow/dags/current_month_yesterday/SQL/'
 sql_calls = f'{path_to_sql_airflow}calls_yesterday.sql'
 sql_calls_4 = f'{path_to_sql_airflow}Звонки вчера.sql'
 sql_users_total = f'{path_to_sql_airflow}Users_total.sql'
@@ -49,7 +50,7 @@ sql_working = f'{path_to_sql_airflow}working_time_month_any.sql'
 
 
 # Пути к файлам на сервере airflow.
-path_to_file_airflow = '/root/airflow/dags/10_refusing_and_result/Files/'
+path_to_file_airflow = '/root/airflow/dags/current_month_yesterday/Files/'
 path_to_file_sql = f'{path_to_file_airflow}4/'
 
 # Пути к файлам на сервере dbs.
@@ -101,6 +102,7 @@ working_time = PythonOperator(
     )
 
 
+
 # Блок отправки всех файлов в папку DBS.
 
 calls_yesterday_to_dbs = PythonOperator(
@@ -140,8 +142,17 @@ work_time_to_dbs = PythonOperator(
     dag=dag
     )
 
+# Блок отправки  файлов в clickhouse.
+
+transfer_to_click = PythonOperator(
+    task_id='transfer_to_click', 
+    python_callable=to_click, 
+    op_kwargs={'path_file': path_to_file_sql, 'calls': csv_calls}, 
+    dag=dag
+    )
+
 calls_yesterday >> calls_yesterday_to_dbs 
-calls_yesterday_4 >> calls_yesterday_4_to_dbs 
+calls_yesterday_4 >> calls_yesterday_4_to_dbs >> transfer_to_click
 login_user >> login_user_to_dbs
 users_total >> user_total_to_dbs
 call_wait >> call_wait_to_dbs

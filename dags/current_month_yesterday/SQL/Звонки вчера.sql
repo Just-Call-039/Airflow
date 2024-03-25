@@ -25,15 +25,15 @@ with work_time as (select rc.id_user,
                           if(rc.pause10 is null, 0, rc.pause10)                                                              as pause,
                           if(timestampdiff(second, wt.lunch_start, wt.lunch_stop) is null, 0,
                              timestampdiff(second, wt.lunch_start, wt.lunch_stop))                                           as lunch_duration
-
                    from suitecrm.reports_cache as rc
                             left join suitecrm.worktime_log as wt
                                       on rc.id_user = wt.id_user and date(rc.date) = date(wt.date)
-                   where month(rc.date) = month(curdate() - interval 1 month)
-                     and year(rc.date) = if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year),
-                                            year(curdate()))
+                   where (rc.date) != day(curdate())
+                     and month(rc.date) = month(curdate())
+                     and year(rc.date) = year(curdate())
                      and rc.id_user not in ('1', '')
                      and rc.id_user is not null),
+
      timee as (select work_time.id_user,
                       work_time.date,
                       work_time.talk_inbound,
@@ -55,12 +55,15 @@ with work_time as (select rc.id_user,
                from work_time
                where work_time.num = 1
                order by work_time.date, work_time.id_user),
+
+
      calls as (select cl.id,
                       date(cl.date_entered)               as call_date,
                       DATE_FORMAT(DATE_ADD(cl.date_entered, INTERVAL IF(MINUTE(cl.date_entered) >= 58, 1, 0) HOUR),
                                   '%H')                      hours,
                       cl.name,
                       cl_c.asterisk_caller_id_c           as phone,
+                      contacts.id                            contact_id,
                       if((cl_c.queue_c in ('', ' ') or cl_c.queue_c is null), 'unknown_queue',
                          cl_c.queue_c)                    as queue,
                       if((cl.assigned_user_id in ('', ' ') or cl.assigned_user_id is null), 'unknown_id',
@@ -74,23 +77,21 @@ with work_time as (select rc.id_user,
                           end                             as city,
                       duration_minutes                    as call_sec,
                       if(cl.duration_minutes <= 10, 1, 0) as short_calls,
-                      contacts.id                            contact_id,
                       completed_c
                from suitecrm.calls as cl
                         left join suitecrm.calls_cstm as cl_c on cl.id = cl_c.id_c
                         left join suitecrm.contacts on cl_c.asterisk_caller_id_c = contacts.phone_work
                         left join suitecrm.contacts_cstm on contacts_cstm.id_c = contacts.id
-               where (month(cl.date_entered) = month(curdate() - interval 1 month)
-                   and year(cl.date_entered) =
-                       if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year),
-                          year(curdate())))),
+               where DATE_FORMAT(cl.date_entered, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+                 AND cl.date_entered < DATE_SUB(CURDATE(), INTERVAL 0 DAY)),
+
+
      ws as (select *
             from (select *, row_number() over (partition by id_user order by date_start desc) as num
                   from suitecrm.worktime_supervisor) as temp
             where temp.num = 1),
      robot as (select phone, date(calldates) calldate, dialog, hours
-               from (select *,
-                            row_number() over (partition by phone, date(calldates), hours order by calldates desc) row
+               from (select *, row_number() over (partition by phone,date(calldates),hours order by calldates desc) row
                      from (select phone,
                                   call_date                calldates,
                                   substring(dialog, 11, 4) dialog,
@@ -98,12 +99,10 @@ with work_time as (select rc.id_user,
                                               '%H')        hours
                            from suitecrm_robot.jc_robot_log
                            where last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372')
-                             and (month(call_date) = month(curdate() - interval 1 month)
-                               and year(call_date) =
-                                   if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year),
-                                      year(curdate())))) yy) yyy
+                             and (call_date) != day(curdate())
+                             and month(call_date) = month(curdate())
+                             and year(call_date) = year(curdate())) yy) yyy
                where row = 1)
-
 
 select distinct calls.id,
                 calls.call_date,

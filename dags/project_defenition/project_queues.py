@@ -24,11 +24,11 @@ def project_queues():
     headers4 = data4.pop(0) 
     queues = pd.DataFrame(data4, columns=headers4)
     current_date = datetime.datetime.now()
-    yesterday_date = current_date - datetime.timedelta(days=0)
+    yesterday_date = current_date - datetime.timedelta(days=1)
     queues['date'] = yesterday_date.strftime('%Y-%m-%d')
 
 
 
     queues_paths = '/root/airflow/dags/project_defenition/projects/queues/queues_{}.csv'
-    to_save = queues_paths.format(datetime.datetime.now().strftime("%Y_%m_%d"))
+    to_save = queues_paths.format(yesterday_date.strftime("%Y_%m_%d"))
     queues.to_csv(to_save, index=False)

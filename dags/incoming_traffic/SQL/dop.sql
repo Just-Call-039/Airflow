@@ -468,7 +468,12 @@ with config as (select D.name                                                   
                                           on jc_planned_calls.phone = jc_robot_log.phone
                        where date(jc_planned_calls.date_entered)
                            BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 MONTH) AND CURDATE()
-                         and contacts_status is null
+                         and (contacts_status is null or (contacts_status = 'CallWait' and
+                                                          (jc_robot_log.otkaz = 'otkaz_23' or
+                                                           jc_robot_log.otkaz = 'otkaz_42' or
+                                                           jc_robot_log.otkaz = 'no_answer' or
+                                                           jc_robot_log.otkaz = 'no_ansver' or
+                                                           jc_robot_log.otkaz = '')))
                          and date(date_start) = date(now())) tt
               where row = 1
               union
@@ -550,9 +555,9 @@ with config as (select D.name                                                   
      poteri as (select phone,
                        date(call_date)          calldate,
                        'Потеряшка'              type,
-                       substring(dialog, 11, 4) dialog,
                        town_c,
                        contacts_cstm.city_c,
+                       substring(dialog, 11, 4) dialog,
                        last_step
                 from suitecrm_robot.jc_robot_log
                          left join suitecrm.contacts

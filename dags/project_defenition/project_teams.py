@@ -67,10 +67,11 @@ def project_teams():
         else:
             return row
 
-
+    сurrent_date = datetime.datetime.now()
+    yesterday_date = сurrent_date - datetime.timedelta(days=1)
     df['project'] = df['Проект'].apply(lambda row: project_correct(row))
     df = df[['№ команды','project','CRM СВ']].rename(columns={'№ команды': 'team', 'CRM СВ': 'supervisor'})
-    df['date'] = datetime.datetime.now().strftime('%Y-%m-%d')
+    df['date'] = yesterday_date.strftime('%Y-%m-%d')
     df['team'] = df['team'].astype('str').apply(lambda x: x.replace('я',''))
     df['team'] = df['team'].astype('str').apply(lambda x: x.replace('.0',''))
     df['team'] = df['team'].astype('str').apply(lambda x: x.replace('nan',''))
@@ -82,7 +83,7 @@ def project_teams():
     team_paths = '/root/airflow/dags/project_defenition/projects/teams/teams_{}.csv'
 
     сurrent_date = datetime.datetime.now()
-    yesterday_date = сurrent_date - datetime.timedelta(days=0)
+    yesterday_date = сurrent_date - datetime.timedelta(days=1)
     to_save = team_paths.format(yesterday_date.strftime("%Y_%m_%d"))
     df.to_csv(to_save, index=False)
 

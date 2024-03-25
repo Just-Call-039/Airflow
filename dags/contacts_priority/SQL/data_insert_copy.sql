@@ -271,10 +271,11 @@ from (
                     '' priority2,
                     if(phone_work like '89%',1,0) mob_phone,
 
-                    if(last_call_c is null or last_call_c > now() + interval 1 day ,20000, toDate(now()) - toDate(last_call_c)) rest_days
+                    if(toDateTime(last_call_c) is null or toDateTime(last_call_c) > now() + interval 1 day ,20000, toDate(now()) - toDate(toDateTime(last_call_c))) rest_days
 
 
-         from suitecrm_robot_ch.contacts_cstm
+             from gar.contacts
+                 left join gar.contacts_cstm on id = id_c
                  
                   left join suitecrm_robot_ch.directory_city on directory_city.city_c = contacts_cstm.city_c
                   left join suitecrm_robot_ch.directory_town on directory_town.town_c = contacts_cstm.town_c
