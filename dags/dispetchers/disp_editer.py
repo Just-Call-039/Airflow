@@ -44,7 +44,7 @@ def disp_editors(path_to_files, lids, path_result, calls):
 
     calls = pd.read_csv(f'{path_to_files}/{calls}')
     calls = calls[calls['Результат'] != 'Назначена заявка']
-
+    calls['Телефон']= calls['Телефон'].fillna(0).astype('int64')
     phones = calls.copy()
     phones = phones[['Телефон']]
     phones = phones.drop_duplicates()
@@ -113,7 +113,7 @@ def disp_editors(path_to_files, lids, path_result, calls):
     df = df[['Проект_x','Очередь','Причина','Город','Телефон']]
     
     df = df.drop_duplicates()
-    df['Телефон']= df['Телефон'].astype('int64')
+    df['Телефон']= df['Телефон'].fillna(0).astype('int64')
     t9293 = df[df['Проект_x'].isin(['TTK', 'TTK LIDS'])]
     t9295  = df[df['Проект_x'].isin(['MTS', 'MTS LIDS'])]
     t9296  = df[df['Проект_x'].isin(['BEELINE', 'BEELINE LIDS'])]

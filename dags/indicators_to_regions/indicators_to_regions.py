@@ -42,17 +42,17 @@ path_to_file = f'{path_to_files}total/'
 path_to_transfer_sql = f'{path_to_files}transfer/'
 
 csv_request = 'request.csv'
-csv_request_result = 'Requests.csv'
+csv_request_result = 'Requests .csv'
 csv_transfer = 'Transfer текущий.csv'
 csv_calls2 = 'calls 01_2023.csv'
 csv_calls = 'calls текущий.csv'
 csv_result = 'CallsTotal текущий.csv'
-csv_result2 = 'CallsTotal архив.csv'
+csv_result2 = 'CallsTotal архив 02_2024.csv'
 
 
 
 
-dbs_result1 = '/Отчеты BI/Показатели до регионов/'
+dbs_result1 = '/Отчеты BI/Показатели до регионов/Заявки/'
 dbs_result2 = '/Отчеты BI/Показатели до регионов/CallsTotal/'
 dbs_result_transfer = '/Отчеты BI/Показатели до регионов/TransferRobot/'
 

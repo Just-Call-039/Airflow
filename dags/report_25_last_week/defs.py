@@ -113,7 +113,7 @@ def network_provider_c(i):
         return 'Теле 2'
     elif i == '80':
         return 'Билайн'
-    elif i == '82':
+    elif i == '82' or i == '63':
         return 'Мегафон'
     elif i == '83':
         return 'МТС'

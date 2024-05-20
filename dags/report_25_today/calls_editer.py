@@ -58,7 +58,16 @@ def robotlog_calls_transformation(path_to_sql_calls, sql_calls, path_to_sql_tran
     calls['region'] = calls.apply(lambda row: defs.region(row), axis=1)
 
     print('Определяем шаги')
-    calls['hello_end'] = calls['hello_end'].astype('str')
+    calls['hello_end'] = calls['hello_end'].astype('str').apply(lambda x: x.replace('.0',''))
+    calls['steps_inconvenient'] = calls['steps_inconvenient'].astype('str').apply(lambda x: x.replace('.0',''))
+    calls['steps_error'] = calls['steps_error'].astype('str').apply(lambda x: x.replace('.0',''))
+    calls['steps_refusing'] = calls['steps_refusing'].astype('str').apply(lambda x: x.replace('.0',''))
+    calls['top_recall'] = calls['top_recall'].astype('str').apply(lambda x: x.replace('.0',''))
+    calls['welcome_end'] = calls['welcome_end'].astype('str').apply(lambda x: x.replace('.0',''))
+    calls['ntv'] = calls['ntv'].astype('str').apply(lambda x: x.replace('.0',''))
+    calls['abonent'] = calls['abonent'].astype('str').apply(lambda x: x.replace('.0',''))
+    calls['last_step'] = calls['last_step'].astype('str').apply(lambda x: x.replace('.0',''))
+
     calls['description'] = calls.apply(lambda row: defs.last_step(row), axis=1)
     calls['etv'] = calls.apply(lambda row: defs.etv(row), axis=1)
 

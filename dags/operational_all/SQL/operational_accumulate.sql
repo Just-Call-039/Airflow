@@ -96,37 +96,37 @@
                 jc.ptv_c,
                 jc.region_c,
                 if(jc.city_c is null or jc.city_c = '',concat(cstm.town_c,'_t'),jc.city_c) as city_c,
-                base_source_c,
+                cstm.base_source_c,
                 if( last_step in ('','0','1','261','262','111','361','362','371','372'),1,0) auto,
                 case when real_billsec is null then billsec else real_billsec end trafic,
                 trunk_id,
                 if(stoplist_c like '%^ao^%',1,0) autootvet,
-                case when (base_source_c = '10' or base_source_c like '%^10^%') then '= 1'
-                     when (base_source_c is null and istochnik_combo_c = 'stretched') then '> 1'
-                     when (base_source_c = '62' and istochnik_combo_c = 'stretched') then '> 1'
-                     when (base_source_c like '%^62^%' and istochnik_combo_c = 'stretched') then '> 2'
+                case when (cstm.base_source_c = '10' or cstm.base_source_c like '%^10^%') then '= 1'
+                     when (cstm.base_source_c is null and istochnik_combo_c = 'stretched') then '> 1'
+                     when (cstm.base_source_c = '62' and istochnik_combo_c = 'stretched') then '> 1'
+                     when (cstm.base_source_c like '%^62^%' and istochnik_combo_c = 'stretched') then '> 2'
                                    else '' end stretched,
                                   case
-                                  when base_source_c like '%^61^%' then 7
-                                  when base_source_c like '%^62^%' then 1
-                                  when base_source_c like '%^60^%' then 0 else '' end category_stat,
+                                  when cstm.base_source_c like '%^61^%' then 7
+                                  when cstm.base_source_c like '%^62^%' then 1
+                                  when cstm.base_source_c like '%^60^%' then 0 else '' end category_stat,
                 case
-                   when base_source_c like '%^81^%' then 'Стоп-листы РТК'
-                    when base_source_c like '%^32^%' then 'Партнерская база РТК'
-                    when base_source_c like '%^83^%' then 'Октябрь`23 РТК'
-                    when base_source_c like '%^82^%' then 'Сентябрь`23 РТК'
-                    when base_source_c like '%^86^%' then 'Август`23 РТК'
-                    when base_source_c like '%^85^%' then 'Июль`23 РТК'
-                    when base_source_c like '%^87^%' then 'Июнь`23 РТК'
-                    when base_source_c like '%^88^%' then 'Май`23 РТК'
-                    when base_source_c like '%^89^%' then 'Апрель`23 РТК'
-                    when base_source_c like '%^90^%' then 'Март`23 РТК'
-                    when base_source_c like '%^100^%' then 'Февраль`23 РТК'
-                    when base_source_c like '%^180^%' then 'Январь`23 РТК'
-                    when base_source_c like '%^173^%' then 'Декабрь`22 РТК'
-                    when base_source_c like '%^172^%' then 'Ноябрь`22 РТК'
-                    when base_source_c like '%^179^%' then 'Октябрь`22 РТК'
-                    when base_source_c like '%^178^%' then 'Сентябрь`22 РТК'
+                   when cstm.base_source_c like '%^81^%' then 'Стоп-листы РТК'
+                    when cstm.base_source_c like '%^32^%' then 'Партнерская база РТК'
+                    when cstm.base_source_c like '%^83^%' then 'Октябрь`23 РТК'
+                    when cstm.base_source_c like '%^82^%' then 'Сентябрь`23 РТК'
+                    when cstm.base_source_c like '%^86^%' then 'Август`23 РТК'
+                    when cstm.base_source_c like '%^85^%' then 'Июль`23 РТК'
+                    when cstm.base_source_c like '%^87^%' then 'Июнь`23 РТК'
+                    when cstm.base_source_c like '%^88^%' then 'Май`23 РТК'
+                    when cstm.base_source_c like '%^89^%' then 'Апрель`23 РТК'
+                    when cstm.base_source_c like '%^90^%' then 'Март`23 РТК'
+                    when cstm.base_source_c like '%^100^%' then 'Февраль`23 РТК'
+                    when cstm.base_source_c like '%^180^%' then 'Январь`23 РТК'
+                    when cstm.base_source_c like '%^173^%' then 'Декабрь`22 РТК'
+                    when cstm.base_source_c like '%^172^%' then 'Ноябрь`22 РТК'
+                    when cstm.base_source_c like '%^179^%' then 'Октябрь`22 РТК'
+                    when cstm.base_source_c like '%^178^%' then 'Сентябрь`22 РТК'
                     else '' end as                                                source
 from suitecrm_robot.jc_robot_log jc
          left join (select distinct * from suitecrm.transferred_to_other_queue) tr

@@ -19,5 +19,8 @@ from suitecrm.calls
          left join suitecrm.calls_cstm on id = id_c
          left join suitecrm.users on assigned_user_id = users.id
 where direction = 'Inbound'
-  and DATE_FORMAT(calls.date_entered, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
-                    AND calls.date_entered < DATE_SUB(CURDATE(), INTERVAL 0 DAY);
+  and month(calls.date_entered) = month(curdate() - interval 1 month)
+                    and year(calls.date_entered) =
+                        if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year),
+                           year(curdate()))
+

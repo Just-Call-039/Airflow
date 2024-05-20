@@ -40,18 +40,22 @@ path_airflow_working = f'{path_to_file_airflow}working/'
 path_airflow_calls = f'{path_to_file_airflow}calls/'
 path_airflow_calls_with_request = f'{path_to_file_airflow}calls_with_request/'
 path_airflow_transfer = '/root/airflow/dags/indicators_to_regions/Files/transfer/'
+path_airflow_c = '/root/airflow/dags/indicators_to_regions/Files/sql_files/callls/'
 
 path_dbs_calls_with_request = f'/4_report/new files/Звонки для заявок/'
 path_dbs_calls = '/4_report/new files/calls/'
 path_dbs_working = '/4_report/Files/working_time_folder/'
 path_dbs_transfer = '/Отчеты BI/Показатели до регионов/TransferRobot/'
 path_dbs_10_otchet = '/10_otchet_partners/Calls/'
+path_dbs_c = '/Отчеты BI/Показатели до регионов/Для архива/'
+
 
 sql_main_10_otchet = '/root/airflow/dags/previous_month/SQL/10_calls_previous_month.sql'
 sql_main_transfer = '/root/airflow/dags/previous_month/SQL/transfer_robot_previous_month.sql'
 sql_main_working = '/root/airflow/dags/previous_month/SQL/working_time_previous_month.sql'
 sql_main_calls_with_request = '/root/airflow/dags/previous_month/SQL/calls_with_request_previous_month.sql'
 sql_main_calls = '/root/airflow/dags/previous_month/SQL/calls_previous_month.sql'
+sql_main_c = '/root/airflow/dags/previous_month/SQL/Call.sql'
 
 today = datetime.date.today()
 previous_date = today - dateutil.relativedelta.relativedelta(months=1)
@@ -62,6 +66,7 @@ file_otchet = f'{year}_{month}.csv'
 file_calls_req = f'Звонки для заявок {month}{year}.csv'
 file_work = f'{year}_{month}.csv'
 file_transfer = f'Transfer {month}{year}.csv'
+file_c = f'calls {month:02}_{year}.csv'
 
 
 
@@ -102,6 +107,12 @@ transfer_robot_sql = PythonOperator(
     op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_main_transfer, 'path_csv_file': path_airflow_transfer, 'name_csv_file': file_transfer}, 
     dag=dag
     )
+c_sql = PythonOperator(
+    task_id='c_sql', 
+    python_callable=sql_query_to_csv, 
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_main_c, 'path_csv_file': path_airflow_c, 'name_csv_file': file_c}, 
+    dag=dag
+    )
 
 
 # Блок отправки всех файлов в папку DBS.
@@ -136,6 +147,12 @@ transfer_robot_to_dbs = PythonOperator(
     dag=dag
     )
 
+c_to_dbs = PythonOperator(
+    task_id='c_to_dbs', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_airflow_c, 'to_path': path_dbs_c, 'file': file_c, 'db': 'DBS'}, 
+    dag=dag
+    )
 # Блок отправки  файлов в clickhouse.
 
 transfer_to_click = PythonOperator(
@@ -168,6 +185,7 @@ send_telegram_message_fiasko = TelegramOperator(
 
 
 # Блок очередности выполнения задач.
+c_sql >> c_to_dbs >> [send_telegram_message, send_telegram_message_fiasko]
 otchet_sql >> otchet_to_dbs >> [send_telegram_message, send_telegram_message_fiasko]
 clear_folders >> calls_sql >> calls_to_dbs >> [send_telegram_message, send_telegram_message_fiasko]
 transfer_robot_sql >> transfer_robot_to_dbs >> transfer_to_click >> [send_telegram_message, send_telegram_message_fiasko]

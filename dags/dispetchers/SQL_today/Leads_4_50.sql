@@ -844,7 +844,7 @@ with town_c as (select 0 town_c, '0 РФ' Город
                          left join type ON type.type = jrl.type
                          left join steps
                                    on (steps.ochered = substring(log.dialog, 11, 4) and log.last_step = steps.step)
-                where jrl.type in ('interested', 'recall_plus', 'recall_tomorrow', 'waiters', 'recall_today', 'leads')
+                where jrl.type in ('interested','recall', 'recall_plus', 'recall_tomorrow', 'waiters', 'recall_today', 'leads')
                   and date(jrl.date_entered) = date(now())
                   and date_start_bp is null
                   and phone_work is null

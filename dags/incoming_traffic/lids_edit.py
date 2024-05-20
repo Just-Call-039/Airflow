@@ -5,6 +5,8 @@ def lids_editing (waiters,lids,dop,path_to_file,file, path_file):
     from datetime import datetime, timedelta
     from datetime import datetime
     from clickhouse_driver import Client
+    import pandas as pd
+    import gspread
 
 
     
@@ -40,6 +42,36 @@ def lids_editing (waiters,lids,dop,path_to_file,file, path_file):
     tt['town_c'] = tt['town_c'].astype('str').apply(lambda x: x.replace('.0',''))
     tt['last_step'] = tt['last_step'].astype('str').apply(lambda x: x.replace('.0',''))
     tt = tt.merge(tab, left_on = ['dialog','last_step'], right_on = ['Очередь','Шаг'], how = 'left').fillna('')
+    tt = tt[['phone','calldate','dialog','town_c','last_step','ptv','type']].astype('str')
+    tt= tt.drop_duplicates()
+
+    path_to_credential = '/root/airflow/dags/quotas-338711-1e6d339f9a93.json' 
+    table_name = 'Команды/Проекты'
+
+    scope = ['https://spreadsheets.google.com/feeds',
+            'https://www.googleapis.com/auth/drive']
+
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_credential, scope)
+    gs = gspread.authorize(credentials)
+
+    work_sheet = gs.open(table_name)
+    table_name4 = 'Группировка очередей'
+
+
+    work_sheet4 = gs.open(table_name4)
+    sheet4 = work_sheet4.worksheet('Лист1')
+    data4 = sheet4.get_all_values() 
+    headers4 = data4.pop(0) 
+    queues = pd.DataFrame(data4, columns=headers4)
+
+    tt = tt.merge(queues, how='left', left_on='dialog', right_on='Очередь')
     tt = tt[['phone','calldate','dialog','town_c','last_step','ptv','type','Группировка']].astype('str')
 
-    tt.to_csv(rf'{path_file}/{file}', index=False, sep=',', encoding='utf-8')
+    salary_sheets = {'Лист1': tt}
+    writer = pd.ExcelWriter(rf'{path_file}/{file}', engine='xlsxwriter')
+    for sheet_name in salary_sheets.keys():
+        salary_sheets[sheet_name].to_excel(writer, sheet_name=sheet_name, index=False)
+
+    writer.save()
+
+    # tt.to_csv(rf'{path_file}/{file}', index=False, sep=',', encoding='utf-8')

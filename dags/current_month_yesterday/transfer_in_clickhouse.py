@@ -214,4 +214,4 @@ def to_click(path_file, calls):
     client = Client(host=host, port='9000', user=user, password=password,
                        database='suitecrm_robot_ch', settings={'use_numpy': True})
 
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.pokazateli_operatorov_today VALUES', df1)
+    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.pokazateli_operatorov VALUES', df1)

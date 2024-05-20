@@ -66,7 +66,7 @@ year = previous_date.year
 month = previous_date.month
 day = previous_date.day
 
-file_total = f'Лиды, обрывы, перезвоны {day}_{month}_{year}.csv' 
+file_total = f'Лиды, обрывы, перезвоны {day}_{month}_{year}.xlsx' 
 lids_csv = 'lids.csv'
 wait_csv = 'wait.csv'
 dop_csv = 'dop.csv'

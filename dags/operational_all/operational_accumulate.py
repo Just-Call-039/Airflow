@@ -160,5 +160,16 @@ clear_folders = PythonOperator(
     dag=dag
     )
 
-sql_etv >> transfer_etv >> transfer_dozvon_to_click >> transfer_etv_to_click
-sql_autofilling >> transfer_autofilling >> update_operational_accumulate >> transfer_operational >> clear_folders
+# Отправка уведомления об ошибке в Telegram.
+send_telegram_message = TelegramOperator(
+    task_id='send_telegram_message',
+    telegram_conn_id='Telegram',
+    chat_id='-1001412983860',
+    text='Случилась ошибочка в Накопительном РО :(',
+    dag=dag,
+    trigger_rule='one_failed'
+)
+
+
+sql_etv >> transfer_etv >> transfer_dozvon_to_click >> transfer_etv_to_click >> send_telegram_message
+sql_autofilling >> transfer_autofilling >> update_operational_accumulate >> transfer_operational >> clear_folders >> send_telegram_message

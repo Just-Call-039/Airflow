@@ -194,7 +194,7 @@
                           case
                               when network_provider_c = '83' then 'МТС'
                               when network_provider_c = '80' then 'Билайн'
-                              when network_provider_c = '82' then 'Мегафон'
+                              when network_provider_c = '82' or network_provider_c = '63' then 'Мегафон'
                               when network_provider_c = '10' then 'Теле2'
                               when network_provider_c = '68' then 'Теле2'
                               else 'MVNO'

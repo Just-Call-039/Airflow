@@ -41,7 +41,7 @@ def beeline_clickhouse(path_to_files, calls, work, otkaz):
 
     beeline_calls = beeline_calls.merge(users[['id','supervisor']], how='left', left_on='user_call', right_on='id')
     beeline_calls= beeline_calls.merge(lids[['СВ CRM','Проект']], how='left', left_on='supervisor', right_on='СВ CRM')
-    beeline_calls = beeline_calls[beeline_calls['Проект'] == "Beeline Lids"]
+    beeline_calls = beeline_calls[beeline_calls['Проект'] == "BEELINE LIDS"]
     beeline_calls = beeline_calls.merge(otkaz[['name','name_ru']], how='left', left_on='otkaz', right_on='name')
     beeline_calls['end_talk'] = beeline_calls['end_talk'].astype(str)
     beeline_calls['end_talk'] = beeline_calls['end_talk'].apply(lambda x: x.replace('0 days ',''))
@@ -68,7 +68,7 @@ def beeline_clickhouse(path_to_files, calls, work, otkaz):
 
     work_time = work_time.merge(users[['id','supervisor']], how='left', left_on='id_user', right_on='id')
     work_time= work_time.merge(lids[['СВ CRM','Проект']], how='left', left_on='supervisor', right_on='СВ CRM')
-    work_time = work_time[work_time['Проект'] == "Beeline Lids"]
+    work_time = work_time[work_time['Проект'] == "BEELINE LIDS"]
     work_time = work_time[['id_user', 'user_name','date', 'talk_inbound', 'talk_outbound', 'ozhidanie',
                                 'obrabotka','training', 'nastavnik',
                                 'sobranie','problems','obuchenie',
