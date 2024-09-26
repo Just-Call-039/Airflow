@@ -75,12 +75,12 @@ def transfer_to_click(x, y, stop, general_create):
         from contacts
         LEFT JOIN contacts_cstm ON contacts.id = contacts_cstm.id_c
         LEFT JOIN contacts_custom_fields ON contacts_custom_fields.id_custom = contacts.id
-        #where ptv_c like '%^3^%'
-        #or ptv_c like '%^5^%'
-        #or ptv_c like '%^6^%'
-        #or ptv_c like '%^10^%'
-        #or ptv_c like '%^11^%'
-        #or ptv_c like '%^19^%'
+        where ptv_c like '%^3^%'
+        or ptv_c like '%^5^%'
+        or ptv_c like '%^6^%'
+        or ptv_c like '%^10^%'
+        or ptv_c like '%^11^%'
+        or ptv_c like '%^19^%'
         limit {x},{y}'''
 
         Con = pymysql.Connect(host=host2, user=user2, passwd=password2, db="suitecrm",

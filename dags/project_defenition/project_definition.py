@@ -6,10 +6,14 @@ from airflow import DAG
 from airflow.providers.telegram.operators.telegram import TelegramOperator
 from airflow.operators.python_operator import PythonOperator
 
+from fsp.transfer_files_to_dbs import transfer_file_to_dbs
 from fsp.transfer_files_to_dbs import transfer_files_to_dbs
 from project_defenition.project_teams import project_teams
 from project_defenition.project_queues import project_queues
 from project_defenition.project_steps import project_steps
+from project_defenition.excel_stavki_fsp import excel_stavki_fsp
+from project_defenition.excel_teams import excel_teams
+from project_defenition.excel_queues import excel_queues
 
 
 default_args = {
@@ -41,6 +45,7 @@ path_to_file_dbs = '/scripts fsp/Current Files/Проект/' # Сюда пад�
 project_teams_path_dbs = f'{path_to_file_dbs}Команды/'
 project_queues_path_dbs = f'{path_to_file_dbs}Очереди/'
 project_steps_path_dbs = f'{path_to_file_dbs}Шаги/'
+excel_path_dbs = '/Отчеты BI/Стандартные справочники/'
 
 
 # Выгрузка файлов на airflow
@@ -59,6 +64,24 @@ project_queues_csv = PythonOperator(
 project_steps_csv = PythonOperator(
     task_id='project_steps_csv', 
     python_callable=project_steps,
+    dag=dag
+    )
+
+stavki_fsp_excel = PythonOperator(
+    task_id='stavki_fsp_excel', 
+    python_callable=excel_stavki_fsp,
+    dag=dag
+    )
+
+teams_excel = PythonOperator(
+    task_id='teams_excel', 
+    python_callable=excel_teams,
+    dag=dag
+    )
+
+queues_excel = PythonOperator(
+    task_id='queues_excel', 
+    python_callable=excel_queues,
     dag=dag
     )
 
@@ -85,6 +108,20 @@ project_steps_transfer = PythonOperator(
     dag=dag
     )
 
+stavki_and_teams_excel_transfer = PythonOperator(
+    task_id='stavki_and_teams_excel_transfer', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_to_file_airflow, 'to_path': excel_path_dbs, 'db': 'DBS', 'file1': 'Ставки ФСП.xlsx', 'file2': 'Команды_Проекты.xlsx'}, 
+    dag=dag
+    )
+
+queues_excel_transfer = PythonOperator(
+    task_id='queues_excel_transfer', 
+    python_callable=transfer_file_to_dbs, 
+    op_kwargs={'from_path': path_to_file_airflow, 'to_path': excel_path_dbs, 'db': 'DBS', 'file1': 'Группировка очередей.xlsx', 'file2': ''}, 
+    dag=dag
+    )
+
 
 # Отправка уведомления об ошибке в Telegram.
 send_telegram_message = TelegramOperator(
@@ -102,4 +139,6 @@ send_telegram_message = TelegramOperator(
 project_teams_csv >> project_teams_transfer
 project_queues_csv >> project_queues_transfer
 project_steps_csv >> project_steps_transfer
-[project_steps_transfer, project_queues_transfer, project_teams_transfer] >> send_telegram_message
+[stavki_fsp_excel,teams_excel] >> stavki_and_teams_excel_transfer
+queues_excel >> queues_excel_transfer
+[project_steps_transfer, project_queues_transfer, project_teams_transfer,stavki_and_teams_excel_transfer,queues_excel_transfer,queues_excel_transfer] >> send_telegram_message

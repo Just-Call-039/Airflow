@@ -24,7 +24,7 @@ def to_click(path_file, calls):
     # df['call_count'] = 0.0
 
     df[['id','name',
-    'contactid','queue',
+    'contactid','queue', 
     'user_call','super',
     'city','dialog',
     'completed_c']]=df[['id','name',
@@ -180,3 +180,5 @@ def to_click(path_file, calls):
                        database='suitecrm_robot_ch', settings={'use_numpy': True})
 
     client.insert_dataframe('INSERT INTO suitecrm_robot_ch.pokazateli_operatorov_arhive VALUES', df1)
+    
+     

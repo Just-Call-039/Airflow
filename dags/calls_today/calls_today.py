@@ -8,6 +8,11 @@ from airflow.operators.python import PythonOperator
 from commons.transfer_file_to_dbs import transfer_file_to_dbs
 from fsp.repeat_download import sql_query_to_csv
 from calls_today.transfer_in_clickhouse import to_click
+from calls_today.transfer_in_clickhouse_v2 import call_to_click
+
+from calls_today.transfer_in_clickhouse_v2 import call_10_to_click
+
+
 
 default_args = {
     'owner': 'Lidiya Butenko',
@@ -32,10 +37,12 @@ cloud_name = 'cloud_128'
 
 # Наименование файлов.
 csv_calls = 'Звонки_сегодня.csv' 
+csv_calls_4 = 'Звонки_4_report.csv'
 
 # Пути к sql запросам на сервере airflow.
 path_to_sql_airflow = '/root/airflow/dags/calls_today/SQL/'
 sql_calls = f'{path_to_sql_airflow}Звонки сегодня.sql'
+sql_calls_4= f'{path_to_sql_airflow}Звонки for 4 report.sql'
 sql_calls_10 = f'{path_to_sql_airflow}calls_now.sql'
 
 # Пути к файлам на сервере airflow.
@@ -54,6 +61,14 @@ calls_today = PythonOperator(
     op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_calls, 'path_csv_file': path_to_file_airflow, 'name_csv_file': csv_calls}, 
     dag=dag
     )
+
+calls_today_4 = PythonOperator(
+    task_id='calls_today_4', 
+    python_callable=sql_query_to_csv, 
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_calls_4, 'path_csv_file': path_to_file_airflow, 'name_csv_file': csv_calls_4}, 
+    dag=dag
+    )
+
 calls_today_10 = PythonOperator(
     task_id='calls_today_10', 
     python_callable=sql_query_to_csv, 
@@ -85,9 +100,24 @@ transfer_to_click = PythonOperator(
     dag=dag
     )
 
+transfer_calls_to_click = PythonOperator(
+    task_id='transfer_calls_to_click', 
+    python_callable=call_to_click, 
+    op_kwargs={'path_file': path_to_file_airflow, 'call': csv_calls_4}, 
+    dag=dag
+    )
+
+transfer_call_10_to_click = PythonOperator(
+    task_id='transfer_call_10_to_click', 
+    python_callable=call_10_to_click, 
+    op_kwargs={'path_file': path_to_file_airflow_10, 'call_10': csv_calls}, 
+    dag=dag
+    )
 
 calls_today >> calls_today_to_dbs >> transfer_to_click
-calls_today_10 >> calls_today_10_to_dbs 
+calls_today_4 >> transfer_calls_to_click
+calls_today_10 >> [calls_today_10_to_dbs, transfer_call_10_to_click]
+
 
 
 

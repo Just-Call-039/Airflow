@@ -65,6 +65,8 @@ def beeline_clickhouse(path_to_files, calls, work, otkaz):
     beeline_calls['city'] = beeline_calls['city'].astype(str)
     beeline_calls['city'] = beeline_calls['city'].apply(lambda x: x.replace('.0','')).fillna('0')
 
+    print(beeline_calls[beeline_calls['id'] == '442f3e8a-330f-11ef-b4ed-ac162d7725d8'])
+
 
     work_time = work_time.merge(users[['id','supervisor']], how='left', left_on='id_user', right_on='id')
     work_time= work_time.merge(lids[['СВ CRM','Проект']], how='left', left_on='supervisor', right_on='СВ CRM')
@@ -114,3 +116,4 @@ def beeline_clickhouse(path_to_files, calls, work, otkaz):
     print('Добавляем данные по рабочему времени')
     client.insert_dataframe('INSERT INTO beeline.beeline_work_time VALUES',
                             work_time)
+

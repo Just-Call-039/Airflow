@@ -85,55 +85,55 @@ dbs_robotlog_calls = f'{path_to_file_dbs}robotlog_calls/'
 dbs_meetings = f'{path_to_file_dbs}meetings/'
 
 # Выполнение SQL запросов.
-# sql_operator_calls = PythonOperator(
-#     task_id='operator_calls_sql',
-#     python_callable=repeat_download,
-#     op_kwargs={'n': n, 'days': days, 'cloud': cloud_name, 'path_sql_file': sql_operator_calls, 'path_csv_file': path_to_sql_operator_calls_folder, 'name_csv_file': file_name_operator_calls, 'source': ''},
+sql_operator_calls = PythonOperator(
+    task_id='operator_calls_sql',
+    python_callable=repeat_download,
+    op_kwargs={'n': n, 'days': days, 'cloud': cloud_name, 'path_sql_file': sql_operator_calls, 'path_csv_file': path_to_sql_operator_calls_folder, 'name_csv_file': file_name_operator_calls, 'source': ''},
+    dag=dag
+    )
+
+sql_robotlog_calls = PythonOperator(
+    task_id='robotlog_calls_sql',
+    python_callable=repeat_download,
+    op_kwargs={'n': n, 'days': days, 'cloud': cloud_name, 'path_sql_file': sql_robotlog_calls, 'path_csv_file': path_to_sql_robotlog_calls_folder,
+                'name_csv_file': file_name_robotlog_calls, 'source': ''},
+    dag=dag
+    )
+
+# sql_meetings_calls = PythonOperator(
+#     task_id='meetings_calls_sql',
+#     python_callable=sql_query_to_csv,
+#     op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_meetings_calls, 'path_csv_file': path_to_sql_meetings_folder, 'name_csv_file': file_name_meetings_calls},
 #     dag=dag
 #     )
 
-# sql_robotlog_calls = PythonOperator(
-#     task_id='robotlog_calls_sql',
-#     python_callable=repeat_download,
-#     op_kwargs={'n': n, 'days': days, 'cloud': cloud_name, 'path_sql_file': sql_robotlog_calls, 'path_csv_file': path_to_sql_robotlog_calls_folder,
-#                 'name_csv_file': file_name_robotlog_calls, 'source': ''},
+# sql_meetings = PythonOperator(
+#     task_id='meetings_sql',
+#     python_callable=sql_query_to_csv,
+#     op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_meetings, 'path_csv_file': path_to_sql_meetings_folder, 'name_csv_file': file_name_meetings},
 #     dag=dag
 #     )
 
-sql_meetings_calls = PythonOperator(
-    task_id='meetings_calls_sql',
-    python_callable=sql_query_to_csv,
-    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_meetings_calls, 'path_csv_file': path_to_sql_meetings_folder, 'name_csv_file': file_name_meetings_calls},
-    dag=dag
-    )
+# sql_users = PythonOperator(
+#     task_id='users_sql',
+#     python_callable=sql_query_to_csv,
+#     op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_users, 'path_csv_file': path_to_file_airflow, 'name_csv_file': file_name_users},
+#     dag=dag
+#     )
 
-sql_meetings = PythonOperator(
-    task_id='meetings_sql',
-    python_callable=sql_query_to_csv,
-    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_meetings, 'path_csv_file': path_to_sql_meetings_folder, 'name_csv_file': file_name_meetings},
-    dag=dag
-    )
+# sql_worktime = PythonOperator(
+#     task_id='worktime_sql',
+#     python_callable=sql_query_to_csv,
+#     op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_worktime, 'path_csv_file': path_to_file_airflow, 'name_csv_file': file_name_worktime},
+#     dag=dag
+#     )
 
-sql_users = PythonOperator(
-    task_id='users_sql',
-    python_callable=sql_query_to_csv,
-    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_users, 'path_csv_file': path_to_file_airflow, 'name_csv_file': file_name_users},
-    dag=dag
-    )
-
-sql_worktime = PythonOperator(
-    task_id='worktime_sql',
-    python_callable=sql_query_to_csv,
-    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_worktime, 'path_csv_file': path_to_file_airflow, 'name_csv_file': file_name_worktime},
-    dag=dag
-    )
-
-sql_steps = PythonOperator(
-    task_id='steps_sql',
-    python_callable=sql_query_to_csv,
-    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_steps, 'path_csv_file': path_to_steps_files, 'name_csv_file': file_name_steps},
-    dag=dag
-    )
+# sql_steps = PythonOperator(
+#     task_id='steps_sql',
+#     python_callable=sql_query_to_csv,
+#     op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_steps, 'path_csv_file': path_to_steps_files, 'name_csv_file': file_name_steps},
+#     dag=dag
+#     )
 
 
 # Преобразование файлов после sql.
@@ -153,14 +153,14 @@ sql_steps = PythonOperator(
 #     dag=dag
 #     )
 
-transformation_meetings = PythonOperator(
-    task_id='meetings_transformation', 
-    python_callable=meetings_transformation, 
-    op_kwargs={'path_to_users': path_to_file_airflow, 'name_users': file_name_users,
-                'path_to_folder': path_to_sql_meetings_folder, 'name_calls': file_name_meetings_calls, 'name_meetings': file_name_meetings,
-                'path_to_final_folder': path_to_meetings_folder, 'name_phone_meetings': file_name_meeting_phones},
-    dag=dag
-    )
+# transformation_meetings = PythonOperator(
+#     task_id='meetings_transformation', 
+#     python_callable=meetings_transformation, 
+#     op_kwargs={'path_to_users': path_to_file_airflow, 'name_users': file_name_users,
+#                 'path_to_folder': path_to_sql_meetings_folder, 'name_calls': file_name_meetings_calls, 'name_meetings': file_name_meetings,
+#                 'path_to_final_folder': path_to_meetings_folder, 'name_phone_meetings': file_name_meeting_phones},
+#     dag=dag
+#     )
 
 
 # Перенос всех файлов в папку DBS.
@@ -212,14 +212,10 @@ transformation_meetings = PythonOperator(
 #     )
 
 # Очередности выполнения задач.
-# [sql_users,
-# sql_worktime,
-# sql_meetings_calls,
-# sql_meetings,
-# sql_operator_calls,
-# sql_robotlog_calls]
+[sql_operator_calls,
+sql_robotlog_calls]
 
-[sql_meetings_calls, sql_meetings, sql_users, sql_steps] >> transformation_meetings 
+# [sql_meetings_calls, sql_meetings, sql_users, sql_steps] >> transformation_meetings 
 # >> transfer_meetings
 # [sql_operator_calls,sql_users] >> transformation_operator_calls >> transfer_operator_calls
 # [sql_robotlog_calls,sql_users] >> transformation_robotlog_calls >> transfer_robotlog_calls
@@ -230,11 +226,11 @@ transformation_meetings = PythonOperator(
 
 
 
-[sql_steps,
- sql_users,
- sql_worktime,
- sql_meetings_calls,
- sql_meetings]
+# [sql_steps,
+#  sql_users,
+#  sql_worktime,
+#  sql_meetings_calls,
+#  sql_meetings]
 
 
 

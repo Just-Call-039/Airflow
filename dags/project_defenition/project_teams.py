@@ -15,7 +15,7 @@ def project_teams():
     gs = gspread.authorize(credentials)
 
     work_sheet = gs.open(table_name)
-    sheet1 = work_sheet.sheet1 
+    sheet1 = work_sheet.worksheet('JC') 
     data1 = sheet1.get_all_values() 
     headers1 = data1.pop(0) 
 

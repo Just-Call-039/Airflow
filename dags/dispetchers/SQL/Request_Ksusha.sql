@@ -1,4 +1,5 @@
-with requests as (select 'RTK'                              as project,
+with requests as (select r.id id_req,
+                         'RTK'                              as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                            '')) <=
                             10,
@@ -21,7 +22,8 @@ with requests as (select 'RTK'                              as project,
                     and status != 'change_flat'
                     and date(date_entered) >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
                   union all
-                  select 'Beeline'                          as project,
+                  select b.id id_req,
+                         'Beeline'                          as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                            '')) <=
                             10,
@@ -44,7 +46,8 @@ with requests as (select 'RTK'                              as project,
                     and status != 'change_flat'
                     and date(date_entered) >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
                   union all
-                  select 'DOMRU'                            as project,
+                  select d.id id_req,
+                         'DOMRU'                            as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                            '')) <=
                             10,
@@ -67,7 +70,8 @@ with requests as (select 'RTK'                              as project,
                     and status != 'change_flat'
                     and date(date_entered) >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
                   union all
-                  select 'TTK'                              as project,
+                  select t.id id_req,
+                         'TTK'                              as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                            '')) <=
                             10,
@@ -90,7 +94,8 @@ with requests as (select 'RTK'                              as project,
                     and status != 'change_flat'
                     and date(date_entered) >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
                   union all
-                  select 'NBN'                              as project,
+                  select n.id id_req,
+                         'NBN'                              as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                            '')) <=
                             10,
@@ -113,7 +118,8 @@ with requests as (select 'RTK'                              as project,
                     and status != 'change_flat'
                     and date(date_entered) >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
                   union all
-                  select 'MTS'                              as project,
+                  select m.id id_req,
+                         'MTS'                              as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                            '')) <=
                             10,
@@ -136,7 +142,8 @@ with requests as (select 'RTK'                              as project,
                     and status != 'change_flat'
                     and date(date_entered) >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
                   union all
-                  select 'Other'                            as project,
+                  select m.id id_req,
+                         'Other'                            as project,
                          if(length(replace(replace(replace(replace(phone_work, '-', ''), ')', ''), '(', ''), ' ',
                                            '')) <=
                             10,
@@ -204,7 +211,8 @@ with requests as (select 'RTK'                              as project,
                 FROM suitecrm.users)
 
 
-select project,
+select id_req,
+       project,
        phone_request,
        request_date,
        installation_date,

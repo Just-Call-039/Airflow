@@ -14,6 +14,8 @@ def to_click(path_file, calls):
     import datetime
 
     df = pd.read_csv(f'{path_file}/{calls}')
+    print('самая рання дата ', df['call_date'].min())
+
     df[['id','name',
 'contactid','queue',
     'user_call','super',
@@ -40,8 +42,12 @@ def to_click(path_file, calls):
     print('Соединяем с пользователями и выводим проекты')
     city = pd.read_csv('/root/airflow/dags/current_month_yesterday/Files/Город.csv',  sep=',', encoding='utf-8').fillna('').astype('str')
     df = df.merge(city, left_on = 'city', right_on = 'city_c', how = 'left').fillna('')
+    print('самая ранняя дата после мерджа с пользователями ', df['call_date'].min())
+    print('размер датасета  ', df.shape[0])
     users = pd.read_csv('/root/airflow/dags/request_with_calls_today/Files/users.csv',  sep=',', encoding='utf-8').fillna('')
     df = df.merge(users, left_on = 'user_call', right_on = 'id', how = 'left').fillna('')
+    print('самая ранняя дата после мерджа с пользователями ', df['call_date'].min())
+    print('размер датасета  ', df.shape[0])
     
     path_to_credential = '/root/airflow/dags/quotas-338711-1e6d339f9a93.json' 
 
@@ -109,6 +115,8 @@ def to_click(path_file, calls):
     df_requests =df_requests[['request_date','user','status','district_c', 'my_phone_work']]
     df['call_date']=df['call_date'].fillna('').astype('str')
     df1 =  df.merge(df_requests, left_on = ['phone','user_call','call_date'], right_on = ['my_phone_work','user','request_date'], how = 'outer')
+    print('даты после мерджа с заявками', df1['call_date'].unique())
+    print('размер датасета  ', df1.shape[0])
     df1['call_date'] = pd.to_datetime(df1['call_date'])
     df1['request_date'] = pd.to_datetime(df1['request_date'])
     df1[['id','name',
@@ -215,3 +223,4 @@ def to_click(path_file, calls):
                        database='suitecrm_robot_ch', settings={'use_numpy': True})
 
     client.insert_dataframe('INSERT INTO suitecrm_robot_ch.pokazateli_operatorov VALUES', df1)
+

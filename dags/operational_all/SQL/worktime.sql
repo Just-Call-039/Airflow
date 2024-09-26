@@ -272,9 +272,9 @@ with timework as (select id_user, date, sum(A) timework, sum(talk_inbound) talk_
                             jc.city_c
             from (select assigned_user_id,dialog,uniqueid,phone,call_date,city_c,last_step
             from suitecrm_robot.jc_robot_log
-               union all
-                select assigned_user_id,dialog,uniqueid,phone,call_date,city_c,last_step
-            from suitecrm_robot.jc_robot_log_2023_01
+            --    union all
+            --     select assigned_user_id,dialog,uniqueid,phone,call_date,city_c,last_step
+            -- from suitecrm_robot.jc_robot_log_2023_01
                 ) jc
                      left join steps on (queue = substring(dialog, 11, 4) and last_step = step)
                      left join (select distinct * from suitecrm.transferred_to_other_queue) tr

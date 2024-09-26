@@ -2,72 +2,61 @@ import pandas as pd
 import glob
 import os
 
-def rtk_reg_r(row):
-    if row['RTK_city'] not in ['', ' ']:
-        return row['RTK_city']
-    else:
-        if row['RTK_city_c'] not in ['', ' ']:
-            return row['RTK_city_c']
-        else:
-            return row['RTK_town']
+def find_letter(city):
+    city_new = ''
+    for letter in city:
         
-
+        if letter.isalpha() == True:
+            
+            city_new = ''.join([city_new, letter])
         
-def ttk_reg_r(row):
-    if row['TTK_city'] not in ['', ' ']:
-        return row['TTK_city']
-    elif row['TTK_city_c'] not in ['', ' ']:
-        return row['TTK_city_c']
+    return(city_new)
+
+def region_defination(city, city_c, town):
+    if city not in ['0', '', ' ']:
+        return city
+    elif city_c not in ['0', '', ' ']:
+        return city_c
     else:
-        return row['TTK_town']
-
-
-def mts_reg_r(row):
-    if row['MTS_city'] not in ['', ' ']:
-        return row['MTS_city']
-    elif row['MTS_city_c'] not in ['', ' ']:
-        return row['MTS_city_c']
-    else:
-        return row['MTS_town']
-
-
-def bln_reg_r(row):
-    if row['BLN_city'] not in ['', ' ']:
-        return row['BLN_city']
-    elif row['BLN_city_c'] not in ['', ' ']:
-        return row['BLN_city_c']
-    else:
-        return row['BLN_town']
+        return town
     
-def rtk_reg(row):
-    if row['RTK_city'] not in ['', ' ']:
-        return row['RTK_city']
+def area_defination(area, area_guess):
+    if area == 0:
+        return area_guess
     else:
-        if row['RTK_city_c'] not in ['', ' ']:
-            return row['RTK_city_c']
+        return area
+
+def area_defination_str(area, area_guess):
+    if area == '0':
+        return area_guess
+    else:
+        return area
+
+def download_files(path):
+    i = 0
+    for filename in os.listdir(path):
+        if i == 0:
+            df = pd.read_csv(f'{path}{filename}')
+            i += 1
         else:
-            return row['RTK_town']
+            df = pd.concat([df, pd.read_csv(f'{path}{filename}')], ignore_index = True, axis=0)
+    return df
 
-def ttk_reg(row):
-    if row['TTK_city'] not in ['', ' ']:
-        return row['TTK_city']
-    elif row['TTK_city_c'] not in ['', ' ']:
-        return row['TTK_city_c']
-    else:
-        return row['TTK_town']
+def del_point_zero(df, col_list):
+    
+    for col in col_list:
+    
+        df[col] = df[col].apply(lambda x: x.replace('.0', ''))
 
-def mts_reg(row):
-    if row['MTS_city'] not in ['', ' ']:
-        return row['MTS_city']
-    elif row['MTS_city_c'] not in ['', ' ']:
-        return row['MTS_city_c']
+def update_project(project_x, project_y):
+    if project_x == '':
+        return project_y
     else:
-        return row['MTS_town']
+        return project_x    
 
-def bln_reg(row):
-    if row['BLN_city'] not in ['', ' ']:
-        return row['BLN_city']
-    elif row['BLN_city_c'] not in ['', ' ']:
-        return row['BLN_city_c']
+def fill_nan(x, y):
+
+    if (x == 0) | (x == '0') | (x == '') | (x == ' '):
+        return y
     else:
-        return row['BLN_town']
+        return x    

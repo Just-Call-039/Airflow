@@ -51,73 +51,41 @@
                              when base_source_c like '%^61^%' then 7
                              else '' end                                                     category,
                          if(stoplist_c like '%^ao^%', 1, 0)                                  stop_auto,
-                         project.project
+                         project.project,
+                         case
+           when (contacts_cstm.ptv_c like '%^3^%'
+               or contacts_cstm.ptv_c like '%^5^%'
+               or contacts_cstm.ptv_c like '%^6^%'
+               or contacts_cstm.ptv_c like '%^10^%'
+               or contacts_cstm.ptv_c like '%^11^%'
+               or contacts_cstm.ptv_c like '%^19^%'
+               or contacts_cstm.ptv_c like '%^14^%') then 'ptv_1'
+           when (contacts_cstm.base_source_c like '%^220^%'
+               or contacts_cstm.base_source_c like '%^221^%'
+               or contacts_cstm.base_source_c like '%^222^%'
+               or contacts_cstm.base_source_c like '%^223^%'
+               or contacts_cstm.base_source_c like '%^224^%') then 'bno'
+           when contacts_cstm.region_c in (1, 2) and (contacts_cstm.base_source_c like '%^60^%'
+               or contacts_cstm.base_source_c like '%^61^%'
+               or contacts_cstm.base_source_c like '%^62^%'
+               or contacts_cstm.base_source_c like '%^63^%') then concat(contacts_cstm.region_c, '_alive')
+           when (contacts_cstm.region_c is null or contacts_cstm.region_c in ('', 0)) and (contacts_cstm.base_source_c like '%^60^%'
+               or contacts_cstm.base_source_c like '%^61^%'
+               or contacts_cstm.base_source_c like '%^62^%'
+               or contacts_cstm.base_source_c like '%^63^%')
+               then 'new_data'
+           when contacts_cstm.region_c = 3 then 3
+           when contacts_cstm.region_c in (4, 5, 6, 7) and (contacts_cstm.base_source_c like '%^60^%'
+               or contacts_cstm.base_source_c like '%^61^%'
+               or contacts_cstm.base_source_c like '%^62^%'
+               or contacts_cstm.base_source_c like '%^63^%') then concat(contacts_cstm.region_c, '_alive')
+           else contacts_cstm.region_c end region_c2
                   from suitecrm.contacts_cstm
                   left join suitecrm.contacts on id_c = id
                            left join project on queue = last_queue_c
                   where date(last_call_c) = date(now())),
      jc_today1 as (select *,
-                        --   case
-                        --       when (ptv_c like '%^3^%'
-                        --           or ptv_c like '%^5^%'
-                        --           or ptv_c like '%^6^%'
-                        --           or ptv_c like '%^10^%'
-                        --           or ptv_c like '%^11^%'
-                        --           or ptv_c like '%^19^%') then 'Разметка Наша'
-                        --       when (ptv_c like '%^3_19^%'
-                        --           or ptv_c like '%^3_18^%'
-                        --           or ptv_c like '%^3_21^%'
-                        --           or ptv_c like '%^3_17^%'
-                        --           or ptv_c like '%^3_20^%'
-                        --           or ptv_c like '%^3_16^%'
-                        --           or ptv_c like '%^3_15^%'
-                        --           or ptv_c like '%^5_19^%'
-                        --           or ptv_c like '%^5_18^%'
-                        --           or ptv_c like '%^5_21^%'
-                        --           or ptv_c like '%^5_17^%'
-                        --           or ptv_c like '%^5_20^%'
-                        --           or ptv_c like '%^5_16^%'
-                        --           or ptv_c like '%^5_15^%'
-                        --           or ptv_c like '%^6_19^%'
-                        --           or ptv_c like '%^6_18^%'
-                        --           or ptv_c like '%^6_21^%'
-                        --           or ptv_c like '%^6_17^%'
-                        --           or ptv_c like '%^6_20^%'
-                        --           or ptv_c like '%^6_16^%'
-                        --           or ptv_c like '%^6_15^%'
-                        --           or ptv_c like '%^10_19^%'
-                        --           or ptv_c like '%^10_18^%'
-                        --           or ptv_c like '%^10_21^%'
-                        --           or ptv_c like '%^10_17^%'
-                        --           or ptv_c like '%^10_20^%'
-                        --           or ptv_c like '%^10_16^%'
-                        --           or ptv_c like '%^10_15^%'
-                        --           or ptv_c like '%^11_19^%'
-                        --           or ptv_c like '%^11_18^%'
-                        --           or ptv_c like '%^11_21^%'
-                        --           or ptv_c like '%^11_17^%'
-                        --           or ptv_c like '%^11_20^%'
-                        --           or ptv_c like '%^11_16^%'
-                        --           or ptv_c like '%^11_15^%'
-                        --           or ptv_c like '%^19_19^%'
-                        --           or ptv_c like '%^19_18^%'
-                        --           or ptv_c like '%^19_21^%'
-                        --           or ptv_c like '%^19_17^%'
-                        --           or ptv_c like '%^19_20^%'
-                        --           or ptv_c like '%^19_16^%'
-                        --           or ptv_c like '%^19_15^%') then 'Разметка не Наша'
-                        --       when (base_source_c like '%^119^%' or base_source_c like '%^120^%' or
-                        --             base_source_c like '%^121^%' or base_source_c like '%^122^%' or
-                        --             base_source_c like '%^123^%' or base_source_c like '%^124^%' or
-                        --             base_source_c like '%^127^%' or base_source_c like '%^128^%')
-                        --           then 'Был на операторе'
-                        --       when (ptv_c like '%^11_c^%'
-                        --           or ptv_c like '%^6_c^%'
-                        --           or ptv_c like '%^10_c^%') then 'Запланированный холод'
-                        --       when (ptv_c like '%^6_c1^%'
-                        --           or ptv_c like '%^10_c1^%'
-                        --           or ptv_c like '%^11_c1^%') then '����� 120 ����'
-                        --       else 'Холод' end data,
+                        
                           case
                                when
                                    (ptv_c like '%^3^%'
@@ -217,6 +185,7 @@
                           city_c,
                           category,
                           stop_auto,
+                          region_c2,
                           talk,
                           id_c,
                           phone_work,
@@ -257,7 +226,7 @@ select project,
        town_c,
        city_c,
        category,
-       stop_auto,
+       stop_auto,region_c2,
        talk,
        phone_work,
        id_c,

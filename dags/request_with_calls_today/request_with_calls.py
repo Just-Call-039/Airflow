@@ -9,6 +9,7 @@ from airflow.operators.python import PythonOperator
 from fsp.repeat_download import sql_query_to_csv
 from fsp.transfer_files_to_dbs import transfer_file_to_dbs
 from request_with_calls_today.request_with_calls_editer import request_editer
+from request_with_calls_today import download_to_click
 
 default_args = {
     'owner': 'Lidiya Butenko',
@@ -73,6 +74,13 @@ request_editing = PythonOperator(
     dag=dag
     )
 
+download_click = PythonOperator(
+    task_id = 'download_to_click',
+    python_callable = download_to_click.download_to_click,
+    op_kwargs={'path_folder' : path_to_file, 'file_request' : csv_result},
+    dag = dag
+)
+
 requst_to_dbs = PythonOperator(
     task_id='requst_to_dbs', 
     python_callable=transfer_file_to_dbs, 
@@ -80,4 +88,4 @@ requst_to_dbs = PythonOperator(
     dag=dag
     )
 
-request_sql >> request_editing >> requst_to_dbs
+request_sql >> request_editing >> [requst_to_dbs, download_click]

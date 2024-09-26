@@ -10,6 +10,9 @@ from fsp.repeat_download import sql_query_to_csv
 from commons_li.sql_query_semicolon_to_csv import sql_query_to_csv_sc
 
 from current_month_yesterday.transfer_in_clickhouse import to_click
+from current_month_yesterday import transfer_in_clickhouse_v2
+
+
 
 default_args = {
     'owner': 'Lidiya Butenko',
@@ -34,7 +37,8 @@ cloud_name = 'cloud_128'
 # Наименование файлов.
 csv_calls = 'Звонки_вчера.csv' 
 csv_call_wait = 'CallWaitUser.csv' 
-csv_login_user = 'LoginUsers.csv' 
+csv_login_user = 'LoginUsers.csv'
+csv_user = 'users.csv'
 csv_user_total = 'Users_total.csv' 
 csv_working = 'working_time_current_month.csv' 
 
@@ -52,6 +56,7 @@ sql_working = f'{path_to_sql_airflow}working_time_month_any.sql'
 # Пути к файлам на сервере airflow.
 path_to_file_airflow = '/root/airflow/dags/current_month_yesterday/Files/'
 path_to_file_sql = f'{path_to_file_airflow}4/'
+path_to_file_user = '/root/airflow/dags/request_with_calls_today/Files/'
 
 # Пути к файлам на сервере dbs.
 path_to_file_dbs = '/10_otchet_partners/Calls/'
@@ -151,14 +156,62 @@ transfer_to_click = PythonOperator(
     dag=dag
     )
 
-calls_yesterday >> calls_yesterday_to_dbs 
-calls_yesterday_4 >> calls_yesterday_4_to_dbs >> transfer_to_click
-login_user >> login_user_to_dbs
-users_total >> user_total_to_dbs
-call_wait >> call_wait_to_dbs
-working_time >> work_time_to_dbs 
+transfer_call_to_click = PythonOperator(
+    task_id='call_to_click', 
+    python_callable=transfer_in_clickhouse_v2.call_to_click, 
+    op_kwargs={'path_file': path_to_file_sql, 'call' : csv_calls}, 
+    dag=dag
+    )
 
+transfer_worktime_to_click = PythonOperator(
+    task_id='worktime_to_click', 
+    python_callable=transfer_in_clickhouse_v2.work_to_click, 
+    op_kwargs={'path_file': path_to_file_sql, 'work_hour' : csv_working}, 
+    dag=dag
+    )
 
+transfer_usertotal_to_click = PythonOperator(
+    task_id='usertotal_to_click', 
+    python_callable=transfer_in_clickhouse_v2.usertotal_to_click, 
+    op_kwargs={'path_file': path_to_file_sql, 'usertotal' : csv_user_total}, 
+    dag=dag
+    )
+
+transfer_userlogin_to_click = PythonOperator(
+    task_id='userlogin_to_click', 
+    python_callable=transfer_in_clickhouse_v2.userlogin_to_click, 
+    op_kwargs={'path_file': path_to_file_sql, 'userlogin' : csv_login_user}, 
+    dag=dag
+    )
+
+transfer_user_to_clickhous = PythonOperator(
+    task_id='user_to_clickhous', 
+    python_callable=transfer_in_clickhouse_v2.user_to_click, 
+    op_kwargs={'path_file': path_to_file_user, 'user' : csv_user}, 
+    dag=dag
+    )
+
+transfer_call10_to_clickhous = PythonOperator(
+    task_id='call_10_to_click', 
+    python_callable=transfer_in_clickhouse_v2.call_10_to_click, 
+    op_kwargs={'path_file': path_to_file_airflow, 'call_10' : csv_calls}, 
+    dag=dag
+    )
+
+transfer_callwait_to_clickhous = PythonOperator(
+    task_id='callwait_to_click', 
+    python_callable=transfer_in_clickhouse_v2.callwait_to_click, 
+    op_kwargs={'path_file': path_to_file_sql, 'callwait' : csv_call_wait}, 
+    dag=dag
+    )
+
+calls_yesterday >> [calls_yesterday_to_dbs, transfer_call10_to_clickhous]
+calls_yesterday_4 >> calls_yesterday_4_to_dbs >> [transfer_to_click, transfer_call_to_click]
+login_user >> [login_user_to_dbs, transfer_userlogin_to_click]
+users_total >> [user_total_to_dbs, transfer_usertotal_to_click]
+call_wait >> [call_wait_to_dbs, transfer_callwait_to_clickhous]
+working_time >> [work_time_to_dbs, transfer_worktime_to_click]
+transfer_user_to_clickhous
 
 
 

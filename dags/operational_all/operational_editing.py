@@ -53,6 +53,14 @@ def operational_transformation(path_to_users, name_users, path_to_folder, name_c
     print('Подключаемся к серверу')
     client = Client(host=host, port='9000', user=user, password=password,
                 database='suitecrm_robot_ch', settings={'use_numpy': True})
+    
+    print('Проверка застрявшей таблицы')
+
+    if pd.DataFrame(client.execute('''show tables from suitecrm_robot_ch where table = 'temp_operational'  ''')).shape[0] == 0:
+        print('Таблицы нет') 
+    else:
+        print('Удаляю застрявшую')
+        client.execute('drop table suitecrm_robot_ch.temp_operational')
 
     print('Создаем таблицу')
     sql_create = '''create table suitecrm_robot_ch.temp_operational
@@ -160,7 +168,7 @@ from suitecrm_robot_ch.temp_operational
         'stretched',
         'category',
         'category_calls',
-        'last_step'], as_index=False, dropna=False).agg({'calls': 'sum',
+        'last_step','region_c2'], as_index=False, dropna=False).agg({'calls': 'sum',
                                                          'trafic1': 'sum',
                                                          'trafic': 'sum'}).rename(columns={'trafic': 'full_trafic',
                                                                                            'trafic1': 'trafic'})
@@ -200,12 +208,12 @@ from suitecrm_robot_ch.temp_operational
 
         'source','type_steps','region','holod',
         'city_c','otkaz','trunk_id','autootvet','category_stat','stretched',
-        'category','category_calls','last_step','etv']] =  df[['project',
+        'category','category_calls','last_step','etv','region_c2']] =  df[['project',
                         'dialog','destination_queue','calldate','client_status',
                         'was_repeat','marker',
                         'source','type_steps','region','holod',
                         'city_c','otkaz','trunk_id','autootvet','category_stat','stretched',
-                        'category','category_calls','last_step','etv']].astype('str').fillna('')
+                        'category','category_calls','last_step','etv','region_c2']].astype('str').fillna('')
 
     df[['calls','trafic','full_trafic']] = df[['calls','trafic','full_trafic']].astype('int64').fillna(0)
 
@@ -230,7 +238,7 @@ from suitecrm_robot_ch.temp_operational
         'category',
         'category_calls',
         'last_step',
-        'etv'], as_index=False, dropna=False).agg({'calls': 'sum',
+        'etv','region_c2'], as_index=False, dropna=False).agg({'calls': 'sum',
                                                          'trafic': 'sum',
                                                          'full_trafic': 'sum'})
     

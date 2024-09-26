@@ -94,20 +94,7 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
 
             df['project'] = df.apply(lambda row: def_project_definition.project(row), axis=1)
 
-    # print('Кол-во звонков в робот логе за все время')
-    # click_sql = f'''select phone, if(calls > 7, 7, 0) category
-    #        from (
-    #             select phone, count(dialog) calls
-    #             from suitecrm_robot_ch.jc_robot_log
-    #             where last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372')
-    #             and toDate(call_date) < toDate(today()) - interval {n} day
-    #             group by phone) TT'''
-    #
-    # client = Client(host=host_ch, port='9000', user=user, password=password,
-    #                database='suitecrm_robot_ch', settings={'use_numpy': True})
-    #
-    # print('Получаем категории из кликхауса')
-    # category = pd.DataFrame(client.query_dataframe(click_sql))
+
 
             df_phone = df[['phone']].astype('str').drop_duplicates()
 
@@ -129,6 +116,14 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
 
             client = Client(host=host, port='9000', user=user, password=password,
                     database='suitecrm_robot_ch', settings={'use_numpy': True})
+            
+            print('Проверка застрявшей таблицы')
+
+            if pd.DataFrame(client.execute('''show tables from suitecrm_robot_ch where table = 'temp_operational3'  ''')).shape[0] == 0:
+                print('Таблицы нет') 
+            else:
+                print('Удаляю застрявшую')
+                client.execute('drop table suitecrm_robot_ch.temp_operational3')
 
             print('Создаем таблицу')
             sql_create = '''create table suitecrm_robot_ch.temp_operational3
@@ -232,7 +227,7 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
         'stretched',
         'category',
         'category_calls',
-        'last_step'], as_index=False, dropna=False).agg({'calls': 'sum',
+        'last_step','region_c2'], as_index=False, dropna=False).agg({'calls': 'sum',
                                                          'trafic1': 'sum',
                                                          'trafic': 'sum'}).rename(columns={'trafic': 'full_trafic',
                                                                                            'trafic1': 'trafic'})
@@ -277,12 +272,12 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
 
         'source','type_steps','region','holod',
         'city_c','otkaz','trunk_id','autootvet','category_stat','stretched',
-        'category','category_calls','last_step','etv']] =  df[['project',
+        'category','category_calls','last_step','etv','region_c2']] =  df[['project',
                         'dialog','destination_queue','calldate','client_status',
                         'was_repeat','marker',
                         'source','type_steps','region','holod',
                         'city_c','otkaz','trunk_id','autootvet','category_stat','stretched',
-                        'category','category_calls','last_step','etv']].astype('str').fillna('')
+                        'category','category_calls','last_step','etv','region_c2']].astype('str').fillna('')
 
             df[['calls','trafic','full_trafic']] = df[['calls','trafic','full_trafic']].astype('int64').fillna(0)
 
@@ -307,7 +302,7 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
         'category',
         'category_calls',
         'last_step',
-        'etv'], as_index=False, dropna=False).agg({'calls': 'sum',
+        'etv','region_c2'], as_index=False, dropna=False).agg({'calls': 'sum',
                                                          'trafic': 'sum',
                                                          'full_trafic': 'sum'})
             df['calldate'] = pd.to_datetime(df['calldate'])

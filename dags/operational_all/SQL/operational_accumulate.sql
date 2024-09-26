@@ -46,7 +46,7 @@
                       INNER JOIN suitecrm.jc_robot_reportconfig_cstm ON id = id_C
              WHERE deleted = 0
                and have_ptv is not null),
-     
+
      teams as (select *,
                       case
                           when left(first_name, instr(first_name, ' ') - 1) > 0 and
@@ -111,23 +111,41 @@
                                   when cstm.base_source_c like '%^62^%' then 1
                                   when cstm.base_source_c like '%^60^%' then 0 else '' end category_stat,
                 case
-                   when cstm.base_source_c like '%^81^%' then 'Стоп-листы РТК'
-                    when cstm.base_source_c like '%^32^%' then 'Партнерская база РТК'
-                    when cstm.base_source_c like '%^83^%' then 'Октябрь`23 РТК'
-                    when cstm.base_source_c like '%^82^%' then 'Сентябрь`23 РТК'
-                    when cstm.base_source_c like '%^86^%' then 'Август`23 РТК'
-                    when cstm.base_source_c like '%^85^%' then 'Июль`23 РТК'
-                    when cstm.base_source_c like '%^87^%' then 'Июнь`23 РТК'
-                    when cstm.base_source_c like '%^88^%' then 'Май`23 РТК'
-                    when cstm.base_source_c like '%^89^%' then 'Апрель`23 РТК'
-                    when cstm.base_source_c like '%^90^%' then 'Март`23 РТК'
-                    when cstm.base_source_c like '%^100^%' then 'Февраль`23 РТК'
-                    when cstm.base_source_c like '%^180^%' then 'Январь`23 РТК'
-                    when cstm.base_source_c like '%^173^%' then 'Декабрь`22 РТК'
-                    when cstm.base_source_c like '%^172^%' then 'Ноябрь`22 РТК'
-                    when cstm.base_source_c like '%^179^%' then 'Октябрь`22 РТК'
-                    when cstm.base_source_c like '%^178^%' then 'Сентябрь`22 РТК'
-                    else '' end as                                                source
+                    when cstm.base_source_c like '%^74^%' then 'Февраль`24 РТК'
+                                        when cstm.base_source_c like '%^77^%' then 'Март`24 РТК'
+                                        when cstm.base_source_c like '%^76^%' then 'Апрель`24 РТК'
+                                        when cstm.base_source_c like '%^75^%' then 'Май`24 РТК'
+                                        when cstm.base_source_c like '%^74^%' then 'Июнь`24 РТК'
+                                        when cstm.base_source_c like '%^73^%' then 'Июль`24 РТК'
+                    else '' end as                                                source,
+                    case
+           when (cstm.ptv_c like '%^3^%'
+               or cstm.ptv_c like '%^5^%'
+               or cstm.ptv_c like '%^6^%'
+               or cstm.ptv_c like '%^10^%'
+               or cstm.ptv_c like '%^11^%'
+               or cstm.ptv_c like '%^19^%'
+               or cstm.ptv_c like '%^14^%') then 'ptv_1'
+           when (cstm.base_source_c like '%^220^%'
+               or cstm.base_source_c like '%^221^%'
+               or cstm.base_source_c like '%^222^%'
+               or cstm.base_source_c like '%^223^%'
+               or cstm.base_source_c like '%^224^%') then 'bno'
+           when cstm.region_c in (1, 2) and (cstm.base_source_c like '%^60^%'
+               or cstm.base_source_c like '%^61^%'
+               or cstm.base_source_c like '%^62^%'
+               or cstm.base_source_c like '%^63^%') then concat(cstm.region_c, '_alive')
+           when (cstm.region_c is null or cstm.region_c in ('', 0)) and (cstm.base_source_c like '%^60^%'
+               or cstm.base_source_c like '%^61^%'
+               or cstm.base_source_c like '%^62^%'
+               or cstm.base_source_c like '%^63^%')
+               then 'new_data'
+           when cstm.region_c = 3 then 3
+           when cstm.region_c in (4, 5, 6, 7) and (cstm.base_source_c like '%^60^%'
+               or cstm.base_source_c like '%^61^%'
+               or cstm.base_source_c like '%^62^%'
+               or cstm.base_source_c like '%^63^%') then concat(cstm.region_c, '_alive')
+           else cstm.region_c end region_c2
 from suitecrm_robot.jc_robot_log jc
          left join (select distinct * from suitecrm.transferred_to_other_queue) tr
                    on (jc.uniqueid = tr.uniqueid and jc.phone = tr.phone)
@@ -342,7 +360,7 @@ where date(call_date) = date(now()) - interval {} day
 #        city_c,
 #        sum(trafic) trafic,
 #        trunk_id,
-#        last_step
+#        last_step,region_c2
 # from jc_today_3
 # group by project,
 #          dialog,
@@ -358,4 +376,4 @@ where date(call_date) = date(now()) - interval {} day
 #          holod,
 #          city_c,
 #          trunk_id,
-#          last_step
+#          last_step, region_c2

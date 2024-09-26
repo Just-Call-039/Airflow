@@ -28,6 +28,17 @@ def operational_calls_transformation(path_to_folder, name_calls, path_to_final_f
     print('Подключаемся к серверу')
     client = Client(host=host, port='9000', user=user, password=password,
                 database='suitecrm_robot_ch', settings={'use_numpy': True})
+    
+    
+    print('Проверка застрявшей таблицы')
+
+    if pd.DataFrame(client.execute('''show tables from suitecrm_robot_ch where table = 'temp_operational2'  ''')).shape[0] == 0:
+        print('Таблицы нет') 
+    else:
+        print('Удаляю застрявшую')
+        client.execute('drop table suitecrm_robot_ch.temp_operational2')
+
+
 
     print('Создаем таблицу')
     sql_create = '''create table suitecrm_robot_ch.temp_operational2
@@ -44,17 +55,7 @@ def operational_calls_transformation(path_to_folder, name_calls, path_to_final_f
     client.insert_dataframe('INSERT INTO suitecrm_robot_ch.temp_operational2 VALUES', df_phone)
 
 
-    # click_sql = '''select phone_work,
-    #                     case when calls <= 5 then '1-5 calls'
-    #                     when calls > 5 and calls <= 15 then '6-15 calls'
-    #                     else '16 plus calls' end call_category,
-    #                     case when answers = 0 then ''
-    #                     when answers <= 6 then '0'
-    #                     when answers > 6 then '7'
-    #                     else '' end category
-    #                 from (select concat('8',toString(cdr_plus_robot_chains.phone)) phone_work, calls, answers
-    #                     from asteriskcdrdb_all.cdr_plus_robot_chains) tt
-    #                     where phone_work in (select * from suitecrm_robot_ch.temp_operational2) '''
+
     
     click_sql = '''select temp_operational2.phone_work as phone_work, case when calls between 1 and 5 then '1-5 calls'
            when calls between 6 and 10 then '6-10 calls'
@@ -118,6 +119,7 @@ from suitecrm_robot_ch.temp_operational2
         'category_calls',
         'category_y',
         'stop_auto',
+        'region_c2',
         'talk',
         'id_c',
         'perevod',

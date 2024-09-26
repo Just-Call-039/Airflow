@@ -12,6 +12,10 @@ from fsp.repeat_download import sql_query_to_csv
 from commons_li.sql_query_semicolon_to_csv import sql_query_to_csv_sc
 from commons_li.clear_folder import clear_folder
 from previous_month.transfer_in_clickhouse import to_click
+from previous_month.transfer_in_clickhouse_v2 import call_to_click
+from previous_month.transfer_in_clickhouse_v2 import work_to_click
+from previous_month.transfer_in_clickhouse_v2 import call_10_to_click
+
 
 
 default_args = {
@@ -162,6 +166,28 @@ transfer_to_click = PythonOperator(
     dag=dag
     )
 
+transfer_call_to_click = PythonOperator(
+    task_id='transfer_call_to_click', 
+    python_callable=call_to_click, 
+    op_kwargs={'path_file': path_airflow_calls, 'call': file_calls}, 
+    dag=dag
+    )
+
+transfer_work_to_click = PythonOperator(
+    task_id='transfer_work_to_click', 
+    python_callable=work_to_click, 
+    op_kwargs={'path_file': path_airflow_working, 'work_hour' : file_work}, 
+    dag=dag
+    )
+
+transfer_call_10_to_click = PythonOperator(
+    task_id='call_10_to_click', 
+    python_callable=call_10_to_click, 
+    op_kwargs={'path_file': path_airflow_10_otchet}, 
+    dag=dag
+    )
+
+
 # Отправка уведомления об ошибке в Telegram.
 send_telegram_message = TelegramOperator(
         task_id='send_telegram_message',
@@ -184,13 +210,15 @@ send_telegram_message_fiasko = TelegramOperator(
 
 
 
+
 # Блок очередности выполнения задач.
 c_sql >> c_to_dbs >> [send_telegram_message, send_telegram_message_fiasko]
-otchet_sql >> otchet_to_dbs >> [send_telegram_message, send_telegram_message_fiasko]
-clear_folders >> calls_sql >> calls_to_dbs >> [send_telegram_message, send_telegram_message_fiasko]
+otchet_sql >> otchet_to_dbs >> transfer_call_10_to_click >> [send_telegram_message, send_telegram_message_fiasko]
+clear_folders >> calls_sql >> transfer_call_to_click >> calls_to_dbs >> [send_telegram_message, send_telegram_message_fiasko]
 transfer_robot_sql >> transfer_robot_to_dbs >> transfer_to_click >> [send_telegram_message, send_telegram_message_fiasko]
-working_sql >> working_to_dbs >> [send_telegram_message, send_telegram_message_fiasko]
+working_sql >> working_to_dbs >> transfer_work_to_click >> [send_telegram_message, send_telegram_message_fiasko]
 calls_with_request_sql >> calls_with_request_to_dbs >> [send_telegram_message, send_telegram_message_fiasko]
+
 
 #[otchet_to_dbs, calls_to_dbs, transfer_robot_to_dbs, working_to_dbs, calls_with_request_to_dbs] >> send_telegram_message >> send_telegram_message_fiasko
 

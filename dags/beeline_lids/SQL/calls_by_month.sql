@@ -18,7 +18,7 @@ with calls as (select cl.id,
                         left join suitecrm.calls_cstm as cl_c on cl.id = cl_c.id_c
                         left join suitecrm.contacts on cl_c.asterisk_caller_id_c = contacts.phone_work
                         left join suitecrm.contacts_cstm on contacts_cstm.id_c = contacts.id
-               where date(cl.date_entered) = date(now()) -interval 1 day),
+               where date(cl.date_entered) = date(now()) -interval 1 day               ),
 
 
      ws as (select *
@@ -34,7 +34,7 @@ with calls as (select cl.id,
                                               '%H')        hours
                            from suitecrm_robot.jc_robot_log
                            where last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372')
-  and date(call_date) = date(now()) -interval 1 day)yy) yyy
+  and date(call_date) = date(now()) -interval 1 day  )yy) yyy
                where row = 1)
 
 select distinct calls.id,

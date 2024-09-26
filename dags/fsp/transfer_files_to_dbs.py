@@ -10,7 +10,9 @@ def transfer_files_to_dbs(from_path, to_path, db):
     from smb.SMBConnection import SMBConnection
 
     host, user, password = connect_db(db)
-    conn = SMBConnection(username=user, password=password, my_name="Alexander Brezhnev", remote_name="samba", use_ntlm_v2=True)
+    conn = SMBConnection(username=user, password=password, 
+                         my_name="Alexander Brezhnev", 
+                         remote_name="samba", use_ntlm_v2=True)
 
     files = os.listdir(from_path)
     sleep(5)
@@ -23,7 +25,9 @@ def transfer_files_to_dbs(from_path, to_path, db):
     #             sleep(5)
     
     for i in files:
-        conn = SMBConnection(username=user, password=password, my_name="Alexander Brezhnev", remote_name="samba", use_ntlm_v2=True)
+        conn = SMBConnection(username=user, password=password,
+                              my_name="Alexander Brezhnev", 
+                              remote_name="samba", use_ntlm_v2=True)
         if conn.connect(host, 445):
             with open(f'{from_path}{i}', 'rb') as my_file:
                 print(f'{from_path}{i}')

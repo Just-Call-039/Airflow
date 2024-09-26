@@ -30,7 +30,7 @@ def destination_queue(row):
     else:
         return row['destination_queue']
 def meet_proect(row):
-    if row['proect'] in {'RTK', 'RTK LIDS'}:
+    if row['proect'] in {'RTK', 'RTK LIDS','TELE2'}:
         return 'RTK'
     elif row['proect'] in {'TTK', 'TTK LIDS'}:
         return 'TTK'
@@ -38,6 +38,8 @@ def meet_proect(row):
         return 'DOMRU'
     elif row['proect'] in {'MTS', 'MTS LIDS'}:
         return 'MTS'
+    elif row['proect'] in {'GULFSTREAM','GULFSTREAM LIDS'}:
+        return 'GULFSTREAM'
     elif row['proect'] in {'NBN', 'NBN LIDS'}:
         return 'NBN'
     elif row['proect'] in {'BEELINE', 'BEELINE LIDS'}:
@@ -45,7 +47,7 @@ def meet_proect(row):
     else:
         return 'DR'
 def check_team_project(row):
-    if row['team_project'] in {'RTK', 'RTK LIDS'}:
+    if row['team_project'] in {'RTK', 'RTK LIDS','TELE2'}:
         return 'RTK'
     elif row['team_project'] in {'TTK', 'TTK LIDS'}:
         return 'TTK'
@@ -53,16 +55,32 @@ def check_team_project(row):
         return 'DOMRU'
     elif row['team_project'] in {'MTS', 'MTS LIDS'}:
         return 'MTS'
+    elif row['proect'] in {'GULFSTREAM','GULFSTREAM LIDS'}:
+        return 'GULFSTREAM'
     elif row['team_project'] in {'NBN', 'NBN LIDS'}:
         return 'NBN'
     elif row['team_project'] in {'BEELINE', 'BEELINE LIDS'}:
         return 'BEELINE'
     else:
         return 'DR'
+# def meet_proect_final(row):
+#     if row['team_project'] == '0':
+#         return row['proect']
+#     elif row['check_team_project'] == row['module']:
+#         return row['team_project']
+#     elif row['check_team_project'] == row['team_project']:
+#         return row['team_project']
+#     else:
+#         return row['proect']
+
 def meet_proect_final(row):
     if row['team_project'] == '0':
         return row['proect']
     elif row['check_team_project'] == row['module']:
+        return row['team_project']
+    elif row['check_team_project'] != row['module']:
+        return row['module']
+    elif row['check_team_project'] == row['team_project']:
         return row['team_project']
     else:
         return row['proect']

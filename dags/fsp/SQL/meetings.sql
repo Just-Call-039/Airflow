@@ -18,7 +18,7 @@ with ocheredi as (select distinct *
                     select '42' team, 'Авито' department
                     union all
                     select '16' team, 'Банкроты' department),
-          teams as (select *,
+     teams as (select *,
                       case
                           when left(first_name, instr(first_name, ' ') - 1) > 0 and
                                left(first_name, instr(first_name, ' ') - 1) < 10000
@@ -40,6 +40,21 @@ with ocheredi as (select distinct *
                                    else first_name
                                    end                            first_name
                         FROM suitecrm.users) user),
+     operatory as (select '71eea5ba-9c5a-b7f8-b457-64f82d25a7a2' as id_user, 'MTS' project_before, 'GULFSTREAM' project_after union all
+                    select '961a8d10-c1b8-3c4f-5a4b-5d7756de6385' as id_user, 'MTS' project_before, 'GULFSTREAM' project_after union all
+                    select '25e10c1d-4cec-995f-b3a2-6537708ed333' as id_user, 'MTS' project_before, 'GULFSTREAM' project_after union all
+                    select 'c75f419e-b249-4b48-20cf-65ca382be50a' as id_user, 'MTS' project_before, 'GULFSTREAM' project_after union all
+                    select '2fc65ac0-c6c4-4bb2-a1f1-62fb5c35fbf4' as id_user, 'MTS' project_before, 'GULFSTREAM' project_after union all
+                    select '4e2bd871-2d7d-5470-3a84-64f6ebf233f1' as id_user, 'MTS' project_before, 'NBN' project_after union all
+                    select '809fd8e2-9d83-a61d-dc43-626f8804e165' as id_user, 'MTS' project_before, 'NBN' project_after union all
+                    select '31247f69-833c-704c-7c35-6172d27d413c' as id_user, 'MTS' project_before, 'NBN' project_after union all
+                    select 'bf59e8fe-091a-42bf-c69b-655c7415970b' as id_user, 'MTS' project_before, 'NBN' project_after union all
+                    select '1b79bed3-7f1c-b0e4-03ed-64f6ec5d2e00' as id_user, 'MTS' project_before, 'NBN' project_after union all
+                    select '663b38f7-2f87-145e-c0ec-62a84b42b409' as id_user, 'MTS' project_before, 'NBN' project_after union all
+                    select '107ab6e2-3c2f-392e-c1d5-60b8bbe0f455' as id_user, 'MTS' project_before, 'NBN' project_after union all
+                    select '653ba48b-98a7-1661-c459-63624e819223' as id_user, 'MTS' project_before, 'NBN' project_after union all
+                    select '4411e813-2e3b-f4fe-94aa-5c9b8103af67' as id_user, 'MTS' project_before, 'NBN' project_after union all
+                    select '8a3a332c-ffbc-ce31-112c-61923e6a9f1d' as id_user, 'MTS' project_before, 'NBN' project_after      ),
 # clear_users as (select id,
 #                             concat(first_name, ' ', last_name) fio,
 #                             first_name,
@@ -68,12 +83,16 @@ with ocheredi as (select distinct *
 #          from clear_users
 #          left join suitecrm.worktime_supervisor on clear_users.id = id_user
 #          left join supervisors on super = supervisor),
-     contacts as (select phone_work, if(city_c is null or city_c = '',concat(contacts_cstm.town_c,'_t'),city_c) as city, town_c, city_c
-                                         from suitecrm.contacts
-                                                  left join suitecrm.contacts_cstm on id = id_c)
+     contacts as (select phone_work,
+                         if(city_c is null or city_c = '', concat(contacts_cstm.town_c, '_t'), city_c) as city,
+                         town_c,
+                         city_c
+                  from suitecrm.contacts
+                           left join suitecrm.contacts_cstm on id = id_c)
 
 select Meets.*,
        case
+           when last_queue_c = 9251 then 'Just Job'
            when department is null and locate('LIDS', proect) > 0 then 'Лиды'
            when department is null then 'КЦ'
            else department end department
@@ -92,12 +111,14 @@ from (
                 active_date,
                 city_c,
 #                 if(date_entered < '2023-04-01', city_c, city) city_c,
-                town_c
+                town_c,
+                if(proect in ('RTK LIDS','RTK'), proect, 'RTK LIDS') as module
 #                 ,
 #                                      start,
 #                                      stop
          from (select R.*,
                       case
+                          when team = 28 then 'TELE2'
                           when team in (12, 50, 4) then 'RTK'
                           when team in (19, 42, 80, 107, 13, 555, 123) then 'RTK'
                           when team = 13 then 'RTK'
@@ -134,7 +155,7 @@ from (
                               left join suitecrm.jc_meetings_rostelecom_cstm rtk_cstm on rtk.id = rtk_cstm.id_c
                               left join teams on rtk.assigned_user_id = teams.id
                               left join contacts on rtk.phone_work = contacts.phone_work
-                     WHERE date(rtk.date_entered) >= '2023-01-01'
+                     WHERE date(rtk.date_entered) >= '2023-12-01'
                        AND rtk.status not in ('Error', 'doubled')
                        and rtk.deleted = 0) R
               ) RTK
@@ -153,7 +174,8 @@ from (
                 '' active_date,
                 city_c,
 #                 if(date_entered < '2023-04-01', city_c, city) city_c,
-                town_c
+                town_c,
+                if(proect in ('BEELINE LIDS','BEELINE'), proect, 'BEELINE LIDS') as module
 #                 ,
 #                                      start,
 #                                      stop
@@ -192,7 +214,7 @@ from (
                               left join suitecrm.jc_meetings_beeline_cstm bln_cstm on bln.id = bln_cstm.id_c
                               left join teams on bln.assigned_user_id = teams.id
                               left join contacts on bln.phone_work = contacts.phone_work
-                     WHERE date(bln.date_entered) >= '2023-01-01'
+                     WHERE date(bln.date_entered) >= '2023-12-01'
                        AND bln.status != 'Error'
                        and bln.deleted = 0) R) BLN
          union all
@@ -210,7 +232,8 @@ from (
                 '' active_date,
                 city_c,
 #                 if(date_entered < '2023-04-01', city_c, city) city_c,
-                town_c
+                town_c,
+                if(proect in ('DOMRU LIDS','DOMRU'), proect, 'DOMRU LIDS') as module
 #                 ,
 #                                      start,
 #                                      stop
@@ -264,7 +287,7 @@ from (
                               left join suitecrm.jc_meetings_domru_cstm dom_cstm on id_c = id
                               left join teams on dom.assigned_user_id = teams.id
                               left join contacts on dom.phone_work = contacts.phone_work
-                     WHERE date(dom.date_entered) >= '2023-01-01'
+                     WHERE date(dom.date_entered) >= '2023-12-01'
                        AND dom.status != 'Error'
                        and dom.deleted = 0) R) DOM
          union all
@@ -282,14 +305,15 @@ from (
                 '' active_date,
                 city_c,
 #                 if(date_entered < '2023-04-01', city_c, city) city_c,
-                town_c
+                town_c,
+                if(proect in ('TTK LIDS','TTK'), proect, 'TTK LIDS') as module
 #                 ,
 #                                      start,
 #                                      stop
          from (select R.*,
                       case
                           when team in (19, 42, 80, 107, 13) then 'TTK'
-                          when team in (12, 50, 4)  then 'TTK'
+                          when team in (12, 50, 4) then 'TTK'
                           when team in (14, 17, 33, 34, 36, 39, 41, 44, 61, 118, 121) then 'TTK LIDS'
                           else 'TTK LIDS'
                           end proect
@@ -329,7 +353,7 @@ from (
                               left join teams on ttk.assigned_user_id = teams.id
                               left join contacts
                                         on ttk.phone_work = contacts.phone_work
-                     WHERE date(ttk.date_entered) >= '2023-01-01'
+                     WHERE date(ttk.date_entered) >= '2023-12-01'
                        AND ttk.status != 'Error'
                        and ttk.deleted = 0) R) TTK
          union all
@@ -347,12 +371,14 @@ from (
                 '' active_date,
                 city_c,
 #                 if(date_entered < '2023-04-01', city_c, city) city_c,
-                town_c
+                town_c,
+                if(proect in ('NBN LIDS','NBN'), proect, 'NBN LIDS') as module
 #                 ,
 #                                      start,
 #                                      stop
          from (select R.*,
                       case
+                          when id_user is not null then project_after
                           when team in (12, 50, 4) then 'NBN'
                           when team in (19, 42, 80, 107, 13, 8, 32) then 'NBN'
                           when team in (7, 22, 45, 46, 49, 53) then 'NBN LIDS'
@@ -381,9 +407,10 @@ from (
                               left join suitecrm.jc_meetings_netbynet_cstm nbn_cstm on nbn.id = nbn_cstm.id_c
                               left join teams on nbn.assigned_user_id = teams.id
                               left join contacts on nbn.phone_work = contacts.phone_work
-                     WHERE date(nbn.date_entered) >= '2023-01-01'
+                     WHERE date(nbn.date_entered) >= '2023-12-01'
                        AND nbn.status != 'Error'
                        and nbn.deleted = 0) R
+                left join operatory on uid = id_user
                where last_queue_c is null
                   or last_queue_c != 9134) NBN
          union all
@@ -398,10 +425,13 @@ from (
                 tarif,
                 rtkid,
                 phone_work,
-                '' active_date,
+                ''         active_date,
                 city_c,
 #                 if(date_entered < '2023-04-01', city_c, city) city_c,
-                town_c
+                town_c,
+                case when proect in ('MTS LIDS','MTS','GULFSTREAM Job') then proect
+                     when proect in ('GULFSTREAM LIDS','GULFSTREAM') and tarif = 'Satellite_TV' then proect
+                    else 'MTS LIDS' end  module
 #                 ,
 #                                      start,
 #                                      stop
@@ -418,6 +448,10 @@ from (
                       city,
                       town_c,
                       case
+                          when id_user is not null then project_before
+                          when last_queue_c = 9251 then 'GULFSTREAM Job'
+                          when team = 16 then 'GULFSTREAM'
+                          when team = 17 then 'GULFSTREAM LIDS'
                           when team in (19, 42, 80, 107, 13, 123, 15, 25, 27, 28, 30) then 'MTS'
                           when team in (12, 50, 4) then 'MTS'
                           when team in
@@ -454,8 +488,91 @@ from (
                               left join ocheredi on mts_cstm.last_queue_c = ocheredi.queue
                               left join teams on mts.assigned_user_id = teams.id
                               left join contacts on mts.phone_work = contacts.phone_work
-                     WHERE date(mts.date_entered) >= '2023-01-01'
+                     WHERE date(mts.date_entered) >= '2023-12-01'
                        AND mts.status != 'Error'
-                       and mts.deleted = 0) tmts) R2
+                       and mts.deleted = 0) tmts
+             left join operatory on uid = id_user
+
+             ) R2
+         union all
+         select last_queue_c,
+                proect,
+                team,
+                uid,
+                fio,
+                date_entered,
+                status,
+                konva,
+                tarif,
+                rtkid,
+                phone_work,
+                active_date,
+                city_c,
+#                 if(date_entered < '2023-04-01', city_c, city) city_c,
+                town_c,
+                if(proect in ('GULFSTREAM LIDS','GULFSTREAM','TELE2'), proect, 'DR') as module
+
+#                 ,
+#                                      start,
+#                                      stop
+         from (select R.*,
+                      case
+                          when id_user is not null then project_after
+                          when sys_project in ('hr', 'selection') and providers = 'starlink' and  date_entered < '2023-11-01' then 'Starlink Job'
+                          when sys_project in ('hr', 'selection') and providers = '2com' and  date_entered < '2023-11-01' then 'Almatel Job'
+                          when sys_project in ('hr', 'selection') and (providers in ('mtsStavropol', 'mtsTolyati') or selection_project_c = 'mts')  then 'MTS Job'
+                          when sys_project in ('hr', 'selection') and (providers = 'megafonGPH' or selection_project_c = 'megafon')  then 'NBN Job'
+                          when sys_project in ('hr', 'selection') and selection_project_c = 'rtk'  then 'RTK Job'
+                          when sys_project in ('hr', 'selection') and selection_project_c = 'golfstream'  then 'GULFSTREAM Job'
+                          when sys_project in ('hr', 'selection') and (providers = 'domRu' or selection_project_c = 'domru') then 'DOMRU Job'
+                          when sys_project in ('hr', 'selection') and (providers = 'stacionarKLD' or selection_project_c = 'pc_kaliningrad') then 'Just Call Job'
+                          when sys_project in ('hr', 'selection') then 'Just Job'
+                          when sys_project = 'project_8' and team in (30,13,159) then 'GULFSTREAM'
+                          when sys_project = 'project_8' and team in (17,15) then 'GULFSTREAM LIDS'
+                          when sys_project = 'tele2' then 'TELE2'
+                          when sys_project = 'project_2' then 'VSK LIDS'
+                          when team in (203, 204) then 'TAT LIDS'
+                          else 'DR Job'
+                          end proect
+               from (SELECT distinct other.id                     rtkid,
+#                                      first_name,
+                                     rtk_cstm.last_queue_c,
+                                     team,
+                                     date(activate_date_internet) active_date,
+                                     teams.id                     uid,
+                                     fio,
+                                     date(other.date_entered) as  date_entered,
+                                     other.status,
+                                     case
+                                         when other.status in ('Held', 'Active') then 1
+                                         when other.status in ('Created', 'provider_planned', 'dispetcher_grafik')
+                                             then 2
+                                         else 0
+                                         end                      konva,
+                                     case
+                                         when check_internet + check_tv + check_mobile >= 3 then 'konvergent'
+                                         when check_internet + check_mobile >= 2 then 'packet_sim'
+                                         when check_internet + check_tv >= 2 then 'packet_tv'
+                                         when check_internet = 1 then 'int'
+                                         else '' end              tarif,
+                                     other.phone_work,
+                                     city_c,
+                                     city,
+                                     providers,
+                                     other.project                sys_project,
+                                     rtk_cstm.selection_project_c,
+                                     town_c
+#                                      ,
+#                                      start,
+#                                      stop
+                     FROM suitecrm.jc_meetings_other other
+                              left join suitecrm.jc_meetings_other_cstm rtk_cstm on other.id = rtk_cstm.id_c
+                              left join teams on other.assigned_user_id = teams.id
+                              left join contacts on other.phone_work = contacts.phone_work
+                     WHERE date(other.date_entered) >= '2023-12-01'
+                       AND other.status not in ('Error', 'doubled')
+                       and other.deleted = 0) R
+             left join operatory on uid = id_user
+              ) OTHER
      ) Meets
          left join department on Meets.team = department.team

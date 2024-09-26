@@ -12,13 +12,13 @@ def transfer_files_to_click(files, path_to_file):
     full_calls[['project', 'calldate', 'network_provider', 'count_good_calls_c', 'База', 'last_queue_c',
                 'custom_queue_c', 'marker_c', 'town_c', 'city_c', 'category_calls', 'category', 'stop_auto',
                 'Разговоры',
-                'Звонки', 'Переводы', 'Заявки']] = full_calls[['project', 'calldate',
+                'Звонки', 'Переводы', 'Заявки','region_c2']] = full_calls[['project', 'calldate',
                                                                'network_provider', 'count_good_calls_c', 'База',
                                                                'last_queue_c',
                                                                'custom_queue_c', 'marker_c', 'town_c', 'city_c',
                                                                'category_calls', 'category',
                                                                'stop_auto', 'Разговоры', 'Звонки', 'Переводы',
-                                                               'Заявки']].astype('str').fillna('')
+                                                               'Заявки','region_c2']].astype('str').fillna('')
     full_calls['calldate'] = pd.to_datetime(full_calls['calldate'])
     full_calls['marker_c'] = full_calls['marker_c'].astype(str)
     full_calls['marker_c'] = full_calls['marker_c'].apply(lambda x: x.replace('.0', ''))
@@ -31,13 +31,13 @@ def transfer_files_to_click(files, path_to_file):
     full_calls[['project', 'calldate', 'network_provider', 'count_good_calls_c', 'База', 'last_queue_c',
                 'custom_queue_c', 'marker_c', 'town_c', 'city_c', 'category_calls', 'category', 'stop_auto',
                 'Разговоры',
-                'Звонки', 'Переводы', 'Заявки']] = full_calls[['project', 'calldate',
+                'Звонки', 'Переводы', 'Заявки','region_c2']] = full_calls[['project', 'calldate',
                                                                'network_provider', 'count_good_calls_c', 'База',
                                                                'last_queue_c',
                                                                'custom_queue_c', 'marker_c', 'town_c', 'city_c',
                                                                'category_calls', 'category',
                                                                'stop_auto', 'Разговоры', 'Звонки', 'Переводы',
-                                                               'Заявки']].astype('str').fillna('')
+                                                               'Заявки','region_c2']].astype('str').fillna('')
     full_calls = full_calls.rename(columns={'База': 'base',
                                             'Разговоры': 'talks', 'Звонки': 'calls', 'Переводы': 'perevod',
                                             'Заявки': 'meeting'}).fillna('')
@@ -54,7 +54,7 @@ def transfer_files_to_click(files, path_to_file):
                             'custom_queue_c', 'marker_c', 
                             'town_c', 'city_c', 
                             'category_calls', 'category', 
-                            'stop_auto'],as_index=False, dropna=False).agg({'talks': 'sum',
+                            'stop_auto','region_c2'],as_index=False, dropna=False).agg({'talks': 'sum',
                                                     'calls': 'sum',
                                                     'perevod': 'sum',
                                                     'meeting': 'sum'})

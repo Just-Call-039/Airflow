@@ -456,7 +456,7 @@
                                    end                            first_name
                         FROM suitecrm.users) user),
      Q as (SELECT distinct jc_robot_log.assigned_user_id,
-                           base_source_c,
+                           cm.base_source_c,
                            date(call_date) as                    datec,
                            substring(jc_robot_log.dialog, 11, 4) queue,
                            substring(jc_robot_log.dialog, 11, 4) Last_queue,
@@ -470,7 +470,7 @@
                                when jc_robot_log.network_provider_c = '68' then 'Теле2'
                                else 'MVNO'
                                end                               network_provider_c,
-                           # if(jc_robot_log.city_c is null or jc_robot_log.city_c = '',concat(cm.town_c,'_t'),jc_robot_log.city_c) as city_c,
+                           # if(jc_robot_log.city_c is null or jc_robot_log.city_c in ('',0),concat(cm.town_c,'_t'),jc_robot_log.city_c) as city_c,
                            jc_robot_log.city_c,
                            jc_robot_log.region_c,
                            jc_robot_log.ptv_c,
@@ -492,7 +492,7 @@
              AND jc_robot_log.assigned_user_id != '1'
              and step is not null
              # and (inbound_call = 0 or inbound_call = '')
-             and date(call_date) = date(now()) - interval {n} day
+             and date(call_date) = date(now()) - interval {} day
      ),
      Q1 as (select assigned_user_id,
                    base_source_c,
@@ -634,7 +634,36 @@
                               or ptv_c like '%^11_15^%'
                               or ptv_c like '%^19_15^%'
                               or ptv_c like '%^14_15^%') then 'ptv_2'
-                      else region_c end region
+                      else region_c end region,
+# region_c as region,
+       case
+           when (ptv_c like '%^3^%'
+               or ptv_c like '%^5^%'
+               or ptv_c like '%^6^%'
+               or ptv_c like '%^10^%'
+               or ptv_c like '%^11^%'
+               or ptv_c like '%^19^%'
+               or ptv_c like '%^14^%') then 'ptv_1'
+           when (base_source_c like '%220%' or base_source_c like '%221%' or base_source_c like '%222%' or
+                 base_source_c like '%223%' or base_source_c like '%224%') then 'bno'
+
+           when base_source_c like '%63%' and region_c in (1, 3) then '63_1'
+           when base_source_c like '%63%' and region_c in (2, 4, 5, 6, 7) then concat('63_', region_c)
+           when base_source_c like '%63%' and (region_c is null or region_c in ('', ' ')) then '63_0'
+
+           when base_source_c like '%62%' and region_c in (1, 3) then '62_1'
+           when base_source_c like '%62%' and region_c in (2, 4, 5, 6, 7) then concat('62_', region_c)
+           when base_source_c like '%62%' and (region_c is null or region_c in ('', ' ')) then '62_0'
+
+           when base_source_c like '%60%' and region_c in (1, 3) then '60_1'
+           when base_source_c like '%60%' and region_c in (2, 4, 5, 6, 7) then concat('60_', region_c)
+           when base_source_c like '%60%' and (region_c is null or region_c in ('', ' ')) then '60_0'
+
+           when base_source_c like '%61%' and region_c in (1, 3) then '61_1'
+           when base_source_c like '%61%' and region_c in (2, 4, 5, 6, 7) then concat('61_', region_c)
+           when base_source_c like '%61%' and (region_c is null or region_c in ('', ' ')) then '61_0'
+
+           else region_c end region_c2
             from Q1),
      Q3 as (select Q2.*,
                    case
@@ -653,6 +682,7 @@
                    network_provider_c,
                    city_c,
                    region,
+                   region_c2,
                    data_type,
                    department,
                    id,

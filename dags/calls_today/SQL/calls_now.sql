@@ -2,7 +2,7 @@ with callsAll as (select distinct date(calls.date_entered)           dateCall,
                                   assigned_user_id                   userid,
                                   queue_c,
                                   result_call_c,
-                                  otkaz_c,
+                                  if(otkaz_c = ''  or otkaz_c is null,'null_status_otkaz', otkaz_c) otkaz_c,
                                   project_c,
                                   asterisk_caller_id_c,
                                   duration_minutes,
@@ -11,7 +11,7 @@ with callsAll as (select distinct date(calls.date_entered)           dateCall,
                            left join calls_cstm on id = id_c
                            left join users on assigned_user_id = users.id
                   where direction = 'Inbound'
-                    and date(date_start) = curdate()),
+                    and date(calls.date_entered) = curdate()),
      robotlog as (select phone,
                          city_c,
                          assigned_user_id,
