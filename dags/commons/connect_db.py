@@ -5,6 +5,7 @@
 
 def connect_db(file):
     dest = None
+    print(file)
     if file == 'Maria_db':
         dest = '/root/airflow/dags/not_share/Maria_db.csv'
     elif file == 'cloud_117':
@@ -28,7 +29,10 @@ def connect_db(file):
     elif file == 'DBS':
         dest = '/root/airflow/dags/not_share/DBS.csv'
     else:
+        print('cloud_183')
         print('Неизвестный сервер.')
+
+    print(dest)
 
     if dest:
         with open(dest) as file:

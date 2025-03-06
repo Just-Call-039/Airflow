@@ -22,6 +22,20 @@ def data(row):
     else :
         return row['База']
     
+def changefillna(cell):
+    if cell == '':
+        return '100500'
+    else:
+        return cell
+    
+def check_conditions(route, ptv, etv):
+    
+    if str(ptv) in route:
+        etv = '1'
+        return etv
+    else:        
+        return etv
+    
 def network(row):
     if row['network_provider'] == 'пїЅпїЅпїЅпїЅ2':
         return 'Теле2'

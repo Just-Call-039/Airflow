@@ -3,28 +3,9 @@ def calls_to_clickhouse_archive(path_to_sql_calls, csv_calls):
     import glob
     import os
     from clickhouse_driver import Client
+    from commons_liza import to_click
 
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
-    if dest:
-        with open(dest) as file:
-            for now in file:
-                now = now.strip().split('=')
-                first, second = now[0].strip(), now[1].strip()
-                if first == 'host':
-                    host = second
-                elif first == 'user':
-                    user = second
-                elif first == 'password':
-                    password = second
-        # return host, user, password
-
-    # print('Подключаемся к серверу')
-    # client = Client(host=host, port='9000', user=user, password=password,
-    #             database='suitecrm_robot_ch', settings={'use_numpy': True})
-    # print('Удаляем таблицу')
-    # client.execute('drop table suitecrm_robot_ch.report_25_archive')
-
-    # print('Создаем таблицу')
+    
     # sql_create = '''create table suitecrm_robot_ch.report_25_archive
     #                 (
     #                     call_date          Date,
@@ -60,9 +41,11 @@ def calls_to_clickhouse_archive(path_to_sql_calls, csv_calls):
     all_files = len(os.listdir(path_to_sql_calls))
     print(f'Всего файлов {all_files}')
     n = 7
-
-    for i in range(n,all_files):
+    
+    
+    for _ in range(n, all_files + 1):
         files = sorted(glob.glob(path_to_sql_calls + "/*.csv"),reverse=True)
+        print(files)
 
         print(f'Текущий файл # {n+1}')
         print(files[n])
@@ -80,14 +63,21 @@ def calls_to_clickhouse_archive(path_to_sql_calls, csv_calls):
                                                                 'network_provider_c','marker','region_name','town_name','city_name']].fillna('').astype('str')
         
         print('Подключаемся к серверу')
-        client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+        try:
+            client = to_click.my_connection()
 
-        print('Отправляем запрос')
-        client.insert_dataframe('INSERT INTO suitecrm_robot_ch.report_25_archive VALUES', calls)  
+            print('Отправляем запрос')
+            client.insert_dataframe('INSERT INTO suitecrm_robot_ch.report_25_archive VALUES', calls)  
+        except (ValueError):
+            print('Данные не загружены')
+        finally:
+
+            client.connection.disconnect()
+            print('conection closed')
         
         n += 1
         del calls
 
         if n == 8:
+        
             break

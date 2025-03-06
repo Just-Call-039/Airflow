@@ -91,14 +91,6 @@ calls_today_10_to_dbs = PythonOperator(
     dag=dag
     )
 
-# Блок отправки  файлов в clickhouse.
-
-transfer_to_click = PythonOperator(
-    task_id='transfer_to_click', 
-    python_callable=to_click, 
-    op_kwargs={'path_file': path_to_file_airflow, 'calls': csv_calls}, 
-    dag=dag
-    )
 
 transfer_calls_to_click = PythonOperator(
     task_id='transfer_calls_to_click', 
@@ -114,7 +106,7 @@ transfer_call_10_to_click = PythonOperator(
     dag=dag
     )
 
-calls_today >> calls_today_to_dbs >> transfer_to_click
+calls_today >> calls_today_to_dbs
 calls_today_4 >> transfer_calls_to_click
 calls_today_10 >> [calls_today_10_to_dbs, transfer_call_10_to_click]
 

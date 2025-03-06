@@ -276,7 +276,21 @@ with fios as (select id, concat(first_name, ' ', last_name) fio, team
                           from suitecrm.calls
                                    left join suitecrm.calls_cstm on id = id_c
                                    left join operator on assigned_user_id = operator.id
-                                   left join suitecrm_robot.jc_robot_log
+                                   left join (select direction,
+                                                    substring(dialog, 11, 4) as dialog,
+                                                    phone
+                                               from suitecrm_robot.jc_robot_log
+                                               where date(call_date) between '2023-10-01' and date(now()) - interval 1 day
+                                          union all 
+                                             select direction,
+                                                    robot_id as dialog,
+                                                    phone
+                                               from suitecrm_robot.robot_log 
+                                                        left join suitecrm_robot.robot_log_addition 
+                                                               on robot_log.id = robot_log_addition.robot_log_id
+                                                 
+                                               where date(call_date) between '2023-10-01' and date(now()) - interval 1 day)
+              
                                              on phone = asterisk_caller_id_c and
                                                 date(call_date) = date(calls.date_entered)
                           where date(calls.date_entered) between '2023-10-01' and date(now()) - interval 1 day

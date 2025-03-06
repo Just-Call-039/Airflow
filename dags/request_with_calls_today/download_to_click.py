@@ -4,6 +4,7 @@
 import pandas as pd
 from clickhouse_driver import Client
 import datetime
+from commons_liza.to_click import my_connection
 
 def download_to_click(path_folder, file_request):
     
@@ -41,70 +42,89 @@ def download_to_click(path_folder, file_request):
                             password = second
         # return host, user, password
 
+    try:
+        # client = Client(host=host, port='9000', user=user, password=password,
+        #                 database='suitecrm_robot_ch', settings={'use_numpy': True})
+        client = my_connection()
 
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+        print('Удаляем таблицу')
+        client.execute('truncate table suitecrm_robot_ch.jc_meeting_module')
+    except (ValueError):
+        print('Данные не удалены')
+    finally:
+        try:
 
+            print('Создаем таблицу')
+            sql_create = '''create table if not exists jc_meeting_module
+            (
+            project       String,
+            request_date  Date,
+            request_hour  Int64,
+            user          String,
+            super         String,
+            status        String,
+            last_queue_c  String,
+            district_c    String,
+            city          String,
+            queue         String,
+            my_phone_work String,
+            req_status    String
+            )
+            engine = MergeTree
+                ORDER BY request_date'''
+            client.execute(sql_create)
 
-    print('Удаляем таблицу')
-    client.execute('drop table suitecrm_robot_ch.jc_meeting_module')
+        except (ValueError):
+            print('Таблица не создана')
+        finally:
+            try:
 
+                print('Отправляем запрос c заявками')
+                client.insert_dataframe('INSERT INTO suitecrm_robot_ch.jc_meeting_module VALUES', req_click)
+            except (ValueError):
+                print('Данные не загружены')
+    try:
 
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+        print('Удаляем таблицу')
+        cluster = '{cluster}'
+        client.execute(f'''truncate table users_meet on cluster '{cluster}' ''')
 
-    print('Создаем таблицу')
-    sql_create = '''create table jc_meeting_module
-    (
-    project       String,
-    request_date  Date,
-    request_hour  Int64,
-    user          String,
-    super         String,
-    status        String,
-    last_queue_c  String,
-    district_c    String,
-    city          String,
-    queue         String,
-    my_phone_work String,
-    req_status    String
-    )
-    engine = MergeTree
-        ORDER BY request_date'''
-    client.execute(sql_create)
+    except (ValueError):
+            print('Данные не удалены')
+    finally:
+        try:
 
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+            print('Создаем таблицу')
+            sql_create = '''create table if not exists suitecrm_robot_ch.users_meet
+                        (
+                        id          String,
+                        fio         String,
+                        team        String,
+                        supervisor  String
+                        )
+                        engine = MergeTree ORDER BY id
+            '''
+            client.execute(sql_create)
+        except (ValueError):
+            print('Данные не загружены')
+        finally:
+        
+            client.connection.disconnect()
+            print('conection closed')
 
-
-    print('Отправляем запрос c заявками')
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.jc_meeting_module VALUES', req_click)
-
-
-    print('Удаляем таблицу')
-    client.execute('drop table suitecrm_robot_ch.users_meet')
-
-
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
-
-    print('Создаем таблицу')
-    sql_create = '''create table suitecrm_robot_ch.users_meet
-    (
-    id    String,
-    fio  String,
-    team        String,
-    supervisor String
-    )
-    engine = MergeTree ORDER BY id
-    '''
-    client.execute(sql_create)
     users = pd.read_csv('/root/airflow/dags/request_with_calls_today/Files/users.csv',  sep=',', encoding='utf-8')
     users = users[['id','fio','team','supervisor']].astype('str')
 
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
-
-
-    print('Отправляем запрос c заявками')
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.users_meet VALUES', users)
+    try:
+        client = my_connection()
+        # client = Client(host=host, port='9000', user=user, password=password,
+        #             database='suitecrm_robot_ch', settings={'use_numpy': True})
+        print('Отправляем запрос c заявками')
+        client.insert_dataframe('INSERT INTO suitecrm_robot_ch.users_meet VALUES', users)
+    except (ValueError):
+        print('Данные не зашружены')
+    finally:
+        
+        client.connection.disconnect()
+        print('conection closed')
+    

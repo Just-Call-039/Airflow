@@ -32,14 +32,17 @@ def print_file_contents(file_path):
 
 dag = DAG(
     dag_id='lids_and_waiters',
-    schedule_interval='0 22 * * *',
+    schedule_interval='30 22 * * *',
     start_date=pendulum.datetime(2024, 1, 31, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args
     )
 
 
-cloud_name = 'cloud_128'
+# cloud_name = 'cloud_128'
+cloud_name = 'cloud_183'
+
+
 
 token = '5095756650:AAElXGJb5kfvanEXx5FlET6T3HayTjIs_PU'
 chat_id = '-1001412983860'  # your chat id

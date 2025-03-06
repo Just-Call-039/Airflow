@@ -14,4 +14,26 @@ select call_date + interval 2 hour as my_date,
        was_repeat,
        phone
 from suitecrm_robot.jc_robot_log
+where date(call_date) = date(now()) - interval 1 day
+
+union all
+
+select call_date + interval 2 hour as my_date,
+       dialog_id uniqueid,
+       robot_id    as ochered,
+       last_step,
+       route,
+       billsec,
+       client_status,
+       refuse otkaz,
+       voice directory,
+       server_number,
+       city city_c,
+       ptv ptv_c,
+       marker,
+       was_ptv was_repeat,
+       phone
+from suitecrm_robot.robot_log 
+      left join suitecrm_robot.robot_log_addition 
+      on robot_log.id = robot_log_addition.robot_log_id
 where date(call_date) = date(now()) - interval 1 day;

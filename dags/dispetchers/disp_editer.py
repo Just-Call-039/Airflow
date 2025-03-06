@@ -39,7 +39,19 @@ def disp_editors(path_to_files, lids, path_result, calls):
 
     lid = lid.merge(queues, how='left', left_on='Принимающая_очередь', right_on='Очередь')
     lid['Последний_шаг'] = lid['Последний_шаг'].astype('str').apply(lambda x: x.replace('.0',''))
+    print(lid.columns)
+    lid['Очередь заливки'] = lid['Проект (набирающая очередь)'].apply(lambda x:
+                                                           '9293' if x in ['TTK', 'TTK LIDS'] else
+                                                                    '9295' if x in ['MTS', 'MTS LIDS'] else
+                                                                        '9296' if x in ['BEELINE', 'BEELINE LIDS'] else
+                                                                            '9297' if x in ['RTK', 'RTK LIDS'] else
+                                                                               '9298' if x in ['NBN', 'NBN LIDS'] else
+                                                                                    '9299' if x in ['DOMRU', 'DOMRU LIDS'] else
+                                                                                        '9052' if x in ['TELE2', 'TELE2 LIDS'] else
+                                                                                            '9072' if x in ['GULFSTREAM', 'GULFSTREAM LIDS'] else '')
+
     lid.to_csv(f'{path_result}/{lids}', sep=',', index=False, encoding='utf-8')
+    lid.to_excel(f'{path_result}/Лиды_4_50.xlsx', index=False)
 
 
     calls = pd.read_csv(f'{path_to_files}/{calls}')
@@ -113,7 +125,21 @@ def disp_editors(path_to_files, lids, path_result, calls):
     df = df[['Проект_x','Очередь','Причина','Город','Телефон']]
     
     df = df.drop_duplicates()
+    
+    
+    df['Очередь заливки'] = df['Проект_x'].apply(lambda x:
+                                                           '9293' if x in ['TTK', 'TTK LIDS'] else
+                                                                    '9295' if x in ['MTS', 'MTS LIDS'] else
+                                                                        '9296' if x in ['BEELINE', 'BEELINE LIDS'] else
+                                                                            '9297' if x in ['RTK', 'RTK LIDS'] else
+                                                                               '9298' if x in ['NBN', 'NBN LIDS'] else
+                                                                                    '9299' if x in ['DOMRU', 'DOMRU LIDS'] else
+                                                                                        '9052' if x in ['TELE2', 'TELE2 LIDS'] else
+                                                                                            '9072' if x in ['GULFSTREAM', 'GULFSTREAM LIDS'] else '')
+
     df['Телефон']= df['Телефон'].fillna(0).astype('int64')
+    df.to_excel(f'{path_to_files}/Перезвоны.xlsx', index = False)
+    
     t9293 = df[df['Проект_x'].isin(['TTK', 'TTK LIDS'])]
     t9295  = df[df['Проект_x'].isin(['MTS', 'MTS LIDS'])]
     t9296  = df[df['Проект_x'].isin(['BEELINE', 'BEELINE LIDS'])]
@@ -126,6 +152,7 @@ def disp_editors(path_to_files, lids, path_result, calls):
     salary_sheets = {'9293': t9293, '9295': t9295,'9296': t9296, 
                  '9297': t9297,'9298': t9298, '9299 ': t9299,
                  '9052': t9052,'9072': t9072}
+    
     writer = pd.ExcelWriter('/root/airflow/dags/dispetchers/Files/Перезвоны обработанный.xlsx', engine='xlsxwriter')
     for sheet_name in salary_sheets.keys():
         salary_sheets[sheet_name].to_excel(writer, sheet_name=sheet_name, index=False)

@@ -77,11 +77,19 @@ from (select my_phone_work as phone_number,
             where status != 'Error'
               and date(date_entered) = date(now()) - interval 1 day) as reguest
                left join
-           (select call_date + interval 2 hour as my_date,
+           ((select call_date + interval 2 hour as my_date,
                    uniqueid                    as uniqueid,
                    substring(dialog, 11, 4)    as ochered,
                    phone
-            from suitecrm_robot.jc_robot_log as jrl
+            from suitecrm_robot.jc_robot_log 
+            union all 
+            select call_date + interval 2 hour as my_date,
+                   dialog_id as uniqueid,
+                   robot_id as ochered,
+                   phone
+              from suitecrm_robot.robot_log 
+                    left join suitecrm_robot.robot_log_addition 
+                    on robot_log.id = robot_log_addition.robot_log_id) as jrl
             where date(call_date) =
                   (select max(date(call_date)) from suitecrm_robot.jc_robot_log as jrl2 where jrl.phone = jrl2.phone)
               and phone in (select phone_work

@@ -25,7 +25,7 @@ default_args = {
 
 dag = DAG(
     dag_id='yesterday_day_file',
-    schedule_interval='30 6 * * *',
+    schedule_interval='10 7,8,9 * * *',
     start_date=pendulum.datetime(2023, 7, 13, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args
@@ -33,6 +33,7 @@ dag = DAG(
 
 
 cloud_name = 'cloud_128'
+# cloud_name = 'cloud_183'
 
 # Наименование файлов.
 csv_calls = 'Звонки_вчера.csv' 
@@ -149,12 +150,12 @@ work_time_to_dbs = PythonOperator(
 
 # Блок отправки  файлов в clickhouse.
 
-transfer_to_click = PythonOperator(
-    task_id='transfer_to_click', 
-    python_callable=to_click, 
-    op_kwargs={'path_file': path_to_file_sql, 'calls': csv_calls}, 
-    dag=dag
-    )
+# transfer_to_click = PythonOperator(
+#     task_id='transfer_to_click', 
+#     python_callable=to_click, 
+#     op_kwargs={'path_file': path_to_file_sql, 'calls': csv_calls}, 
+#     dag=dag
+#     )
 
 transfer_call_to_click = PythonOperator(
     task_id='call_to_click', 
@@ -206,7 +207,7 @@ transfer_callwait_to_clickhous = PythonOperator(
     )
 
 calls_yesterday >> [calls_yesterday_to_dbs, transfer_call10_to_clickhous]
-calls_yesterday_4 >> calls_yesterday_4_to_dbs >> [transfer_to_click, transfer_call_to_click]
+calls_yesterday_4 >> calls_yesterday_4_to_dbs >> transfer_call_to_click
 login_user >> [login_user_to_dbs, transfer_userlogin_to_click]
 users_total >> [user_total_to_dbs, transfer_usertotal_to_click]
 call_wait >> [call_wait_to_dbs, transfer_callwait_to_clickhous]

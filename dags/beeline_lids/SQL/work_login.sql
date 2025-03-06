@@ -31,7 +31,7 @@ with work_time as (select rc.id_user,
                             left join suitecrm.worktime_log as wt
                                       on rc.id_user = wt.id_user and date(rc.date) = date(wt.date)
                             left join users on rc.id_user = users.id
-                   where  date(rc.date) = date(now()) -interval 1 day
+                   where  date(rc.date) = date(now()) - interval 1 day
                      and rc.id_user not in ('1', '')
                      and rc.id_user is not null),
 

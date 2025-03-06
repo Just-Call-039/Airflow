@@ -6,7 +6,7 @@ def transfer_to_click(x, y, stop, general_create):
     import math
 
     print('Подключаемся к clickhouse')
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
+    dest = '/root/airflow/dags/not_share/ClickHouse198.csv'
     if dest:
         with open(dest) as file:
             for now in file:
@@ -20,10 +20,11 @@ def transfer_to_click(x, y, stop, general_create):
                     password = second
         # return host, user, password
 
+    
 
     # print('Удаляем старую таблицу')
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+    # client = Client(host=host, port='9000', user=user, password=password,
+    #                 database='suitecrm_robot_ch', settings={'use_numpy': True})
 
     # sql_drop = '''drop table suitecrm_robot_ch.address_log'''
     # client.execute(sql_drop)
@@ -50,7 +51,7 @@ def transfer_to_click(x, y, stop, general_create):
     sql_check_volume = '''select count(*) as contacts
                         from ( select * from suitecrm.address_log
                         where date(calldate) = date(now())
-                        #  - interval 1 day
+                        #   - interval 1 day
                         # limit 1000
                         ) tt '''
 
@@ -79,7 +80,7 @@ def transfer_to_click(x, y, stop, general_create):
                         korp      ,
                         providers 
                     from suitecrm.address_log
-                    where date(calldate) = date(now())
+                    where date(calldate) = date(now()) 
                     #  - interval 1 day
         limit {x},{y}'''
 
@@ -93,13 +94,22 @@ def transfer_to_click(x, y, stop, general_create):
         print('Правим')
         contacts[['uniqueid','phone','dialog','city','street','house','korp','providers']] = contacts[['uniqueid','phone','dialog','city','street','house','korp','providers']].fillna('0').astype('str')
         contacts['calldate'] = pd.to_datetime(contacts['calldate'], errors="coerce").fillna('')
+        print(contacts['calldate'].unique())
 
         print('Загружаем данные')
 
-        client = Client(host=host, port='9000', user=user, password=password,
+        try:
+
+            client = Client(host=host, user=user, password=password,
                         database='suitecrm_robot_ch', settings={'use_numpy': True})
 
-        client.insert_dataframe('INSERT INTO suitecrm_robot_ch.address_log VALUES', contacts)
+            client.insert_dataframe('INSERT INTO suitecrm_robot_ch.address_log VALUES', contacts)
+        except (ValueError):
+            print('Данные не загружены')
+        finally:
+
+            client.connection.disconnect()
+            print('conection closed')
         
         x += y
         n += 1

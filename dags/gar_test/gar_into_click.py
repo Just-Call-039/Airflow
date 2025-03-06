@@ -113,6 +113,14 @@ def gar_into_click(zip_path):
                                                     password = second
 
                                     print(f'insert_{n}')
-                                    client = Client(host=host, port='9000', user=user, password=password,
-                                                            database='gar', settings={'use_numpy': True})
-                                    client.insert_dataframe(f'INSERT INTO gar.{i} VALUES', data)
+
+                                    try:
+                                        client = Client(host=host, port='9000', user=user, password=password,
+                                                                database='gar', settings={'use_numpy': True})
+                                        client.insert_dataframe(f'INSERT INTO gar.{i} VALUES', data)
+                                    except (ValueError):
+                                        print('Данные не загружены')
+                                    finally:
+
+                                        client.connection.disconnect()
+                                        print('conection closed')

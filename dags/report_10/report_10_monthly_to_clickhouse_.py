@@ -13,6 +13,7 @@ def monthly_report_to_clickhouse(access_pass):
     # import os
     from clickhouse_driver import Client
     import glob
+    from commons_liza import to_click
         
 
     with open(access_pass, "r", encoding="utf-8") as f:
@@ -104,34 +105,49 @@ def monthly_report_to_clickhouse(access_pass):
     df_zvonki = None
     print('Таблица сформирована. Кол-во строк в таблице df_zvonki_m после окончат группировки ', len(df_zvonki_m))
     print('>>> сумма звонков после последней группировкой', df_zvonki_m['count_phone'].sum())
+    cluster = '{cluster}'
+    sql_request = f'''ALTER TABLE suitecrm_robot_ch.report_10_this_month_before_yest ON CLUSTER '{cluster}' DELETE WHERE MONTH(date) = MONTH(DATE_ADD(NOW(), INTERVAL -1 MONTH)) AND YEAR(date) = YEAR(NOW()) ;'''
+    to_click.delete_data(sql_request)
 
-    print('Подключаемся к серверу')
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
-    if dest:
-        with open(dest) as file:
-            for now in file:
-                now = now.strip().split('=')
-                first, second = now[0].strip(), now[1].strip()
-                if first == 'host':
-                    host = second
-                elif first == 'user':
-                    user = second
-                elif first == 'password':
-                    password = second
+    # print('Подключаемся к серверу')
+    # dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
+    # if dest:
+    #     with open(dest) as file:
+    #         for now in file:
+    #             now = now.strip().split('=')
+    #             first, second = now[0].strip(), now[1].strip()
+    #             if first == 'host':
+    #                 host = second
+    #             elif first == 'user':
+    #                 user = second
+    #             elif first == 'password':
+    #                 password = second
+    # try:
 
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+
+    #     client = Client(host=host, port='9000', user=user, password=password,
+    #                     database='suitecrm_robot_ch', settings={'use_numpy': True})
+        
+    #     client.execute(f'ALTER TABLE suitecrm_robot_ch.report_10_this_month_before_yest DELETE WHERE MONTH(date) = MONTH(DATE_ADD(NOW(), INTERVAL -1 MONTH)) AND YEAR(date) = YEAR(NOW()) ;')
+    #     # client.execute(f'DELETE FROM suitecrm_robot_ch.report_10_this_month_before_yest  WHERE MONTH(date) = MONTH(DATE_ADD(NOW(), INTERVAL -1 MONTH)) AND YEAR(date) = YEAR(NOW()) ;')
     
-    client.execute(f'ALTER TABLE suitecrm_robot_ch.report_10_this_month_before_yest DELETE WHERE MONTH(date) = MONTH(DATE_ADD(NOW(), INTERVAL -1 MONTH)) AND YEAR(date) = YEAR(NOW()) ;')
-    # client.execute(f'DELETE FROM suitecrm_robot_ch.report_10_this_month_before_yest  WHERE MONTH(date) = MONTH(DATE_ADD(NOW(), INTERVAL -1 MONTH)) AND YEAR(date) = YEAR(NOW()) ;')
-
+    # except (ValueError):
+    #         print('Данные не загружены')
+    # finally:
+    #     try:
     print('Данные за прошлый месяц удалены')
     
     print('Добавляем новые данные за прошлый месяц')
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.report_10_this_month_before_yest VALUES', df_zvonki_m)
+    to_click.save_data('report_10_this_month_before_yest', df_zvonki_m)
+    #         client.insert_dataframe('INSERT INTO suitecrm_robot_ch.report_10_this_month_before_yest VALUES', df_zvonki_m)
+    #     except (ValueError):
+    #         print('Данные не загружены')
+    #     finally:
     print('Таблица загружена в clickhouse')
+    # client.connection.disconnect()
+    # print('conection closed')
     # print(df_zvonki_m.info())
-    # print(df_zvonki_m)
+    # print(df_zvonki_m)gh
 
 
 

@@ -17,7 +17,7 @@ from fsp.transfer_files_to_dbs import transfer_files_to_dbs
 from commons_li.clear_folder import clear_folder
 
 
-from operational_all.operational_accumulate_dozvon import transfer_files_to_click
+from operational_all.operational_accumulate_dozvon import transfer_files_to_click, transfer_dozvon_to_dbs
 from operational_all.operational_accumulate_update import update_operational
 from operational_all.operational_etv import etv_universal
 
@@ -44,10 +44,16 @@ dag = DAG(
 
 
 
-cloud_name = 'cloud_128'
+# cloud_name = 'cloud_128'
+cloud_name = 'cloud_183'
+
+# n = 2
+# stop = 14
 
 n = 2
-stop = 14
+stop = 4
+
+
 
 
 # Пути к sql запросам на сервере airflow
@@ -68,7 +74,9 @@ day = today.day
 file_name_autofilling = f'Автозаливки_{month:02}_{day:02}.csv' 
 file_name_operational = 'Оперативный_архив_{}.csv'
 file_name_etv = 'ЕТВ.csv'
+
 file_name_dozvon = 'Дозвон.csv'
+file_name_dozvon_per_day = f'Дозвон_{month:02}_{day:02}.csv'
 
 
 # Пути к файлам на сервере airflow
@@ -81,6 +89,7 @@ path_to_sql_operational_folder2 = f'{path_to_file_airflow}operational/'
 dbs_operational = '/scripts fsp/Current Files/Накопительный по РО/'
 dbs_operational_etv = '/scripts fsp/Current Files/'
 dbs_operational_autofilling= '/scripts fsp/Current Files/Накопительный по автозаливкам/'
+dbs_operational_dozvon= '/scripts fsp/Current Files/Накопительный по дозвонам/'
 
 
 
@@ -124,6 +133,13 @@ transfer_autofilling = PythonOperator(
     task_id='transfer_autofilling', 
     python_callable=transfer_file_to_dbs, 
     op_kwargs={'from_path': path_to_sql_operational_folder, 'to_path': dbs_operational_autofilling, 'file': file_name_autofilling, 'db': 'DBS'}, 
+    dag=dag
+    )
+
+transfer_dozvon = PythonOperator(
+    task_id='transfer_dozvon', 
+    python_callable=transfer_dozvon_to_dbs,
+    op_kwargs={'from_path': path_to_sql_operational_folder2, 'file': file_name_dozvon, 'to_path': dbs_operational_dozvon,  'file_result' : file_name_dozvon_per_day, 'db': 'DBS'}, 
     dag=dag
     )
 
@@ -171,5 +187,5 @@ send_telegram_message = TelegramOperator(
 )
 
 
-sql_etv >> transfer_etv >> transfer_dozvon_to_click >> transfer_etv_to_click >> send_telegram_message
+sql_etv >> transfer_etv >> transfer_dozvon >> transfer_dozvon_to_click >> transfer_etv_to_click >> send_telegram_message
 sql_autofilling >> transfer_autofilling >> update_operational_accumulate >> transfer_operational >> clear_folders >> send_telegram_message

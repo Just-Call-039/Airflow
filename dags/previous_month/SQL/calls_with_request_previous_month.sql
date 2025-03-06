@@ -9,15 +9,27 @@ from (select cl.id                                                              
                  else con.city_c
                  end                                                                             as city,
              row_number() over (partition by cl_c.asterisk_caller_id_c,assigned_user_id order by cl.date_entered desc) as num,
-             substring(dialog, 11, 4)                                                               queue,
+             queue,
              cl.assigned_user_id
       from suitecrm.calls as cl
                left join suitecrm.calls_cstm as cl_c on cl.id = cl_c.id_c
                left join suitecrm.contacts on cl_c.asterisk_caller_id_c = contacts.phone_work
                left join suitecrm.contacts_cstm con on con.id_c = contacts.id
-               left join suitecrm_robot.jc_robot_log on asterisk_caller_id_c = phone
-      where month(cl.date_entered) = month(curdate() - interval 1 month)
-                     and year(cl.date_entered) = if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year),
-                                            year(curdate()))
+               left join 
+                        (select phone,
+                                REGEXP_SUBSTR(dialog, '[0-9]+')                        queue,
+                                last_step
+                           from suitecrm_robot.jc_robot_log 
+                         union all 
+                         select phone,
+                                robot_id queue,
+                                last_step
+                           from suitecrm_robot.robot_log 
+                                left join suitecrm_robot.robot_log_addition 
+                                on robot_log.id = robot_log_addition.robot_log_id) jrl
+                        on cl_c.asterisk_caller_id_c = jrl.phone
+
+            where date(cl.date_entered) >= DATE_FORMAT(curdate() - interval 1 month, '%Y-%m-01')
+                    and date(cl.date_entered) < DATE_FORMAT(curdate(), '%Y-%m-01')
         and last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372')) as temp
 where num = 1

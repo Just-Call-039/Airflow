@@ -161,24 +161,35 @@ def to_click(path_file, calls):
 
 
     print('Подключаемся к clickhouse')
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
-    if dest:
-                with open(dest) as file:
-                    for now in file:
-                        now = now.strip().split('=')
-                        first, second = now[0].strip(), now[1].strip()
-                        if first == 'host':
-                            host = second
-                        elif first == 'user':
-                            user = second
-                        elif first == 'password':
-                            password = second
-        # return host, user, password
+    # dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
+    # if dest:
+    #             with open(dest) as file:
+    #                 for now in file:
+    #                     now = now.strip().split('=')
+    #                     first, second = now[0].strip(), now[1].strip()
+    #                     if first == 'host':
+    #                         host = second
+    #                     elif first == 'user':
+    #                         user = second
+    #                     elif first == 'password':
+    #                         password = second
+    #     # return host, user, password
  
+    try:
+        # client = Client(host=host, port='9000', user=user, password=password,
+        #                database='suitecrm_robot_ch', settings={'use_numpy': True})
+        client = to_click.my_connection()
+        # cluster = '{cluster}'
+        # Удаляем данные из таблицы
 
-    client = Client(host=host, port='9000', user=user, password=password,
-                       database='suitecrm_robot_ch', settings={'use_numpy': True})
 
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.pokazateli_operatorov_arhive VALUES', df1)
+
+        client.insert_dataframe('INSERT INTO suitecrm_robot_ch.pokazateli_operatorov_arhive VALUES', df1)
+    except (ValueError):
+        print('Данные не загружены')
+    finally:
+
+        client.connection.disconnect()
+        print('conection closed')
     
      

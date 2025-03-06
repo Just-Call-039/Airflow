@@ -29,13 +29,12 @@ dag = DAG(
     default_args=default_args
     )
 
-cloud_name = 'cloud_128'
+# cloud_name = 'cloud_128'
+cloud_name = 'cloud_183'
 
 # Наименование файлов
 
 file_name_queue = 'Очереди.csv'
-# file_name_unique_route = 'Маршруты уникальные.csv'
-# file_name_route = 'Подробные маршруты.csv'
 file_name_conv = 'Конвертация.csv'
 file_name_operator = 'Операторы.csv'
 file_name_quality = 'Качество.csv'
@@ -77,11 +76,9 @@ path_to_queue = f'{path_to_folder}queues/'
 path_to_dbs = 'scripts fsp/Current Files/'
 name_dbs_operators = 'Пользователи.csv'
 name_dbs_hours = 'Ч.csv'
-# path_to_request = f'{path_to_dbs}Заявки.csv'
+
 
 path_to_dbs_1 = '/Отчеты BI/Стандартные справочники/'
-# path_to_quality = f'{path_to_dbs_1}Качество.csv'
-# path_to_cities = f'{path_to_dbs_1}Город.csv'
 name_dbs_ro = 'Группировка очередей.xlsx'
 name_dbs_project = 'Календарь.xlsx'
 
@@ -118,28 +115,11 @@ group_of_log = PythonOperator(
             'path_to_defenition' : path_to_folder,
             'name_df_queue' : file_name_queue,
             'file_name_operator' : file_name_operator,
-            # 'file_name_route' : file_name_route,
-            # 'file_name_unique_route' : file_name_unique_route
             'path_to_route_unique' : path_to_route_unique,
             'path_to_route' : path_to_route},
     dag=dag
 )
 
-# Блок отправки датасетов с маршруатми в папку DBS
-
-# transfer_route = PythonOperator(
-#     task_id='transfer_route', 
-#     python_callable=transfer_file_to_dbs.transfer_file_to_dbs, 
-#     op_kwargs={'from_path': path_project_folder, 'to_path': path_project_dbs, 'file': file_name_route, 'db': 'DBS'}, 
-#     dag=dag
-#     )
-
-# transfer_unique_route = PythonOperator(
-#     task_id='transfer_unique_route', 
-#     python_callable=transfer_file_to_dbs.transfer_file_to_dbs, 
-#     op_kwargs={'from_path': path_project_folder, 'to_path': path_project_dbs, 'file': file_name_unique_route, 'db': 'DBS'}, 
-#     dag=dag
-#     )
 
 transfer_route = PythonOperator(
     task_id='transfer_route', 

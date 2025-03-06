@@ -494,9 +494,9 @@ with etv as (SELECT substring(turn, 11, 4)                                      
                         where date >= '2022-02-01') as tb1
                   where rw = 1
                   order by 3),
-     jc_today as (select distinct substring(jc.dialog, 11, 4)                                           dialog,
+     jc_today as (select distinct REGEXP_SUBSTR(jc.dialog, '[0-9]+')                                           dialog,
                                   case
-                                      when destination_queue is null then substring(jc.dialog, 11, 4)
+                                      when destination_queue is null then REGEXP_SUBSTR(jc.dialog, '[0-9]+')
                                       else destination_queue end                                        destination_queue,
                                   client_status,
 #                                   case when destination_queue is null then 'end' else client_status end client_status,
@@ -529,8 +529,10 @@ with etv as (SELECT substring(turn, 11, 4)                                      
                                         when cstm.base_source_c like '%^77^%' then 'Март`24 РТК'
                                         when cstm.base_source_c like '%^76^%' then 'Апрель`24 РТК'
                                         when cstm.base_source_c like '%^75^%' then 'Май`24 РТК'
-                                        when cstm.base_source_c like '%^74^%' then 'Июнь`24 РТК'
-                                        when cstm.base_source_c like '%^73^%' then 'Июль`24 РТК'
+                                        when cstm.base_source_c like '%^73^%' then 'Июнь + Июль`24 РТК'
+                                        when cstm.base_source_c like '%^72^%' then 'Август`24 РТК'
+                                        when cstm.base_source_c like '%^71^%' then 'Сентябрь`24 РТК'
+                                        when cstm.base_source_c like '%^70^%' then 'Октябрь`24 РТК'
                                         
                                   else '' end as source,
                                   case
@@ -560,18 +562,105 @@ with etv as (SELECT substring(turn, 11, 4)                                      
                or cstm.base_source_c like '%^61^%'
                or cstm.base_source_c like '%^62^%'
                or cstm.base_source_c like '%^63^%') then concat(cstm.region_c, '_alive')
-           else cstm.region_c end region_c2
+           else cstm.region_c end region_c2,
+           adial_campaign_id
 #                   from (select distinct * from suitecrm_robot.jc_robot_log) jc
 from suitecrm_robot.jc_robot_log jc
                            left join (select distinct * from suitecrm.transferred_to_other_queue) tr
                                      on (jc.uniqueid = tr.uniqueid and jc.phone = tr.phone)
-                           left join steps on (ochered = substring(jc.dialog, 11, 4) and last_step = step)
+                           left join steps on (ochered = REGEXP_SUBSTR(jc.dialog, '[0-9]+') and last_step = step)
                            left join suitecrm.contacts c on jc.phone = c.phone_work
                            left join suitecrm.contacts_cstm cstm on c.id = cstm.id_c
-                  where date(call_date) >= date(now()) - 1
+                  where date(call_date) >= date(now()) - interval 1 day
 #                     and last_step not in (111, 1, '', 0, 261, 262)
              and (inbound_call = 0 or inbound_call = '')
-     ),
+     
+     
+union all 
+
+select distinct robot_id                                          dialog,
+                                  case
+                                      when transfer is null then robot_id
+                                      else transfer end                                        destination_queue,
+                                  client_status,
+#                                   case when transfer is null then 'end' else client_status end client_status,
+                                  date(call_date)                                                       calldate,
+                                  was_ptv was_repeat,
+                                  jc1.phone,
+                                  jc1.dialog_id uniqueid,
+                                  marker,
+                                  refuse otkaz,
+                                  route,
+                                  jc2.operator_id assigned_user_id,
+                                  last_step,
+                                  type_steps,
+                                  jc2.ptv ptv_c,
+                                  jc2.quality region_c,
+                                  if(jc2.city is null or jc2.city = '',concat(cstm.town_c,'_t'),jc2.city) city_c,
+                                  cstm.base_source_c,
+                                  if(stoplist_c like '%^ao^%',1,0) autootvet,
+                                  case when (cstm.base_source_c = '10' or cstm.base_source_c like '%^10^%') then '1'
+                                   when (cstm.base_source_c is null and istochnik_combo_c = 'stretched') then '> 1' 
+                                   else '' end stretched,
+                                  case
+                                  when cstm.base_source_c like '%^61^%' then 7 
+                                  when cstm.base_source_c like '%^62^%' then 1
+                                  when cstm.base_source_c like '%^60^%' then 0 else '' end category_stat,
+                                  case when real_billsec is null then billsec else real_billsec end     trafic,
+                                  trunk_id,
+                                  case
+                                        when cstm.base_source_c like '%^74^%' then 'Февраль`24 РТК'
+                                        when cstm.base_source_c like '%^77^%' then 'Март`24 РТК'
+                                        when cstm.base_source_c like '%^76^%' then 'Апрель`24 РТК'
+                                        when cstm.base_source_c like '%^75^%' then 'Май`24 РТК'
+                                        when cstm.base_source_c like '%^73^%' then 'Июнь + Июль`24 РТК'
+                                        when cstm.base_source_c like '%^72^%' then 'Август`24 РТК'
+                                        when cstm.base_source_c like '%^71^%' then 'Сентябрь`24 РТК'
+                                        when cstm.base_source_c like '%^70^%' then 'Октябрь`24 РТК'
+                                        
+                                  else '' end as source,
+                                  case
+           when (cstm.ptv_c like '%^3^%'
+               or cstm.ptv_c like '%^5^%'
+               or cstm.ptv_c like '%^6^%'
+               or cstm.ptv_c like '%^10^%'
+               or cstm.ptv_c like '%^11^%'
+               or cstm.ptv_c like '%^19^%'
+               or cstm.ptv_c like '%^14^%') then 'ptv_1'
+           when (cstm.base_source_c like '%^220^%'
+               or cstm.base_source_c like '%^221^%'
+               or cstm.base_source_c like '%^222^%'
+               or cstm.base_source_c like '%^223^%'
+               or cstm.base_source_c like '%^224^%') then 'bno'
+           when cstm.region_c in (1, 2) and (cstm.base_source_c like '%^60^%'
+               or cstm.base_source_c like '%^61^%'
+               or cstm.base_source_c like '%^62^%'
+               or cstm.base_source_c like '%^63^%') then concat(cstm.region_c, '_alive')
+           when (cstm.region_c is null or cstm.region_c in ('', 0)) and (cstm.base_source_c like '%^60^%'
+               or cstm.base_source_c like '%^61^%'
+               or cstm.base_source_c like '%^62^%'
+               or cstm.base_source_c like '%^63^%')
+               then 'new_data'
+           when cstm.region_c = 3 then 3
+           when cstm.region_c in (4, 5, 6, 7) and (cstm.base_source_c like '%^60^%'
+               or cstm.base_source_c like '%^61^%'
+               or cstm.base_source_c like '%^62^%'
+               or cstm.base_source_c like '%^63^%') then concat(cstm.region_c, '_alive')
+           else cstm.region_c end region_c2,
+           adial_campaign_id
+
+from suitecrm_robot.robot_log jc1
+        left join suitecrm_robot.robot_log_addition jc2
+        on jc1.id = jc2.robot_log_id
+                           left join steps on (ochered = jc1.robot_id and last_step = step)
+                           left join suitecrm.contacts c on jc1.phone = c.phone_work
+                           left join suitecrm.contacts_cstm cstm on c.id = cstm.id_c
+                  where date(call_date) >= date(now()) - interval 1 day
+#                     and last_step not in (111, 1, '', 0, 261, 262)
+             and (direction = 0 or direction = '')
+     )
+
+,
      jc_today_1 as (select distinct jc_today.*,
                                     if(autootvet=1 and trafic < 3,0,trafic) trafic1,
      team,
@@ -774,6 +863,8 @@ team,
        stretched,
        last_step,
        source,
-       phone,region_c2
+       phone,
+       region_c2,
+       adial_campaign_id
        
 from jc_today_3

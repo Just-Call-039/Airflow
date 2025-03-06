@@ -16,6 +16,9 @@ from airflow.utils.trigger_rule import TriggerRule
 from airflow.models import Variable
 from operational_all.operational_editing import operational_transformation
 from operational_all.operational_calls_editing import operational_calls_transformation
+from base.defs import  delete_ch
+from operational_all.autifilling_save_ch import save_autofilling_ch
+
 
 
 default_args = {
@@ -37,7 +40,21 @@ dag = DAG(
     )
 
 cloud_name = 'cloud_128'
+# cloud_name = 'cloud_183'
+
 # cloud_name = '72'
+
+type_dict = {'datetime' : 'str', 
+            'mother_queue' : 'str', 
+            'ro_queue' : 'str', 
+            'campaign' : 'str', 
+            'base_hashtag' : 'str',
+            'name_autofilling' : 'str', 
+            'marker' : 'str', 
+            'status' : 'str', 
+            'base_count' : 'str', 
+            'limits' : 'int64',
+            'facts' : 'int64'}
 
 # Пути к sql запросам на сервере airflow
 path_to_sql_airflow = '/root/airflow/dags/operational_all/SQL/'
@@ -48,6 +65,8 @@ sql_transfers = f'{path_to_sql_airflow}transfers.sql'
 sql_meetings = f'{path_to_sql_airflow}meetings.sql'
 sql_etv = f'{path_to_sql_airflow}etv.sql'
 sql_autofilling = f'{path_to_sql_airflow}autofilling.sql'
+sql_autofilling_datalens = f'{path_to_sql_airflow}autofilling_datalens.sql'
+sql_download_ch = f'{path_to_sql_airflow}autofilling_ch.sql'
 
 
 # Наименование файлов
@@ -67,6 +86,7 @@ file_name_transfers = 'Оперативный_переводы.csv'
 file_name_meetings = 'Оперативный_заявки.csv'
 file_name_etv = 'ЕТВ.csv'
 file_name_autofilling = 'Автозаливки.csv'
+file_autofilling_datalens = 'autofilling_datalens.csv'
 
 
 # Пути к файлам на сервере airflow
@@ -88,6 +108,11 @@ dbs_operational = f'{path_to_file_dbs}operational/'
 dbs_operational2 = '/scripts fsp/Current Files/'
 dbs_operational3 = '/scripts fsp/Current Files/'
 # dbs_operational3 = '/test folder/'
+
+# Clickhouse
+
+autofiling_table_ch = 'autofilling'
+
 
 
 
@@ -141,6 +166,13 @@ sql_autofilling = PythonOperator(
     dag=dag
     )
 
+sql_autofilling_datalens = PythonOperator(
+    task_id='sql_autofilling_datalens',
+    python_callable=sql_query_to_csv,
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_autofilling_datalens, 'path_csv_file': path_to_operational_folder, 'name_csv_file': file_autofilling_datalens},
+    dag=dag
+    )
+
 
 # Преобразование файлов после sql.
 transformation_operational = PythonOperator(
@@ -181,6 +213,21 @@ transfer_operational_main = PythonOperator(
     dag=dag
     )
 
+delete_autofilling_ch = PythonOperator(
+    task_id='delete_autofilling_ch', 
+    python_callable=delete_ch, 
+    op_kwargs={'table_name' : autofiling_table_ch}, 
+    dag=dag
+    )
+
+transfer_autofilling_ch = PythonOperator(
+    task_id='transfer_autifilling_ch', 
+    python_callable=save_autofilling_ch, 
+    op_kwargs={'path_df' : f'{path_to_operational_folder}{file_autofilling_datalens}', 'type_dict' : type_dict}, 
+    dag=dag
+    )
+
+
 # Отправка уведомления об ошибке в Telegram.
 send_telegram_message = TelegramOperator(
     task_id='send_telegram_message',
@@ -195,9 +242,9 @@ send_telegram_message = TelegramOperator(
 
 sql_operational >> transformation_operational >> transfer_operational_main
 sql_operational_calls >> transformation_operational_calls
-
+sql_autofilling_datalens >> delete_autofilling_ch >> transfer_autofilling_ch
 [transformation_operational_calls, sql_worktime,
-  sql_transfers, sql_meetings, sql_etv, sql_autofilling] >> transfer_operational2
+  sql_transfers, sql_meetings, sql_etv, sql_autofilling, sql_autofilling_datalens] >> transfer_operational2
 
 
 [transfer_operational_main, transfer_operational2] >> send_telegram_message

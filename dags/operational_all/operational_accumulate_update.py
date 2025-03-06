@@ -4,10 +4,11 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
     import datetime
     import os
     import fsp.def_project_definition as def_project_definition
-    from clickhouse_driver import Client
     import datetime
     import os
     import glob
+    from operational_all.redactor_operational_calls import changefillna, check_conditions
+    from commons_liza import to_click
 
 
     file_to_delete = f'{path_del}{file_deleted}'   # Замените на имя файла, который вы хотите удалить
@@ -27,28 +28,26 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
     previous_date = today - datetime.timedelta(days=15)
 
     print('Подключаемся к clickhouse')
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
-    if dest:
-        with open(dest) as file:
-            for now in file:
-                now = now.strip().split('=')
-                first, second = now[0].strip(), now[1].strip()
-                if first == 'host':
-                    host = second
-                elif first == 'user':
-                    user = second
-                elif first == 'password':
-                    password = second
-        # return host, user, password
+    
 
+    try:
 
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+        client = to_click.my_connection()
 
-    print('Удаляем данные за последние 14 дней')
+        print('Удаляем данные за последние 14 дней')
+        cluster =  '{cluster}'
 
-    # Формируем SQL-запрос для удаления строк
-    sql = f'''ALTER TABLE suitecrm_robot_ch.operational DELETE WHERE calldate >= toDate('{previous_date}') AND calldate < toDate('{today}')'''
+        # Формируем SQL-запрос для удаления строк
+        sql = f'''ALTER TABLE operational ON CLUSTER '{cluster}' DELETE
+                         WHERE calldate >= toDate('{previous_date}') AND calldate < toDate('{today}')  '''
+        # Отправляем запрос
+        client.execute(sql)
+    except (ValueError):
+        print('Данные не удалены')
+    finally:
+
+        client.connection.disconnect()
+        print('conection closed')
 
     # Отправляем запрос
     client.execute(sql)
@@ -80,7 +79,7 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
         sql_file = open(path_to_sql, 'r', encoding='utf-8')
         sql = sql_file.read()
         sql = sql.replace('\ufeff', '')
-        sql = sql.format(n)
+        sql = sql.format(n=n)
         df = pd.read_sql_query(sql, Con)
         if not df.empty:
             print('Соединяем и выводим итоговый проект')
@@ -99,88 +98,88 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
             df_phone = df[['phone']].astype('str').drop_duplicates()
 
             print('Подключаемся к clickhouse')
-            dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
-            if dest:
-                with open(dest) as file:
-                    for now in file:
-                        now = now.strip().split('=')
-                        first, second = now[0].strip(), now[1].strip()
-                        if first == 'host':
-                            host = second
-                        elif first == 'user':
-                            user = second
-                        elif first == 'password':
-                            password = second
-        # return host, user, password
+ 
+            try:
+                
 
-
-            client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+                client = to_click.my_connection()
             
-            print('Проверка застрявшей таблицы')
+                print('Проверка застрявшей таблицы')
 
-            if pd.DataFrame(client.execute('''show tables from suitecrm_robot_ch where table = 'temp_operational3'  ''')).shape[0] == 0:
-                print('Таблицы нет') 
-            else:
-                print('Удаляю застрявшую')
-                client.execute('drop table suitecrm_robot_ch.temp_operational3')
-
-            print('Создаем таблицу')
-            sql_create = '''create table suitecrm_robot_ch.temp_operational3
+                if pd.DataFrame(client.execute('''show tables from suitecrm_robot_ch where table = 'temp_operational3'  ''')).shape[0] == 0:
+                    print('Таблицы нет') 
+                else:
+                    print('Удаляю застрявшую')
+                    client.execute('drop table suitecrm_robot_ch.temp_operational3 ')
+                print('Создаем таблицу')
+                sql_create = '''create table suitecrm_robot_ch.temp_operational3
                         (
                             phone String
                         ) ENGINE = MergeTree
                             order by phone'''
-            client.execute(sql_create)
+                client.execute(sql_create)
 
-            client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+            
+            except (ValueError):
+                print('Таблица не создана')
+            finally:
+
+                client.connection.disconnect()
+                print('conection closed')
+
+            try:
+
+                client = to_click.my_connection()
 
 
-            print('Отправляем запрос и получаем категории')
-            client.insert_dataframe('INSERT INTO suitecrm_robot_ch.temp_operational3 VALUES', df_phone)
+                print('Отправляем запрос и получаем категории')
+                client.insert_dataframe('INSERT INTO suitecrm_robot_ch.temp_operational3 VALUES', df_phone)
 
-            click_sql = f'''select temp_operational3.phone as phone, case when calls between 1 and 5 then '1-5 calls'
-           when calls between 6 and 10 then '6-10 calls'
-               when calls between 11 and 15 then '11-15 calls'
-                   when calls > 15 then '> 15 calls'
-                       else '0' end category_calls,
-       case when answer between 1 and 5 then '1-5 answers'
-           when answer between 6 and 10 then '6-10 answers'
-                   when answer > 10 then '> 10 answers'
-                       else '0' end category
-    from suitecrm_robot_ch.temp_operational3
-         left join (select phone, count(date) calls
-                    from (
-                             select distinct concat('8',substring(dst, 2, 10)) phone,
-                                             toDate(calldate)      date
-                             from asteriskcdrdb_all.cdr_all
-                             where toDate(calldate) between (toDate(now()) - interval (357+{n}) day) and (toDate(now()) - interval (1+{n}) day)
-                               and concat('8',substring(dst, 2, 10)) in (select *
-                                                             from suitecrm_robot_ch.temp_operational3)
-                             ) tt
-                    group by phone) cdr on temp_operational3.phone = cdr.phone
-         left join (select phone, count(dialog) answer
-                    from (
-                             select phone,
-                                    dialog
-                             from suitecrm_robot_ch.jc_robot_log
-                             where toDate(call_date) between (toDate(now()) - interval (357+{n}) day) and (toDate(now()) - interval (1+{n}) day)
-                               and last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372')
-                               and phone in (select *
-                                                               from suitecrm_robot_ch.temp_operational3)
-                             ) t
-                    group by phone) jc on temp_operational3.phone = jc.phone
-    '''
+                click_sql = f'''select temp_operational3.phone as phone, case when calls between 1 and 5 then '1-5 calls'
+                                    when calls between 6 and 10 then '6-10 calls'
+                                        when calls between 11 and 15 then '11-15 calls'
+                                            when calls > 15 then '> 15 calls'
+                                                else '0' end category_calls,
+                                case when answer between 1 and 5 then '1-5 answers'
+                                    when answer between 6 and 10 then '6-10 answers'
+                                            when answer > 10 then '> 10 answers'
+                                                else '0' end category
+                                from suitecrm_robot_ch.temp_operational3
+                                    left join (select phone, count(date) calls
+                                                from (
+                                                        select distinct concat('8',substring(dst, 2, 10)) phone,
+                                                                        toDate(calldate)      date
+                                                        from asteriskcdrdb_all.cdr_all
+                                                        where toDate(calldate) between (toDate(now()) - interval (357+{n}) day) and (toDate(now()) - interval (1+{n}) day)
+                                                        and concat('8',substring(dst, 2, 10)) in (select *
+                                                                                        from suitecrm_robot_ch.temp_operational3)
+                                                        ) tt
+                                                group by phone) cdr on temp_operational3.phone = cdr.phone
+                                    left join (select phone, count(dialog) answer
+                                                from (
+                                                        select phone,
+                                                                dialog
+                                                        from suitecrm_robot_ch.jc_robot_log
+                                                        where toDate(call_date) between (toDate(now()) - interval (357+{n}) day) and (toDate(now()) - interval (1+{n}) day)
+                                                        and last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372')
+                                                        and phone in (select *
+                                                                                        from suitecrm_robot_ch.temp_operational3)
+                                                        ) t
+                                                group by phone) jc on temp_operational3.phone = jc.phone
+                                '''
 
-            client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+                category = pd.DataFrame(client.query_dataframe(click_sql))
+                print(category.columns)
 
-            category = pd.DataFrame(client.query_dataframe(click_sql))
-            print(category.columns)
+                print('Удаляем таблицу')
+                client.execute('drop table suitecrm_robot_ch.temp_operational3 ')
 
-            print('Удаляем таблицу')
-            client.execute('drop table suitecrm_robot_ch.temp_operational3')
+            except (ValueError):
+                print('Данные не загружены, таблица не удалена')
+            finally:
+
+                client.connection.disconnect()
+                print('conection closed')
 
             print('Цепим категори')
             df = df.merge(category, how='left', on='phone')
@@ -205,66 +204,53 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
         
 
 
-    # df['category'] = ''
+   
             print('Группируем')
             df = df.groupby(['project',
-        'dialog',
-        'destination_queue',
-        'calldate',
-        'client_status',
-        'was_repeat',
-        'marker',
-        'route',
-        'source',
-        'type_steps',
-        'region',
-        'holod',
-        'city_c',
-        'otkaz',
-        'trunk_id',
-        'autootvet',
-        'category_stat',
-        'stretched',
-        'category',
-        'category_calls',
-        'last_step','region_c2'], as_index=False, dropna=False).agg({'calls': 'sum',
-                                                         'trafic1': 'sum',
-                                                         'trafic': 'sum'}).rename(columns={'trafic': 'full_trafic',
-                                                                                           'trafic1': 'trafic'})
+                            'dialog',
+                            'destination_queue',
+                            'calldate',
+                            'client_status',
+                            'was_repeat',
+                            'marker',
+                            'route',
+                            'source',
+                            'type_steps',
+                            'region',
+                            'holod',
+                            'city_c',
+                            'otkaz',
+                            'trunk_id',
+                            'autootvet',
+                            'category_stat',
+                            'stretched',
+                            'category',
+                            'category_calls',
+                            'last_step','region_c2', 'adial_campaign_id'], as_index=False, dropna=False).agg({'calls': 'sum',
+                                                                                'trafic1': 'sum',
+                                                                                'trafic': 'sum'}).rename(columns={'trafic': 'full_trafic',
+                                                                                                                'trafic1': 'trafic'})
             
             print('Объединяем с ЕТВ')
+
+           
             
             etv = pd.read_csv('/root/airflow/dags/operational_all/Files/operational/ЕТВ.csv',  sep=',', encoding='utf-8').fillna('').astype('str')
             df = df.merge(etv, how='left', left_on='dialog', right_on='queue').fillna('').astype('str')
-            df['have_ptv_1'] = df['have_ptv_1'].astype('str').apply(lambda x: x.replace('.0',''))
-            df['have_ptv_2'] = df['have_ptv_2'].astype('str').apply(lambda x: x.replace('.0',''))
-            df['have_ptv_3'] = df['have_ptv_3'].astype('str').apply(lambda x: x.replace('.0',''))
-            df['have_ptv_4'] = df['have_ptv_4'].astype('str').apply(lambda x: x.replace('.0',''))
-            df['have_ptv_5'] = df['have_ptv_5'].astype('str').apply(lambda x: x.replace('.0',''))
-            df['have_ptv_6'] = df['have_ptv_6'].astype('str').apply(lambda x: x.replace('.0',''))
-            df['have_ptv_7'] = df['have_ptv_7'].astype('str').apply(lambda x: x.replace('.0',''))
+
+            col_list = ['have_ptv_1', 'have_ptv_2', 'have_ptv_3', 'have_ptv_4', 'have_ptv_5', 'have_ptv_6', 'have_ptv_7']
+
+            for col in col_list:
+
+                # Убираем .0 если возникла, приводим к строке и меняем значение '' на '100500' для коректной работы поиска значения в строке
+
+                df[col] = df[col].astype('str').apply(lambda x: x.replace('.0','')).apply(changefillna)
 
 
-            df['etv'] = ''
-            def check_conditions(row):
-                if (row['was_repeat'] == '1') and (row['route'].find(row['have_ptv_1']) != -1):
-                    row['etv'] = '1'
-                elif (row['was_repeat'] == '1') and (row['route'].find(row['have_ptv_2']) != -1):
-                    row['etv'] = '1'
-                elif (row['was_repeat'] == '1') and (row['route'].find(row['have_ptv_3']) != -1):
-                    row['etv'] = '1'
-                elif (row['was_repeat'] == '1') and (row['route'].find(row['have_ptv_4']) != -1):
-                    row['etv'] = '1'
-                elif (row['was_repeat'] == '1') and (row['route'].find(row['have_ptv_5']) != -1):
-                    row['etv'] = '1'
-                elif (row['was_repeat'] == '1') and (row['route'].find(row['have_ptv_6']) != -1):
-                    row['etv'] = '1'
-                elif (row['was_repeat'] == '1') and (row['route'].find(row['have_ptv_7']) != -1):
-                    row['etv'] = '1'
-                else:
-                    row['etv'] = '0'
-
-            df.apply(check_conditions, axis=1)
+            df['etv'] = '0'
+            for col in col_list:
+   
+                df['etv'] = df.apply(lambda row: check_conditions(row['route'], row[col], row['etv']), axis=1)
 
 
             df[['project','dialog','destination_queue','calldate','client_status',
@@ -272,12 +258,12 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
 
         'source','type_steps','region','holod',
         'city_c','otkaz','trunk_id','autootvet','category_stat','stretched',
-        'category','category_calls','last_step','etv','region_c2']] =  df[['project',
+        'category','category_calls','last_step','etv','region_c2', 'adial_campaign_id']] =  df[['project',
                         'dialog','destination_queue','calldate','client_status',
                         'was_repeat','marker',
                         'source','type_steps','region','holod',
                         'city_c','otkaz','trunk_id','autootvet','category_stat','stretched',
-                        'category','category_calls','last_step','etv','region_c2']].astype('str').fillna('')
+                        'category','category_calls','last_step','etv','region_c2', 'adial_campaign_id']].astype('str').fillna('')
 
             df[['calls','trafic','full_trafic']] = df[['calls','trafic','full_trafic']].astype('int64').fillna(0)
 
@@ -302,7 +288,7 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
         'category',
         'category_calls',
         'last_step',
-        'etv','region_c2'], as_index=False, dropna=False).agg({'calls': 'sum',
+        'etv','region_c2', 'adial_campaign_id'], as_index=False, dropna=False).agg({'calls': 'sum',
                                                          'trafic': 'sum',
                                                          'full_trafic': 'sum'})
             df['calldate'] = pd.to_datetime(df['calldate'])
@@ -316,29 +302,29 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
             df['etv'] = df['etv'].astype('str').apply(lambda x: x.replace('.0',''))
             print('Сохраняем')
             df.to_csv(to_save, index=False)
-
+            print(df.columns)
+            
+            df = df[['project', 'dialog', 'destination_queue', 'calldate', 'client_status',
+                    'was_repeat', 'marker', 'source', 'type_steps', 'region', 'holod',
+                    'city_c', 'otkaz', 'trunk_id', 'autootvet', 'category_stat',
+                    'stretched', 'category', 'category_calls', 'last_step', 'etv',
+                    'region_c2', 'calls', 'trafic', 'full_trafic', 'adial_campaign_id']]
 
             print('Подключаемся к clickhouse')
-            dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
-            if dest:
-                with open(dest) as file:
-                    for now in file:
-                        now = now.strip().split('=')
-                        first, second = now[0].strip(), now[1].strip()
-                        if first == 'host':
-                            host = second
-                        elif first == 'user':
-                            user = second
-                        elif first == 'password':
-                            password = second
-        # return host, user, password
+            
+            try:
+                
+                client = to_click.my_connection()
+            
+                print('Отправляем запрос')
+                client.insert_dataframe('INSERT INTO suitecrm_robot_ch.operational VALUES', df)
+                
+            except (ValueError):
+                print('Данные не загружены, таблица не удалена')
+            finally:
 
-
-            client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
-        
-            print('Отправляем запрос')
-            client.insert_dataframe('INSERT INTO suitecrm_robot_ch.operational VALUES', df)
+                client.connection.disconnect()
+                print('conection closed')
 
 
             n += 1

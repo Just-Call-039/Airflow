@@ -46,7 +46,7 @@ def dialog_errors():
                 sql = f'''SELECT *, '{m}' server_number
                 FROM dialogs_errors
                 where date(date) = date(now()) 
-                # - interval 1 day
+                #  - interval 1 day
                 '''
                 sql = sql.replace('\n','')
 
@@ -97,7 +97,7 @@ def dialog_errors():
 
 
     print('Подключаемся к clickhouse')
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
+    dest = '/root/airflow/dags/not_share/ClickHouse198.csv'
     if dest:
         with open(dest) as file:
             for now in file:
@@ -109,12 +109,19 @@ def dialog_errors():
                     user = second
                 elif first == 'password':
                     password = second
+    try: 
+        print('Заливаем данные')
+        client = Client(host=host, user=user, password=password,
+                        database='suitecrm_robot_ch', settings={'use_numpy': True})
+        print(data.shape[0])
 
-    print('Заливаем данные')
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+        client.insert_dataframe('INSERT INTO suitecrm_robot_ch.dialogs_errors VALUES', data)
+    except (ValueError):
+        print('Данные не загружены')
+    finally:
 
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.dialogs_errors VALUES', data)
+        client.connection.disconnect()
+        print('conection closed')
 
 
 

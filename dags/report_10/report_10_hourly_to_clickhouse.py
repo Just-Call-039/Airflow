@@ -13,6 +13,7 @@ def hourly_report_to_clickhouse(access_pass):
     # import os
     from clickhouse_driver import Client
     import glob
+    from commons_liza import to_click
         
     # acces = {'db_host': '192.168.1.183',
     #      'db_name': 'suitecrm',
@@ -123,24 +124,24 @@ def hourly_report_to_clickhouse(access_pass):
     print('Таблица обработана, начинаем загружать ее в clickhouse')
     # print('Таблица сохранена') 
 
-    print('Подключаемся к серверу')
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
-    if dest:
-        with open(dest) as file:
-            for now in file:
-                now = now.strip().split('=')
-                first, second = now[0].strip(), now[1].strip()
-                if first == 'host':
-                    host = second
-                elif first == 'user':
-                    user = second
-                elif first == 'password':
-                    password = second
-
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+    # print('Подключаемся к серверу')
+    # dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
+    # if dest:
+    #     with open(dest) as file:
+    #         for now in file:
+    #             now = now.strip().split('=')
+    #             first, second = now[0].strip(), now[1].strip()
+    #             if first == 'host':
+    #                 host = second
+    #             elif first == 'user':
+    #                 user = second
+    #             elif first == 'password':
+    #                 password = second
+    # try:
+    #     client = Client(host=host, port='9000', user=user, password=password,
+    #                 database='suitecrm_robot_ch', settings={'use_numpy': True})
     
-
+    client = to_click.my_connection()
     # название таблицы suitecrm_robot_ch.report_10_this_month_before_yest
     # today = datetime.date.today()
     # today = datetime.date.today() - datetime.timedelta(days=1)
@@ -156,11 +157,11 @@ def hourly_report_to_clickhouse(access_pass):
     print(f'типы данных//  today_date: , {today_date} - {type(today_date)}, max(date): {result} - {type(result)}')
     # print(f'max(date): {result} // max(date) type: {type(result)}')
     if result == today_date:
+        cluster = '{cluster}'
         # client.execute(f"ALTER TABLE suitecrm_robot_ch.report_10_this_month_before_yest DELETE WHERE date >= toDate(now());")  # toDate(now()) ? toDate("{today}")  | SELECT toDate(now()); | toStartOfDay(today())
-        client.execute(f"ALTER TABLE suitecrm_robot_ch.report_10_this_month_before_yest DELETE WHERE date >= '{today_date}' AND date < '{tomorrow_date}';")  # toDate("{today}")  | SELECT toDate(now()); | toStartOfDay(today())
+        client.execute(f"ALTER TABLE suitecrm_robot_ch.report_10_this_month_before_yest ON CLUSTER '{cluster}' DELETE WHERE date >= '{today_date}' AND date < '{tomorrow_date}';")  # toDate("{today}")  | SELECT toDate(now()); | toStartOfDay(today())
         
         # client.execute(f"DELETE FROM suitecrm_robot_ch.report_10_this_month_before_yest WHERE date >= '{today_date}' AND date < '{tomorrow_date}';")  # toDate("{today}")  | SELECT toDate(now()); | toStartOfDay(today())
-        
         print('данные за сегодня  удалены')
     else:
         if result < today_date:
@@ -178,7 +179,7 @@ def hourly_report_to_clickhouse(access_pass):
     print('Создаем таблицу')
 
     # date,queue_c, duration_minutes, result_call_c, otkaz_c, fio, supervisor, project, team, count_phone
- 
+
     # 'date', 'queue_c', 'duration_minutes', 'result_call_c', 'otkaz_c', 'fio', 'supervisor', 'project'])
     sql_create = '''create table suitecrm_robot_ch.report_10_today
                     (
@@ -194,11 +195,13 @@ def hourly_report_to_clickhouse(access_pass):
                     ) ENGINE = MergeTree
                         order by date'''
     client.execute(sql_create)"""
-    
-    print('Добавляем новые данные')
-
+        
+    client = to_click.my_connection()
     client.insert_dataframe('INSERT INTO suitecrm_robot_ch.report_10_this_month_before_yest VALUES', df_zvonki_h)  # suitecrm_robot_ch.report_10_today прежняя база
     print('Таблица за сегодня загружена в clickhouse')
+
+    print('Данные не загружены')
+
     print('Мин дата в таблице - ', df_zvonki_h['date'].min().date(), ' //  Макс дата в таблице - ', df_zvonki_h['date'].max().date())
     print()
     # print('\n', df_zvonki_h.info())

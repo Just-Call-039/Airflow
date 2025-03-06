@@ -101,19 +101,30 @@ def beeline_clickhouse(path_to_files, calls, work, otkaz):
                     password = second
         # return host, user, password
 
-
-    client = Client(host=host, port='9000', user=user, password=password,
+    try:
+        client = Client(host=host, port='9000', user=user, password=password,
                     database='beeline', settings={'use_numpy': True})
-    
-        
-    print('Добавляем журнал звонков за предыдущий день')
-    client.insert_dataframe('INSERT INTO beeline.beeline_calls VALUES',
+   
+        print('Добавляем журнал звонков за предыдущий день')
+        client.insert_dataframe('INSERT INTO beeline.beeline_calls VALUES',
                             beeline_calls)
+    except (ValueError):
+        print('Данные не загружены')
+
+    finally:
+
+        try:
     
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='beeline', settings={'use_numpy': True})
-    
-    print('Добавляем данные по рабочему времени')
-    client.insert_dataframe('INSERT INTO beeline.beeline_work_time VALUES',
+            print('Добавляем данные по рабочему времени')
+            client.insert_dataframe('INSERT INTO beeline.beeline_work_time VALUES',
                             work_time)
+    
+        except (ValueError):
+            print('Данные не загружены')
+
+        finally:
+
+            client.connection.disconnect()
+            print('conection closed')
+
 

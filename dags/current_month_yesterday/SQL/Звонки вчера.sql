@@ -94,14 +94,35 @@ with work_time as (select rc.id_user,
                from (select *, row_number() over (partition by phone,date(calldates),hours order by calldates desc) row
                      from (select phone,
                                   call_date                calldates,
-                                  substring(dialog, 11, 4) dialog,
+                                  dialog,
                                   DATE_FORMAT(DATE_ADD(call_date, INTERVAL IF(MINUTE(call_date) >= 58, 1, 0) HOUR),
                                               '%H')        hours
-                           from suitecrm_robot.jc_robot_log
-                           where last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372')
-                             and (call_date) != day(curdate())
-                             and month(call_date) = month(curdate())
-                             and year(call_date) = year(curdate())) yy) yyy
+                           from (select phone,
+                              call_date,
+                              REGEXP_SUBSTR(dialog, '[0-9]+') dialog,
+                              last_step
+                         from suitecrm_robot.jc_robot_log
+                         where last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372')
+                             and date(call_date) >= DATE_FORMAT(curdate(), '%Y-%m-01')
+                             and date(call_date) != date(curdate())
+                                       
+                        -- union all
+                                
+                        -- SELECT 
+                        --         phone,
+                        --         call_date,
+                        --         robot_id as dialog,
+                        --         last_step
+                                
+                        --   FROM suitecrm_robot.robot_log 
+                        --   left join suitecrm_robot.robot_log_addition 
+                        --         on robot_log.id = robot_log_addition.robot_log_id
+                        -- where last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372')
+                        --         and date(call_date) >= DATE_FORMAT(curdate(), '%Y-%m-01')
+                        --      and date(call_date) != date(curdate())
+                                        
+                                ) as rl
+                           ) yy) yyy
                where row = 1)
 
 select distinct calls.id,

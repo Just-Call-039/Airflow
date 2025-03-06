@@ -1,4 +1,5 @@
 from datetime import timedelta
+import datetime
 import pendulum
 
 from airflow import DAG
@@ -7,9 +8,11 @@ from airflow.operators.python_operator import PythonOperator
 
 from fsp.repeat_download import repeat_download
 from fsp.repeat_download import sql_query_to_csv
+from report_25_last_week.download_lost_data import calls_lost_archive_ch, editor_lost
 from report_25_last_week.calls_editer import robotlog_calls_transformation
 from report_25_last_week.calls_to_clickhouse import calls_to_clickhouse
 from report_25_last_week.calls_to_clickhouse_archive import calls_to_clickhouse_archive
+from commons_liza import clear_folder
 
 
 
@@ -30,9 +33,10 @@ dag = DAG(
     default_args=default_args
     )
 
-n = 1
+n = 0
 days = 7
-cloud_name = 'cloud_128'
+# cloud_name = 'cloud_128'
+cloud_name = 'cloud_183'
 
 path_to_sql = '/root/airflow/dags/report_25_last_week/SQL/'
 sql_total_calls_last_week = f'{path_to_sql}Total_calls_last_week.sql'
@@ -51,6 +55,15 @@ csv_transfers = 'transfers.csv'
 csv_city = 'city.csv'
 csv_town = 'town.csv'
 csv_region = 'region.csv'
+
+date_i = datetime.date.today() - datetime.timedelta(days=31)
+year = date_i.year
+month = date_i.month
+day = date_i.day
+
+# Названия файлов для удаления
+
+robotlog_to_delete = f'calls_last_week_{month:02}_{day:02}.csv'
 
 
 # Блок выполнения SQL запросов.
@@ -109,8 +122,52 @@ calls_file_to_clickhouse_archive = PythonOperator(
     dag=dag
     )
 
+# Даги для выгрузки потерянных данных, включаем по надобности
+
+# load_lost = PythonOperator(
+#     task_id='download_lost', 
+#     python_callable=calls_lost_archive_ch, 
+#     op_kwargs={'path_to_sql_calls': path_to_calls}, 
+#     dag=dag
+#     )
+
+# editor_lost_calls = PythonOperator(
+#     task_id='lost_calls_transformation', 
+#     python_callable=editor_lost, 
+#     op_kwargs={'path_to_sql_transfer_steps': path_to_file_airflow,
+#                 'sql_transfer_steps': csv_transfer_steps, 'sql_steps': csv_steps, 'sql_transfers': csv_transfers, 'path_to_calls': path_to_calls,
+#                 'sql_city': csv_city, 'sql_town': csv_town, 'sql_region': csv_region}, 
+#     dag=dag
+#     )
+
+
+
+clear_folders = PythonOperator(
+    task_id='clear_folder',
+    python_callable=clear_folder.clear_unique_file,
+    op_kwargs={
+                'folder' : path_to_file_sql_rl_airflow,
+                'file_name' : robotlog_to_delete
+    },
+    dag = dag
+)
+
+clear_folder_calls = PythonOperator(
+    task_id='clear_folder_calls',
+    python_callable=clear_folder.clear_unique_file,
+    op_kwargs={
+                'folder' : path_to_calls,
+                'file_name' : robotlog_to_delete
+    },
+    dag = dag
+)
+
+
+
+
 # Очередности выполнения задач.
 [calls_last_week_sql,
 transfer_steps_sql,
 transfers_sql,
-steps_sql] >> transformation_calls >> calls_file_to_clickhouse >> calls_file_to_clickhouse_archive
+steps_sql] >> transformation_calls >> calls_file_to_clickhouse >> calls_file_to_clickhouse_archive\
+>> [clear_folders, clear_folder_calls]

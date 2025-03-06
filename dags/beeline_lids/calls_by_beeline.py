@@ -27,7 +27,8 @@ dag = DAG(
     )
 
 
-cloud_name = 'cloud_128'
+# cloud_name = 'cloud_128'
+cloud_name = 'cloud_183'
 
 # Наименование файлов.
 csv_calls = 'calls.csv'

@@ -37,6 +37,7 @@ dag = DAG(
 
 
 cloud_name = 'cloud_128'
+# cloud_name = 'cloud_183'
 
 path_to_file_airflow = '/root/airflow/dags/previous_month/Files/'
 path_airflow_10_otchet = f'{path_to_file_airflow}10_otchet/'
@@ -159,12 +160,12 @@ c_to_dbs = PythonOperator(
     )
 # Блок отправки  файлов в clickhouse.
 
-transfer_to_click = PythonOperator(
-    task_id='transfer_to_click', 
-    python_callable=to_click, 
-    op_kwargs={'path_file': path_airflow_calls, 'calls': file_calls}, 
-    dag=dag
-    )
+# transfer_to_click = PythonOperator(
+#     task_id='transfer_to_click', 
+#     python_callable=to_click, 
+#     op_kwargs={'path_file': path_airflow_calls, 'calls': file_calls}, 
+#     dag=dag
+#     )
 
 transfer_call_to_click = PythonOperator(
     task_id='transfer_call_to_click', 
@@ -214,8 +215,9 @@ send_telegram_message_fiasko = TelegramOperator(
 # Блок очередности выполнения задач.
 c_sql >> c_to_dbs >> [send_telegram_message, send_telegram_message_fiasko]
 otchet_sql >> otchet_to_dbs >> transfer_call_10_to_click >> [send_telegram_message, send_telegram_message_fiasko]
-clear_folders >> calls_sql >> transfer_call_to_click >> calls_to_dbs >> [send_telegram_message, send_telegram_message_fiasko]
-transfer_robot_sql >> transfer_robot_to_dbs >> transfer_to_click >> [send_telegram_message, send_telegram_message_fiasko]
+clear_folders >> calls_sql >> calls_to_dbs >> transfer_call_to_click >> [send_telegram_message, send_telegram_message_fiasko]
+transfer_robot_sql >> transfer_robot_to_dbs >> [send_telegram_message, send_telegram_message_fiasko]
+# >> transfer_to_click 
 working_sql >> working_to_dbs >> transfer_work_to_click >> [send_telegram_message, send_telegram_message_fiasko]
 calls_with_request_sql >> calls_with_request_to_dbs >> [send_telegram_message, send_telegram_message_fiasko]
 

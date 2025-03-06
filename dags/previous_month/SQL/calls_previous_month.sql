@@ -93,15 +93,36 @@ with work_time as (select rc.id_user,
                             row_number() over (partition by phone, date(calldates), hours order by calldates desc) row
                      from (select phone,
                                   call_date                calldates,
-                                  substring(dialog, 11, 4) dialog,
+                                  REGEXP_SUBSTR(dialog, '[0-9]+') dialog,
                                   DATE_FORMAT(DATE_ADD(call_date, INTERVAL IF(MINUTE(call_date) >= 58, 1, 0) HOUR),
                                               '%H')        hours
                            from suitecrm_robot.jc_robot_log
                            where last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372')
-                             and (month(call_date) = month(curdate() - interval 1 month)
-                               and year(call_date) =
-                                   if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year),
-                                      year(curdate())))) yy) yyy
+                             and (month(call_date) = month(curdate() - interval 1 month) 
+                             and year(call_date) = if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year),
+                             year(curdate())))
+                             
+                           --   date(call_date) >= DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH, '%Y-%m-01') and
+                           --       date(call_date) < DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                                 
+                           union all 
+
+                           select phone,
+                                  call_date                calldates,
+                                  robot_id dialog,
+                                  DATE_FORMAT(DATE_ADD(call_date, INTERVAL IF(MINUTE(call_date) >= 58, 1, 0) HOUR),
+                                              '%H')        hours
+                           from suitecrm_robot.robot_log 
+                                 left join suitecrm_robot.robot_log_addition 
+                                 on robot_log.id = robot_log_addition.robot_log_id
+                           where last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372')
+                             and (month(call_date) = month(curdate() - interval 1 month) 
+                             and year(call_date) = if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year),
+                             year(curdate())))
+                             
+                           --   date(call_date) >= DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH, '%Y-%m-01') and
+                           --       date(call_date) < DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                                 ) yy) yyy
                where row = 1)
 
 

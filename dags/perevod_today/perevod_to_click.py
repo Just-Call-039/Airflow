@@ -4,6 +4,8 @@ def click_transfer():
     from clickhouse_driver import Client
     import datetime
 
+    from commons_liza import to_click
+
 
     sql = f'''select fio,
        supervisor,
@@ -219,7 +221,26 @@ group by fio,
          penalty,
          name,
          times,
-         effect_times, sum_oz, sum_talk'''
+         effect_times, sum_oz, sum_talk
+         
+union all
+
+select '' as fio,
+       '' as supervisor,
+       'по 1-4' as penalty_c,
+       '' as penalty_current,
+       name,
+       0 as times,
+       0 as effect_times,
+       0 as talk_in,
+       0 as talk_out,
+       0 as requests,
+       0 as sum_oz,
+       0 as sum_talk
+from suitecrm.adial_campaign
+where name is not null
+group by name
+'''
 
     print('Подключаемся к mysql')
     dest = '/root/airflow/dags/not_share/cloud_my_sql_128.csv'
@@ -241,7 +262,13 @@ group by fio,
     current_date = datetime.datetime.now()
     yesterday_date = current_date - datetime.timedelta(days=0)
     df_full['date'] = yesterday_date.strftime('%Y-%m-%d')
-    df_full['penalty_c'] = df_full['penalty_c'].astype('str').apply(lambda x: x.replace('.0',''))
+#     df_full['penalty_c'] = df_full['penalty_c'].astype('str').apply(lambda x: x.replace('.0',''))
+    df_full['penalty_c'] = df_full['penalty_c'].fillna('').astype('str').apply(lambda x: x.replace('.0','')).\
+                                                               apply(lambda x: x.replace(' 0   ','0')).\
+                                                               apply(lambda x: x.replace(' 1   ','1')).\
+                                                               apply(lambda x: x.replace(' 2   ','2')).\
+                                                               apply(lambda x: x.replace(' 3   ','3')).\
+                                                               apply(lambda x: x.replace(' 4   ','4'))
     df_full['penalty_current'] = df_full['penalty_current'].astype('str').apply(lambda x: x.replace('.0',''))
     df_full[['talk_in','talk_out',
              'requests', 'sum_oz','sum_talk']] = df_full[['talk_in','talk_out',
@@ -253,24 +280,7 @@ group by fio,
              'effect_times','talk_in','talk_out','requests','sum_oz','sum_talk','date']]
 
 
-    print('Подключаемся к clickhouse')
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
-    if dest:
-                with open(dest) as file:
-                    for now in file:
-                        now = now.strip().split('=')
-                        first, second = now[0].strip(), now[1].strip()
-                        if first == 'host':
-                            host = second
-                        elif first == 'user':
-                            user = second
-                        elif first == 'password':
-                            password = second
-        # return host, user, password
-
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
-    
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.perevod_today VALUES', df_full)
+    to_click.save_df('perevod_today', df_full)   
+   
 
     

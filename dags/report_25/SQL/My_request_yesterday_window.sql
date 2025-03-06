@@ -101,6 +101,16 @@ with reguest as (select 'RTK'                                 project,
                               phone,
                               row_number() over (partition by phone order by call_date desc) as num
                        from suitecrm_robot.jc_robot_log
+                       where date(call_date) >= date(now()) - interval 120 day
+                       union all
+                       select call_date + interval 2 hour                                    as call_date,
+                              dialog_id uniqueid,
+                              robot_id                                       as ochered,
+                              phone,
+                              row_number() over (partition by phone order by call_date desc) as num
+                       from suitecrm_robot.robot_log 
+                            left join suitecrm_robot.robot_log_addition 
+                            on robot_log.id = robot_log_addition.robot_log_id
                        where date(call_date) >= date(now()) - interval 120 day) as temp
                  where num = 1)
 

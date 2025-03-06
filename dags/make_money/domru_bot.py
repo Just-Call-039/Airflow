@@ -30,7 +30,8 @@ dag = DAG(
     default_args=default_args
     )
 
-cloud_name = 'cloud_128'
+# cloud_name = 'cloud_128'
+cloud_name = 'cloud_183'
 
 token = '6583071346:AAFEMd72_v33VEy90SxVcZ8Bzp3t4GZ0OJE'
 chat_id = '-1002108285575'  # your chat id

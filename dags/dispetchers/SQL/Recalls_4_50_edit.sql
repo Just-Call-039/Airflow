@@ -424,16 +424,30 @@ with town_c as (select 0 town_c, '0 РФ' Город
                                 last_step
                          from (select jc.phone,
                                       assigned_user_id,
-                                      substring(jc.dialog, 11, 4) queue,
-                                      if(destination_queue is null, substring(jc.dialog, 11, 4),
+                                      REGEXP_SUBSTR(jc.dialog, '[0-9]+') queue,
+                                      if(destination_queue is null, REGEXP_SUBSTR(jc.dialog, '[0-9]+'),
                                          destination_queue)       destination_queue,
                                       date(call_date)             call_date,
                                       last_step
                                from suitecrm_robot.jc_robot_log jc
                                         left join (select distinct * from suitecrm.transferred_to_other_queue) transferred_to_other_queue
                                                   on jc.uniqueid = transferred_to_other_queue.uniqueid
+                                        where date(call_date) >= '2022-02-01'
+                                 and assigned_user_id not in ('', '1')
+                                union all
+                                select phone,
+                                       operator_id as assigned_user_id,
+                                       robot_id as queue,
+                                       if (transfer is null, robot_id, transfer) as destination_queue,
+                                       date(call_date),
+                                       last_step
+                                  from suitecrm_robot.robot_log 
+                                  left join suitecrm_robot.robot_log_addition 
+                                       on robot_log.id = robot_log_addition.robot_log_id
+ 
+                                       
                                where date(call_date) >= '2022-02-01'
-                                 and assigned_user_id not in ('', '1')) jc2
+                                 and operator_id not in ('', '1')) jc2
                                   left join ocheredi_new
                                             on (jc2.destination_queue = ocheredi_new.queue and call_date = date)) jc3),
      fio as (select id, concat(first_name, ' ', last_name) fio, team

@@ -1,10 +1,10 @@
 import pandas as pd
-import gspread 
-from oauth2client.service_account import ServiceAccountCredentials
 from clickhouse_driver import Client
 import pandas as pd
 from current_month_yesterday import defs
 from indicators_to_regions.download_googlesheet import download_gs
+from route_robotlogs.all_functions import del_staple
+from commons_liza.to_click import my_connection
 
 def call_to_click(path_file, call):
 
@@ -53,9 +53,9 @@ def call_to_click(path_file, call):
     df['phone'] = df['phone'].astype('str').apply(lambda x: x.replace('.0',''))
     df['phone'] = df['phone'].astype('str').apply(lambda x: x.replace('.0',''))
 
-    print('test_operator ')
-    print(df[(df['user_call'] == '9f363445-d5e1-05ed-ad8d-642563f79a4a') & (df['call_date'] == '2024-09-01')]\
-            [['contactid', 'call_count', 'city']])
+    # print('test_operator ')
+    # print(df[(df['user_call'] == '9f363445-d5e1-05ed-ad8d-642563f79a4a') & (df['call_date'] == '2024-09-01')]\
+    #         [['contactid', 'call_count', 'city']])
 
     # Объединяем датафрейм с городами
     print('start merge df & city')
@@ -145,7 +145,7 @@ def call_to_click(path_file, call):
 
     # Объединяем датафрейм с запросами
     print('start merge df_request')
-    df =  df.merge(df_request, left_on = ['phone','user_call','call_date', 'NN'], right_on = ['my_phone_work','user','request_date', 'NN'], how = 'outer')
+    df =  df.merge(df_request, left_on = ['phone', 'user_call', 'call_date', 'NN'], right_on = ['my_phone_work', 'user', 'request_date', 'NN'], how = 'outer')
     print('date after merge with request', df['call_date'].unique())
     print('размер датасета  ', df.shape[0])
    
@@ -255,66 +255,77 @@ def call_to_click(path_file, call):
 
     print('Подключаемся к clickhouse')
 
-    # Достаем host, user & password
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
-    if dest:
-                with open(dest) as file:
-                    for now in file:
-                        now = now.strip().split('=')
-                        first, second = now[0].strip(), now[1].strip()
-                        if first == 'host':
-                            host = second
-                        elif first == 'user':
-                            user = second
-                        elif first == 'password':
-                            password = second
+    # # Достаем host, user & password
+    # dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
+    # if dest:
+    #             with open(dest) as file:
+    #                 for now in file:
+    #                     now = now.strip().split('=')
+    #                     first, second = now[0].strip(), now[1].strip()
+    #                     if first == 'host':
+    #                         host = second
+    #                     elif first == 'user':
+    #                         user = second
+    #                     elif first == 'password':
+    #                         password = second
+
+    try:
+         
     
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
-    
-    # Очистим таблицу usermetric_call_current
+        # client = Client(host=host, port='9000', user=user, password=password,
+        #                 database='suitecrm_robot_ch', settings={'use_numpy': True})
+        client = my_connection()
+        
+        # Очистим таблицу usermetric_call_current
 
-    print('delete from table call')
-    client.execute('truncate table suitecrm_robot_ch.usermetric_call_current')
+        print('delete from table call')
+        client.execute('truncate table suitecrm_robot_ch.usermetric_call_current')
+    except (ValueError):
+            print('Данные не удалены')
+    finally:
+        try:
+            # Создаем таблицу usermetric_call
+            print('Create table call')
+            sql_create = '''create table if not exists suitecrm_robot_ch.usermetric_call_current
+                            (
+                                CallDate            Date,
+                                CallName            String,
+                                CallContactId       String,
+                                CallQueue           String,
+                                CallUserId          String,
+                                CallSupervisorId    String,
+                                CallCity            String,
+                                CallTown            String,
+                                CallSec             Int64,
+                                CallShortCall       Int64,
+                                CallDialog          String,
+                                CallCompleted       String,
+                                CallFio             String,
+                                CallSupervisor      String,
+                                CallProject         String,
+                                CallRegion          String,
+                                CallCountSec        Float64,
+                                RequestDate         Date,
+                                RequestUser         String,
+                                RequestStatus       String,
+                                RequestDistrict     String,
+                                RequestPhone        String,
+                                CallCount           Int64
+                            )
+                                engine = MergeTree ORDER BY CallDate;'''
+            client.execute(sql_create)
+        except (ValueError):
+            print('Таблица не создана')
+        finally:
+            try:
 
-#     # Код на случай пересоздания таблицы
-#     # Удаляем таблицу usermetric_call
+                client.insert_dataframe('INSERT INTO suitecrm_robot_ch.usermetric_call_current VALUES', df_call)
+            except (ValueError):
+                print('Данные не загружены')
+            finally:
 
-#     print('drop table call')
-#     client.execute('drop table suitecrm_robot_ch.usermetric_call_current')
-
-#     # Создаем таблицу usermetric_call
-#     print('Create table call')
-#     sql_create = '''create table suitecrm_robot_ch.usermetric_call_current
-# (
-#     CallDate            Date,
-#     CallName            String,
-#     CallContactId       String,
-#     CallQueue           String,
-#     CallUserId          String,
-#     CallSupervisorId    String,
-#     CallCity            String,
-#     CallTown            String,
-#     CallSec             Int64,
-#     CallShortCall       Int64,
-#     CallDialog          String,
-#     CallCompleted       String,
-#     CallFio             String,
-#     CallSupervisor      String,
-#     CallProject         String,
-#     CallRegion          String,
-#     CallCountSec        Float64,
-#     RequestDate         Date,
-#     RequestUser         String,
-#     RequestStatus       String,
-#     RequestDistrict     String,
-#     RequestPhone        String,
-#     CallCount           Int64
-# )
-#     engine = MergeTree ORDER BY CallDate;'''
-#     client.execute(sql_create)
-
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.usermetric_call_current VALUES', df_call)
+                client.connection.disconnect()
+                print('conection closed')
 
 def work_to_click(path_file, work_hour):
 
@@ -381,62 +392,68 @@ def work_to_click(path_file, work_hour):
     print('connect to clickhouse')
 
     # Достаем host, user, password
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
-    if dest:
-                with open(dest) as file:
-                    for now in file:
-                        now = now.strip().split('=')
-                        first, second = now[0].strip(), now[1].strip()
-                        if first == 'host':
-                            host = second
-                        elif first == 'user':
-                            user = second
-                        elif first == 'password':
-                            password = second
-        
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
-    
-    #  Очищаем таблицу worktime
-    print('drop dates from table')
-    client.execute('truncate table  suitecrm_robot_ch.usermetric_worktime_current')
+    # dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
+    # if dest:
+    #             with open(dest) as file:
+    #                 for now in file:
+    #                     now = now.strip().split('=')
+    #                     first, second = now[0].strip(), now[1].strip()
+    #                     if first == 'host':
+    #                         host = second
+    #                     elif first == 'user':
+    #                         user = second
+    #                     elif first == 'password':
+    #                         password = second
+    try:    
+        # client = Client(host=host, port='9000', user=user, password=password,
+        #                 database='suitecrm_robot_ch', settings={'use_numpy': True})
+        client = my_connection()
+        #  Очищаем таблицу usermetric_worktime_current
+        print('drop dates from table')
+        cluster = '{cluster}'
+        client.execute(f'''truncate table usermetric_worktime_current on cluster '{cluster}' ''')
+    except (ValueError):
+        print('Данные не удалены')
+    finally:
+        try:        
+            print('create table')
+            sql_create_work = '''create table if not exists usermetric_worktime_current
+            
+                            (   WorktimeIdUser              String,
+                                WorktimeDate                Date,
+                                WorktimeTalkInbound         Int64,
+                                WorktimeTalkOutbound        Int64,
+                                WorktimeOzhidanie           Int64,
+                                WorktimeObrabotka           Int64,
+                                WorktimeTraining            Int64,
+                                WorktimeNastavnik           Int64,
+                                WorktimeSobranie            Int64,
+                                WorktimeProblems            Int64,
+                                WorktimeObuchenie           Int64,
+                                WorktimeDorabotka           Int64,
+                                WorktimePause               Int64,
+                                WorktimeLunchDuration       Int64,
+                                WorktimeDrabotkaTalk        Int64,
+                                WorktimeTotalSec            Int64,
+                                WorktimeEffectiveTime       Int64,
+                                WorktimeUneffectiveTime     Int64
+                            )
+                                engine = MergeTree ORDER BY WorktimeDate;'''
+            client.execute(sql_create_work)
+        except (ValueError):
+            print('Таблица не создана')
+        finally:
+            try:
 
-#     # Создаем таблицу worktime
-#     client = Client(host=host, port='9000', user=user, password=password,
-#                     database='suitecrm_robot_ch', settings={'use_numpy': True})
+                # Записываем новые данные в таблицу
+                client.insert_dataframe('INSERT INTO suitecrm_robot_ch.usermetric_worktime_current VALUES', df_work)
+            except (ValueError):
+                print('Данные не загружены')
+            finally:
 
-    
-#     print('create table')
-#     sql_create_work = '''create table suitecrm_robot_ch.usermetric_worktime_current
-    
-# (   WorktimeIdUser              String,
-#     WorktimeDate                Date,
-#     WorktimeTalkInbound         Int64,
-#     WorktimeTalkOutbound        Int64,
-#     WorktimeOzhidanie           Int64,
-#     WorktimeObrabotka           Int64,
-#     WorktimeTraining            Int64,
-#     WorktimeNastavnik           Int64,
-#     WorktimeSobranie            Int64,
-#     WorktimeProblems            Int64,
-#     WorktimeObuchenie           Int64,
-#     WorktimeDorabotka           Int64,
-#     WorktimePause               Int64,
-#     WorktimeLunchDuration       Int64,
-#     WorktimeDrabotkaTalk        Int64,
-#     WorktimeTotalSec            Int64,
-#     WorktimeEffectiveTime       Int64,
-#     WorktimeUneffectiveTime     Int64
-# )
-#     engine = MergeTree ORDER BY WorktimeDate;'''
-#     client.execute(sql_create_work)
+                client.connection.disconnect()
+                print('conection closed')
 
-    # Записываем новые данные в таблицу
-
-    client = Client(host=host, port='9000', user=user, password=password,
-                       database='suitecrm_robot_ch', settings={'use_numpy': True})
-
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.usermetric_worktime_current VALUES', df_work)
 
 def usertotal_to_click(path_file, usertotal):
 
@@ -462,56 +479,56 @@ def usertotal_to_click(path_file, usertotal):
     print('connect to clickhouse')
 
     # Достаем host, user, password
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
-    if dest:
-                with open(dest) as file:
-                    for now in file:
-                        now = now.strip().split('=')
-                        first, second = now[0].strip(), now[1].strip()
-                        if first == 'host':
-                            host = second
-                        elif first == 'user':
-                            user = second
-                        elif first == 'password':
-                            password = second
-        
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
-    
-    #  Очищаем данные из таблицы operatoradd
-    print('delete dates from table')
-    client.execute('truncate table suitecrm_robot_ch.usermetric_operatoradd')
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
-
-#     #  Удаляем таблицу operatoradd
-#     print('drop table')
-#     client.execute('drop table suitecrm_robot_ch.usermetric_operatoradd')
-#     client = Client(host=host, port='9000', user=user, password=password,
-#                     database='suitecrm_robot_ch', settings={'use_numpy': True})
-
-#     # Создаем таблицу operatoradd
-#     print('create table')
-#     sql_create_work = '''create table suitecrm_robot_ch.usermetric_operatoradd
-    
-# (   OperatorAddId               String,
-#     OperatorAddDateEntered      Date,
-#     OperatorAddFirstWorkDay     Date,
-#     OperatorAddDismissalDate    Date,
-#     OperatorAddLastLogin        Date,
-#     OperatorAddUserId           String,
-#     OperatorAddPenalty          String,
-#     OperatorAddSip              String,
-# )
-#     engine = MergeTree ORDER BY OperatorAddId;'''
-#     client.execute(sql_create_work)
-
-    # Записываем новые данные в таблицу
-
-    client = Client(host=host, port='9000', user=user, password=password,
-                       database='suitecrm_robot_ch', settings={'use_numpy': True})
-
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.usermetric_operatoradd VALUES', df_usertotal)
+    # dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
+    # if dest:
+    #             with open(dest) as file:
+    #                 for now in file:
+    #                     now = now.strip().split('=')
+    #                     first, second = now[0].strip(), now[1].strip()
+    #                     if first == 'host':
+    #                         host = second
+    #                     elif first == 'user':
+    #                         user = second
+    #                     elif first == 'password':
+    #                         password = second
+    try:     
+        # client = Client(host=host, port='9000', user=user, password=password,
+        #             database='suitecrm_robot_ch', settings={'use_numpy': True})
+        client = my_connection()
+        #  Очищаем данные из таблицы operatoradd
+        print('delete dates from table')
+        cluster = '{cluster}'
+        client.execute(f'''truncate table usermetric_operatoradd on cluster '{cluster}' ''')
+    except (ValueError):
+        print('Данные не удалены')
+    finally:
+        try:
+            # Создаем таблицу operatoradd
+            print('create table')
+            sql_create_work = '''create table if not exists usermetric_operatoradd
+            
+                            (   OperatorAddId               String,
+                                OperatorAddDateEntered      Date,
+                                OperatorAddFirstWorkDay     Date,
+                                OperatorAddDismissalDate    Date,
+                                OperatorAddLastLogin        Date,
+                                OperatorAddUserId           String,
+                                OperatorAddPenalty          String,
+                                OperatorAddSip              String,
+                            )
+                                engine = MergeTree ORDER BY OperatorAddId;'''
+            client.execute(sql_create_work)
+        except (ValueError):
+            print('Данные не загружены')
+        finally:
+            try:
+                # Записываем новые данные в таблицу
+                client.insert_dataframe('INSERT INTO suitecrm_robot_ch.usermetric_operatoradd VALUES', df_usertotal)
+            except (ValueError):
+                print('fyyst yt pfuhe;tys')
+            finally:
+                client.connection.disconnect()
+                print('conection closed')
 
 
 def userlogin_to_click(path_file, userlogin):
@@ -534,54 +551,64 @@ def userlogin_to_click(path_file, userlogin):
     # df_userlogin['UserLoginStopStatus'] = df_userlogin['UserLoginStopStatus'].astype('datetime64').dt.time
        
 
-    df_userlogin.to_csv('/root/airflow/dags/current_month_yesterday/Files/userlogin.csv')
+    # df_userlogin.to_csv('/root/airflow/dags/current_month_yesterday/Files/userlogin.csv')
     
-    print('save to csv') 
+    # print('save to csv') 
 
     # Подключаемся к базе
     print('connect to clickhouse')
     # Достаем host, user, password
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
-    if dest:
-                with open(dest) as file:
-                    for now in file:
-                        now = now.strip().split('=')
-                        first, second = now[0].strip(), now[1].strip()
-                        if first == 'host':
-                            host = second
-                        elif first == 'user':
-                            user = second
-                        elif first == 'password':
-                            password = second
-        
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
-    
-    #  Очищаем данные из таблицы userlogin
-    print('delete dates from table')
-    client.execute('truncate table suitecrm_robot_ch.usermetric_userlogin')
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+    # dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
+    # if dest:
+    #             with open(dest) as file:
+    #                 for now in file:
+    #                     now = now.strip().split('=')
+    #                     first, second = now[0].strip(), now[1].strip()
+    #                     if first == 'host':
+    #                         host = second
+    #                     elif first == 'user':
+    #                         user = second
+    #                     elif first == 'password':
+    #                         password = second
+    try:    
+        # client = Client(host=host, port='9000', user=user, password=password,
+        #                 database='suitecrm_robot_ch', settings={'use_numpy': True})
+        client = my_connection()
+        #  Очищаем данные из таблицы usermetric_userlogin
+        print('delete dates from table')
+        cluster = '{cluster}'
+        client.execute(f'''truncate table usermetric_userlogin on cluster '{cluster}' ''') 
+    except (ValueError):
+        print('Данные не удалены')
+    finally:
+        try:
 
-#     # Создаем таблицу userlogin
-#     print('create table')
-#     sql_create_userlogin = '''create table suitecrm_robot_ch.usermetric_userlogin
-    
-# (   UserLoginUserId           String,
-#     UserLoginStartStatus      Time,
-#     UserLoginStopStatus       Time,
-#     UserLoginDateStart        Date,
-#     UserLoginDateStop         Date,    
-# )
-#     engine = MergeTree ORDER BY UserLoginUserId;'''
-#     client.execute(sql_create_userlogin)
+            # Создаем таблицу usermetric_userlogin
+            print('create table')
+            sql_create_userlogin = '''create table if not exists usermetric_userlogin
+            
+                                (   UserLoginUserId           String,
+                                    UserLoginStartStatus      Time,
+                                    UserLoginStopStatus       Time,
+                                    UserLoginDateStart        Date,
+                                    UserLoginDateStop         Date,    
+                                )
+                                engine = MergeTree ORDER BY UserLoginUserId;'''
+            client.execute(sql_create_userlogin)
+        except (ValueError):
+            print('fyyst yt pfuhe;tys')
+        finally:
+            try:
 
-    # Записываем новые данные в таблицу
+                # Записываем новые данные в таблицу
 
-    client = Client(host=host, port='9000', user=user, password=password,
-                       database='suitecrm_robot_ch', settings={'use_numpy': True})
+                client.insert_dataframe('INSERT INTO suitecrm_robot_ch.usermetric_userlogin VALUES', df_userlogin)
+            except (ValueError):
+                print('Данные не удалены')
+            finally:
 
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.usermetric_userlogin VALUES', df_userlogin)
+                client.connection.disconnect()
+                print('conection closed')
 
 def user_to_click(path_file, user):
 
@@ -604,55 +631,56 @@ def user_to_click(path_file, user):
     print('connect to clickhouse')
 
     # Достаем host, user, password
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
-    if dest:
-                with open(dest) as file:
-                    for now in file:
-                        now = now.strip().split('=')
-                        first, second = now[0].strip(), now[1].strip()
-                        if first == 'host':
-                            host = second
-                        elif first == 'user':
-                            user = second
-                        elif first == 'password':
-                            password = second
-        
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+    # dest = '/root/airflow/dags/not_share/ClickHouse198.csv'
+    # if dest:
+    #             with open(dest) as file:
+    #                 for now in file:
+    #                     now = now.strip().split('=')
+    #                     first, second = now[0].strip(), now[1].strip()
+    #                     if first == 'host':
+    #                         host = second
+    #                     elif first == 'user':
+    #                         user = second
+    #                     elif first == 'password':
+    #                         password = second
+    try:    
+        client = my_connection()
     
-    # Очищаем таблицу operator
-    print('delete dates from table')
-    client.execute('truncate table suitecrm_robot_ch.usermetric_operator')
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+        # Очищаем таблицу operator
+        print('delete dates from table')
+        cluster = '{cluster}'
+        client.execute(f'''truncate table usermetric_operator on cluster '{cluster}' ''')
+    except (ValueError):
+            print('Таблица не удалена')
+    finally:
+        try:
+            # Создаем таблицу operator
 
-    # #  Удаляем таблицу operator
-    # print('drop table')
-    # client.execute('drop table suitecrm_robot_ch.usermetric_operator')
-    # client = Client(host=host, port='9000', user=user, password=password,
-    #                 database='suitecrm_robot_ch', settings={'use_numpy': True})
-    
-    # # Создаем таблицу operator
+            print('create table')
+            sql_create_user = '''create table if not exists usermetric_operator
+            
+                                (
+                                OperatorId          String,
+                                OperatorFio         String,
+                                OperatorTeam        String,
+                                OperatorSupervisor  String
+                                )
+                                engine = MergeTree ORDER BY OperatorId;'''
 
-    # print('create table')
-    # sql_create_user = '''create table suitecrm_robot_ch.usermetric_operator
-    
-    # (
-    # OperatorId          String,
-    # OperatorFio         String,
-    # OperatorTeam        String,
-    # OperatorSupervisor  String
-    # )
-    # engine = MergeTree ORDER BY OperatorId;'''
+            client.execute(sql_create_user)
+        except (ValueError):
+            print('fyyst yt pfuhe;tys')
+        finally:
+            try:
+                # Записываем новые данные в таблицу
 
-    # client.execute(sql_create_user)
+                client.insert_dataframe('INSERT INTO suitecrm_robot_ch.usermetric_operator VALUES', df_user)
+            except (ValueError):
+                print('Данные не загружены')
+            finally:
 
-    # Записываем новые данные в таблицу
-
-    client = Client(host=host, port='9000', user=user, password=password,
-                       database='suitecrm_robot_ch', settings={'use_numpy': True})
-
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.usermetric_operator VALUES', df_user)
+                client.connection.disconnect()
+                print('conection closed')
 
 def call_10_to_click(path_file, call_10):
 
@@ -745,6 +773,17 @@ def call_10_to_click(path_file, call_10):
     print(df_union_city['Город'].unique())
     df_union_city['duration_minutes'] = df_union_city['duration_minutes'].fillna('0')
     df_union_city = df_union_city.fillna('')
+    
+    # Объединим датафрейм с таблицей качество , чтобы извлечь название разметки
+
+    df_quality = pd.read_csv('/root/airflow/dags/current_month_yesterday/Files/Качество.csv')
+    df_quality['Качество города'] = df_quality['Качество города'].apply(del_staple)
+    df_quality = df_quality.rename(columns = {'id' : 'ptv'})
+    df_union_city = df_union_city.merge(df_quality[['ptv', 'Качество города']], on = 'ptv', how= 'left')
+    del df_union_city['ptv']
+    df_union_city = df_union_city.rename(columns = {'Качество города' : 'ptv'})
+
+
 
     print('size df  ', df_union_city.shape[0])
 
@@ -800,66 +839,75 @@ def call_10_to_click(path_file, call_10):
     print('Подключаемся к clickhouse')
 
     # Достаем host, user & password
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
-    if dest:
-                with open(dest) as file:
-                    for now in file:
-                        now = now.strip().split('=')
-                        first, second = now[0].strip(), now[1].strip()
-                        if first == 'host':
-                            host = second
-                        elif first == 'user':
-                            user = second
-                        elif first == 'password':
-                            password = second
+    # dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
+    # if dest:
+    #             with open(dest) as file:
+    #                 for now in file:
+    #                     now = now.strip().split('=')
+    #                     first, second = now[0].strip(), now[1].strip()
+    #                     if first == 'host':
+    #                         host = second
+    #                     elif first == 'user':
+    #                         user = second
+    #                     elif first == 'password':
+    #                         password = second
+
+    try:
     
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
-    
-    # Очищаем таблицу usermetric_call
+        # client = Client(host=host, port='9000', user=user, password=password,
+        #             database='suitecrm_robot_ch', settings={'use_numpy': True})
+        client = my_connection()
+        # Очищаем таблицу usermetric_call
 
-    print('delete dates from table call')
-    client.execute('truncate table suitecrm_robot_ch.userrefusal_call_current')
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+        print('delete dates from table userrefusal_call_current')
+        cluster = '{cluster}'
+        client.execute(f'''truncate table userrefusal_call_current on cluster '{cluster}' ''')
 
-    # Удаляем таблицу usermetric_call
+    except (ValueError):
+        print('Таблица не удалена')
+        
+    finally:
+        try:
+      # Создаем таблицу usermetric_call
+            print('Create table userrefusal_call_current')
+            sql_create = '''create table if not exists userrefusal_call_current
+                        (
+                        CallDate            Date,
+                        CallUserID          String,
+                        CallQueue           String,            
+                        CallResult          String,
+                        CallCityCode        String,
+                        CallCountId         Int64,
+                        CallSetQueue        String,
+                        CallDurationMinute  Int64,
+                        CallMarker          String,
+                        CallPTV             String,
+                        UserFio             String,
+                        UserSupervisor      String,
+                        LidsProject         String,
+                        JCRegion            String,
+                        OtkazName           String,
+                        CallRegion          String,
+                        CallCity            String
+                        )
+                        engine = MergeTree ORDER BY CallDate;'''
+            client.execute(sql_create)
 
-    # print('drop table call')
-    # client.execute('drop table suitecrm_robot_ch.userrefusal_call_current')
-    # client = Client(host=host, port='9000', user=user, password=password,
-    #                 database='suitecrm_robot_ch', settings={'use_numpy': True})
+        except (ValueError):
+            print('fyyst yt pfuhe;tys')
+        finally:
+            try:
 
-    # # Создаем таблицу usermetric_call
-    # print('Create table call')
-    # sql_create = '''create table suitecrm_robot_ch.userrefusal_call_current
-    # (
-    # CallDate            Date,
-    # CallUserID          String,
-    # CallQueue           String,            
-    # CallResult          String,
-    # CallCityCode        String,
-    # CallCountId         Int64,
-    # CallSetQueue        String,
-    # CallDurationMinute  Int64,
-    # CallMarker          String,
-    # CallPTV             String,
-    # UserFio             String,
-    # UserSupervisor      String,
-    # LidsProject         String,
-    # JCRegion            String,
-    # OtkazName           String,
-    # CallRegion          String,
-    # CallCity            String
-    # )
-    # engine = MergeTree ORDER BY CallDate;'''
-    # client.execute(sql_create)
+                # Записываем новый данные в таблицу userrefusal_call_current
 
-    # Записываем новый данные в таблицу usermetric_call
-    client = Client(host=host, port='9000', user=user, password=password,
-                       database='suitecrm_robot_ch', settings={'use_numpy': True})
+                client.insert_dataframe('INSERT INTO suitecrm_robot_ch.userrefusal_call_current VALUES', df_union_city)
+            except (ValueError):
+                print('Данные не загружены')
+            finally:
 
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.userrefusal_call_current VALUES', df_union_city)
+                client.connection.disconnect()
+                print('connection closed')
+   
 
 
 def callwait_to_click(path_file, callwait):
@@ -888,50 +936,58 @@ def callwait_to_click(path_file, callwait):
     print('connect to clickhouse')
 
     # Достаем host, user, password
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
-    if dest:
-                with open(dest) as file:
-                    for now in file:
-                        now = now.strip().split('=')
-                        first, second = now[0].strip(), now[1].strip()
-                        if first == 'host':
-                            host = second
-                        elif first == 'user':
-                            user = second
-                        elif first == 'password':
-                            password = second
-        
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+    # dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
+    # if dest:
+    #             with open(dest) as file:
+    #                 for now in file:
+    #                     now = now.strip().split('=')
+    #                     first, second = now[0].strip(), now[1].strip()
+    #                     if first == 'host':
+    #                         host = second
+    #                     elif first == 'user':
+    #                         user = second
+    #                     elif first == 'password':
+    #                         password = second
+    try:  
+        client = my_connection()    
+        # client = Client(host=host, port='9000', user=user, password=password,
+        #             database='suitecrm_robot_ch', settings={'use_numpy': True})
     
-    #  Очищаем таблицу userlogin
-    print('delete from table')
-    client.execute('truncate table suitecrm_robot_ch.usermetric_callwait')
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+        #  Очищаем таблицу usermetric_callwait
+        print('delete from table')
+        cluster = '{cluster}'
+        client.execute(f'''truncate table usermetric_callwait on cluster '{cluster}' ''')
+    except (ValueError):
+        print('Данные не удалены')
+    finally:
+        try:
     
-#     #  Удаляем таблицу userlogin
-#     print('drop table')
-#     client.execute('drop table suitecrm_robot_ch.usermetric_callwait')
-#     client = Client(host=host, port='9000', user=user, password=password,
-#                     database='suitecrm_robot_ch', settings={'use_numpy': True})
+            # Создаем таблицу userlogin
+            print('create table')
+            sql_create = '''create table if not exists usermetric_callwait
+                        (
+                            CallWaitUserID        String,
+                            CallWaitDateEntered   Date,
+                            CalWaitContactStatus  String,
+                            CallWaitDateStart     Date,
+                            CallWaitContactID     String,
+                            CallWaitTownCode      String,
+                            CallWaitLastQueue     String
+                            
+                        )
+                        engine = MergeTree ORDER BY CallWaitDateEntered;'''
+            client.execute(sql_create)
+        except (ValueError):
+            print('fyyst yt pfuhe;tys')
+        finally:
+            try:
 
-#     # Создаем таблицу userlogin
-#     print('create table')
-#     sql_create = '''create table suitecrm_robot_ch.usermetric_callwait
-# (
-#     CallWaitUserID        String,
-#     CallWaitDateEntered   Date,
-#     CalWaitContactStatus  String,
-#     CallWaitDateStart     Date,
-#     CallWaitContactID     String,
-#     CallWaitTownCode      String,
-#     CallWaitLastQueue     String
-    
-# )
-#     engine = MergeTree ORDER BY CallWaitDateEntered;'''
-#     client.execute(sql_create)
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.usermetric_callwait VALUES', df_callwait)   
+                client.insert_dataframe('INSERT INTO suitecrm_robot_ch.usermetric_callwait VALUES', df_callwait)   
+            except (ValueError):
+                print('Данные не загружены')
+            finally:
+                client.connection.disconnect()
+                print('connection closed')
     
 
 

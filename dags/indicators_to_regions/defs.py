@@ -46,7 +46,7 @@ def del_point_zero(df, col_list):
     
     for col in col_list:
     
-        df[col] = df[col].apply(lambda x: x.replace('.0', ''))
+        df[col] = df[col].fillna('').astype(str).apply(lambda x: x.replace('.0', ''))
 
 def update_project(project_x, project_y):
     if project_x == '':
@@ -59,4 +59,12 @@ def fill_nan(x, y):
     if (x == 0) | (x == '0') | (x == '') | (x == ' '):
         return y
     else:
-        return x    
+        return x   
+
+def total_sec(row):
+     col_list = ['talk_inbound', 'talk_outbound', 'ozhidanie', 'obrabotka', 'training', 'nastavnik', 'sobranie', \
+                                   'problems', 'obuchenie', 'dorabotka']
+     result = 0
+     for col in col_list:
+             result += row[col]
+     return result 

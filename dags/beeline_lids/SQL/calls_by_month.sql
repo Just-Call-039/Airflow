@@ -18,23 +18,49 @@ with calls as (select cl.id,
                         left join suitecrm.calls_cstm as cl_c on cl.id = cl_c.id_c
                         left join suitecrm.contacts on cl_c.asterisk_caller_id_c = contacts.phone_work
                         left join suitecrm.contacts_cstm on contacts_cstm.id_c = contacts.id
-               where date(cl.date_entered) = date(now()) -interval 1 day               ),
+               where date(cl.date_entered) = date(now()) - interval 1 day               ),
 
 
      ws as (select *
             from (select *, row_number() over (partition by id_user order by date_start desc) as num
                   from suitecrm.worktime_supervisor) as temp
             where temp.num = 1),
-     robot as (select phone, date(calldates) calldate, dialog, hours
+     robot as (select phone, 
+                      date(calldates) calldate, 
+                      dialog, 
+                      hours
                from (select *, row_number() over (partition by phone,date(calldates),hours order by calldates desc) row
                      from (select phone,
                                   call_date                calldates,
-                                  substring(dialog, 11, 4) dialog,
+                                  dialog,
                                   DATE_FORMAT(DATE_ADD(call_date, INTERVAL IF(MINUTE(call_date) >= 58, 1, 0) HOUR),
                                               '%H')        hours
-                           from suitecrm_robot.jc_robot_log
-                           where last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372')
-  and date(call_date) = date(now()) -interval 1 day  )yy) yyy
+                           from (select phone,
+                                        call_date,
+                                        REGEXP_SUBSTR(dialog, '[0-9]+') dialog,
+                                        last_step
+                             
+                                        from suitecrm_robot.jc_robot_log
+                                where last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372')
+                                        and date(call_date) = date(now()) - interval 1 day  
+                                        
+                                union all
+                                
+                                SELECT 
+                                        phone,
+                                        call_date,
+                                        robot_id as dialog,
+                                        last_step
+                                        
+                                        FROM suitecrm_robot.robot_log 
+                                        left join suitecrm_robot.robot_log_addition 
+                                             on robot_log.id = robot_log_addition.robot_log_id
+                                    where last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372')
+                                        and date(call_date) = date(now()) - interval 1 day  
+                                        
+                                ) as rl
+
+                           )yy) yyy
                where row = 1)
 
 select distinct calls.id,

@@ -10,6 +10,10 @@ from airflow.operators.python_operator import PythonOperator
 from fsp.repeat_download import sql_query_to_csv
 from commons_sawa.telegram import telegram_send
 
+from dispetchers import waiter
+
+
+
 
 default_args = {
     'owner': 'Lidiya Butenko',
@@ -29,7 +33,9 @@ dag = DAG(
     default_args=default_args
     )
 
-cloud_name = 'cloud_128'
+# cloud_name = 'cloud_128'
+cloud_name = 'cloud_183'
+
 
 token = '5095756650:AAElXGJb5kfvanEXx5FlET6T3HayTjIs_PU'
 chat_id = '-1001412983860'  # your chat id
@@ -42,6 +48,7 @@ path_to_sql = '/root/airflow/dags/make_money/SQL/make_money_sql_query.sql'
 path_to_file_sql_airflow = '/root/airflow/dags/make_money/Files'
 
 csv_money = 'make_money_file.csv'
+excel_money = 'make_money_file.xlsx'
 
 # Блок выполнения SQL запросов.
 money_sql = PythonOperator(
@@ -51,11 +58,19 @@ money_sql = PythonOperator(
     dag=dag
     )
 
-money_telegram = PythonOperator(
-    task_id='money_telegram', 
-    python_callable=telegram_send, 
-    op_kwargs={'text': text_money, 'token': token, 'chat_id': chat_id, 'filepath': path_to_file_sql_airflow, 'filename': csv_money}, 
+money_editor = PythonOperator(
+    task_id='waiter_editor', 
+    python_callable=waiter.set_project, 
+    op_kwargs={'waiter_path': f'{path_to_file_sql_airflow}/{csv_money}', 
+               'result_path': f'{path_to_file_sql_airflow}/{excel_money}'}, 
     dag=dag
     )
 
-money_sql >> money_telegram
+money_telegram = PythonOperator(
+    task_id='money_telegram', 
+    python_callable=telegram_send, 
+    op_kwargs={'text': text_money, 'token': token, 'chat_id': chat_id, 'filepath': path_to_file_sql_airflow, 'filename': excel_money}, 
+    dag=dag
+    )
+
+money_sql >> money_editor >> money_telegram

@@ -20,17 +20,27 @@ def transfer_to_click(x, y, stop, general_create):
                     password = second
         # return host, user, password
 
+    try:
+        print('Удаляем старую таблицу')
+        client = Client(host=host, port='9000', user=user, password=password,
+                        database='suitecrm_robot_ch', settings={'use_numpy': True})
+        sql_drop = '''truncate table suitecrm_robot_ch.contacts_cstm'''
+        client.execute(sql_drop)
 
-    print('Удаляем старую таблицу')
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+    except (ValueError):
+        print('Данные не удалены')
+    finally:
 
-    sql_drop = '''drop table suitecrm_robot_ch.contacts_cstm'''
-    client.execute(sql_drop)
+        client.connection.disconnect()
+        print('conection closed')
 
-    print('Создаем новую таблицу')
-    sql_create = open(general_create).read().replace('п»ї','').replace('﻿','').replace('\ufeff','')
-    client.execute(sql_create)
+
+    # sql_drop = '''drop table suitecrm_robot_ch.contacts_cstm'''
+    # client.execute(sql_drop)
+
+    # print('Создаем новую таблицу')
+    # sql_create = open(general_create).read().replace('п»ї','').replace('﻿','').replace('\ufeff','')
+    # client.execute(sql_create)
 
     print('Подключаемся к mysql')
     dest = '/root/airflow/dags/not_share/cloud_my_sql_128.csv'
@@ -74,7 +84,7 @@ def transfer_to_click(x, y, stop, general_create):
         sql = f'''select id,phone_work,last_call_c,priority1,priority2,ptv_c,next_project,last_project,stoplist_c,base_source_c,town_c,city_c,marker_c,step_c,last_queue_c,region_c,network_provider_c,otkaz_c,contacts_status_c
         from contacts
         LEFT JOIN contacts_cstm ON contacts.id = contacts_cstm.id_c
-        LEFT JOIN contacts_custom_fields ON contacts_custom_fields.id_custom = contacts.id
+        LEFT JOIN contacts_custom_fields_new ON contacts_custom_fields_new.id_custom = contacts.id
         where ptv_c like '%^3^%'
         or ptv_c like '%^5^%'
         or ptv_c like '%^6^%'
@@ -103,10 +113,18 @@ def transfer_to_click(x, y, stop, general_create):
 
         print('Загружаем данные')
 
-        client = Client(host=host, port='9000', user=user, password=password,
+        try:
+
+            client = Client(host=host, port='9000', user=user, password=password,
                         database='suitecrm_robot_ch', settings={'use_numpy': True})
 
-        client.insert_dataframe('INSERT INTO suitecrm_robot_ch.contacts_cstm VALUES', contacts)
+            client.insert_dataframe('INSERT INTO suitecrm_robot_ch.contacts_cstm VALUES', contacts)
+        except (ValueError):
+            print('Данные не загружены')
+        finally:
+
+            client.connection.disconnect()
+            print('conection closed')
         
         x += y
         n += 1

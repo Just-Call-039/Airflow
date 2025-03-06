@@ -6,6 +6,8 @@ import pandas as pd
 import datetime as dt
 from current_month_yesterday import defs
 from indicators_to_regions.download_googlesheet import download_gs
+from route_robotlogs.all_functions import del_staple
+from commons_liza.to_click import my_connection
 
 
 def call_to_click(path_file, call):
@@ -64,40 +66,9 @@ def call_to_click(path_file, call):
     df = df.merge(users, left_on = 'user_call', right_on = 'id', how = 'left').fillna('')
     print('date since after merge ', df['call_date'].min())
     print('size df ', df.shape[0])
-
-    # Загружаем таблицу с лидами    
-    # path_to_credential = '/root/airflow/dags/quotas-338711-1e6d339f9a93.json' 
-
-    # scope = ['https://spreadsheets.google.com/feeds',
-    #      'https://www.googleapis.com/auth/drive']
-
-    # credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_credential, scope)
-    # gs = gspread.authorize(credentials)
-
-    # table_name4 = 'Команды/Проекты'
-
-    # work_sheet4 = gs.open(table_name4)
-    # sheet4 = work_sheet4.worksheet('Лиды')
-    # data4 = sheet4.get_all_values() 
-    # headers4 = data4.pop(0) 
-    # lids = pd.DataFrame(data4, columns=headers4)
+  
     lids = download_gs('Команды/Проекты', 'Лиды')
 
-    # Загружаем таблицу с проектами 
-    # path_to_credential = '/root/airflow/dags/quotas-338711-1e6d339f9a93.json' 
-    # scope = ['https://spreadsheets.google.com/feeds',
-    #      'https://www.googleapis.com/auth/drive']
-
-    # credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_credential, scope)
-    # gs = gspread.authorize(credentials)
-
-    # table_name4 = 'Команды/Проекты'
-
-    # work_sheet4 = gs.open(table_name4)
-    # sheet4 = work_sheet4.worksheet('JC')
-    # data4 = sheet4.get_all_values() 
-    # headers4 = data4.pop(0) 
-    # jc = pd.DataFrame(data4, columns=headers4)
     jc = download_gs('Команды/Проекты', 'JC')
     
     # merge с лидами
@@ -278,69 +249,64 @@ def call_to_click(path_file, call):
 # Отправляем в clickhous
 
     print('Подключаемся к clickhouse')
-
-    # Достаем host, user & password
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
-    if dest:
-                with open(dest) as file:
-                    for now in file:
-                        now = now.strip().split('=')
-                        first, second = now[0].strip(), now[1].strip()
-                        if first == 'host':
-                            host = second
-                        elif first == 'user':
-                            user = second
-                        elif first == 'password':
-                            password = second
     
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+    try:
+        
+        client = my_connection()
     
-    # # Очистим таблицу usermetric_call_today
+        # # Очистим таблицу usermetric_call_today
 
-    print('delete from table call_today')
-    client.execute('truncate table suitecrm_robot_ch.usermetric_call_today')
+        print('delete from table call_today')
+        client.execute('TRUNCATE TABLE suitecrm_robot_ch.usermetric_call_today')
+    except (ValueError):
+        print('Данные не удалены')
+    finally:
+        try:
 
-#     # Код на случай пересоздания таблиц с изменением структуры
-#     # Удаляем таблицу usermetric_call
+            # Создаем таблицу usermetric_call_today
 
-#     print('drop table call')
-#     client.execute('drop table suitecrm_robot_ch.usermetric_call_today')
+            print('Create table call')
+            sql_create = '''CREATE TABLE IF NOT EXISTS suitecrm_robot_ch.usermetric_call_today
+                        (
+                            CallDate            Date,
+                            CallName            String,
+                            CallContactId       String,
+                            CallQueue           String,
+                            CallUserId          String,
+                            CallSupervisorId    String,
+                            CallCity            String,
+                            CallTown            String,
+                            CallSec             Int64,
+                            CallShortCall       Int64,
+                            CallDialog          String,
+                            CallCompleted       String,
+                            CallFio             String,
+                            CallSupervisor      String,
+                            CallProject         String,
+                            CallRegion          String,
+                            CallCountSec        Float64,
+                            RequestDate         Date,
+                            RequestUser         String,
+                            RequestStatus       String,
+                            RequestDistrict     String,
+                            RequestPhone        String,
+                            CallCount           Int64 
+                        )
+                            engine = MergeTree ORDER BY CallDate;'''
+            client.execute(sql_create)
+        except (ValueError):
+            print('Таблица не создана')
+        finally:
+            try:
 
-#     # Создаем таблицу usermetric_call
+                client.insert_dataframe('INSERT INTO suitecrm_robot_ch.usermetric_call_today VALUES', df_call)
 
-#     print('Create table call')
-#     sql_create = '''create table suitecrm_robot_ch.usermetric_call_today
-# (
-#     CallDate            Date,
-#     CallName            String,
-#     CallContactId       String,
-#     CallQueue           String,
-#     CallUserId          String,
-#     CallSupervisorId    String,
-#     CallCity            String,
-#     CallTown            String,
-#     CallSec             Int64,
-#     CallShortCall       Int64,
-#     CallDialog          String,
-#     CallCompleted       String,
-#     CallFio             String,
-#     CallSupervisor      String,
-#     CallProject         String,
-#     CallRegion          String,
-#     CallCountSec        Float64,
-#     RequestDate         Date,
-#     RequestUser         String,
-#     RequestStatus       String,
-#     RequestDistrict     String,
-#     RequestPhone        String,
-#     CallCount           Int64 
-# )
-#     engine = MergeTree ORDER BY CallDate;'''
-#     client.execute(sql_create)
+            except (ValueError):
+                print('Данные не загружены')
+            finally:
 
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.usermetric_call_today VALUES', df_call)
-
+                client.connection.disconnect()
+                print('conection closed')
 
 
 def call_10_to_click(path_file, call_10):
@@ -354,54 +320,31 @@ def call_10_to_click(path_file, call_10):
     print('merge df & users')
     df_user = pd.read_csv('/root/airflow/dags/request_with_calls_today/Files/users.csv',  sep=',', encoding='utf-8').fillna('')
     df_user = df_user.rename(columns = {'id' : 'userid'})
-    df_union_user = df_call.merge(df_user[['userid', 'fio', 'supervisor', 'team']], left_on = 'userid', right_on = 'userid', how = 'left').fillna('')
+    df_union_user = df_call.merge(df_user[['userid', 'fio', 'supervisor', 'team']], left_on = 'userid', right_on = 'userid', how = 'left')
+    df_union_user['duration_minutes'] = df_union_user['duration_minutes'].fillna('0')
+    df_union_user['otkaz_c'] = df_union_user['otkaz_c'].fillna('0')
     print('date since after merge ',df_union_user['dateCall'].min())
     print('size df ', df_union_user.shape[0])
 
-    # Загружаем таблицу с лидами    
-    path_to_credential = '/root/airflow/dags/quotas-338711-1e6d339f9a93.json' 
+    df_lids = download_gs('Команды/Проекты', 'Лиды')
 
-    scope = ['https://spreadsheets.google.com/feeds',
-         'https://www.googleapis.com/auth/drive']
-
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_credential, scope)
-    gs = gspread.authorize(credentials)
-
-    table_name4 = 'Команды/Проекты'
-
-    work_sheet4 = gs.open(table_name4)
-    sheet4 = work_sheet4.worksheet('Лиды')
-    data4 = sheet4.get_all_values() 
-    headers4 = data4.pop(0) 
-    df_lids = pd.DataFrame(data4, columns=headers4)
-
-    # Загружаем таблицу с проектами 
-    path_to_credential = '/root/airflow/dags/quotas-338711-1e6d339f9a93.json' 
-    scope = ['https://spreadsheets.google.com/feeds',
-         'https://www.googleapis.com/auth/drive']
-
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_credential, scope)
-    gs = gspread.authorize(credentials)
-
-    table_name4 = 'Команды/Проекты'
-
-    work_sheet4 = gs.open(table_name4)
-    sheet4 = work_sheet4.worksheet('JC')
-    data4 = sheet4.get_all_values() 
-    headers4 = data4.pop(0) 
-    df_jc = pd.DataFrame(data4, columns=headers4)
+    df_jc = download_gs('Команды/Проекты', 'JC')
 
     # Объединяем таблицу звонкв с лидами
     print('merge df_union & lids')
     df_lids = df_lids.rename(columns = {'СВ CRM' : 'supervisor'})
-    df_union_lids =  df_union_user.merge(df_lids[['Проект','supervisor', 'МРФ']], on = 'supervisor', how = 'left').fillna('')
-    print('date since after merge ', df_union_lids['dateCall'].min())
+    df_union_lids =  df_union_user.merge(df_lids[['Проект','supervisor', 'МРФ']], on = 'supervisor', how = 'left')
+    df_union_lids['duration_minutes'] = df_union_lids['duration_minutes'].fillna('0')
+    df_union_lids['otkaz_c'] = df_union_lids['otkaz_c'].fillna('0')
+    df_union_lids = df_union_lids.fillna('')
     print('size df ', df_union_lids.shape[0])
 
     # Объединяем таблицу звонкв с jc
     print('merge df & jc')
     df_jc = df_jc.rename(columns = {'CRM СВ' : 'supervisor'})
-    df_union_jc =  df_union_lids.merge(df_jc[['Проект','supervisor']], on = 'supervisor', how = 'left').fillna('')
+    df_union_jc =  df_union_lids.merge(df_jc[['Проект','supervisor']], on = 'supervisor', how = 'left')
+    df_union_jc['duration_minutes'] = df_union_jc['duration_minutes'].fillna('0')
+    df_union_jc = df_union_jc.fillna('')
     print('date since after merge ', df_union_jc['dateCall'].min())
     print('size df ', df_union_jc.shape[0])
 
@@ -432,11 +375,38 @@ def call_10_to_click(path_file, call_10):
     df_decoding_otkaz = df_jc = pd.read_excel('/root/airflow/dags/current_month_yesterday/Files/decoding.xlsx', sheet_name = 'Лист1')
     df_decoding_otkaz = df_decoding_otkaz.rename(columns={'name':'otkaz_c'})
 
-    df_union_otkaz =  df_union_jc.merge(df_decoding_otkaz, on = 'otkaz_c', how = 'left').fillna('')
+    df_union_otkaz =  df_union_jc.merge(df_decoding_otkaz, on = 'otkaz_c', how = 'left')
+    df_union_otkaz['duration_minutes'] = df_union_otkaz['duration_minutes'].fillna('0')
+    df_union_otkaz = df_union_otkaz.fillna('')
     print('date since after merge ', df_union_otkaz['dateCall'].min())
     print('size df ', df_union_otkaz.shape[0])
 
-    df_union_otkaz = df_union_otkaz[[
+    # Объединяем датафрейм с городами
+    print('start merge df & city')
+    city = pd.read_csv('/root/airflow/dags/indicators_to_regions/Files/Город.csv',  sep=',', encoding='utf-8').fillna('').astype('str')
+    df_union_otkaz['city_c'] = df_union_otkaz['city_c'].fillna(0).astype(str)
+    defs.del_point_zero(df_union_otkaz, ['city_c'])
+    city['Город'] = city['Город'].fillna('').apply(defs.find_letter)
+    city['Область'] = city['Область'].fillna('').apply(defs.find_letter)
+
+    df_union_city = df_union_otkaz.merge(city, on = 'city_c', how = 'left')
+    print(df_union_city['Город'].unique())
+    df_union_city['duration_minutes'] = df_union_city['duration_minutes'].fillna('0')
+    
+    df_union_city = df_union_city.fillna('')
+    
+    # Объединим датафрейм с таблицей качество , чтобы извлечь название разметки
+
+    df_quality = pd.read_csv('/root/airflow/dags/current_month_yesterday/Files/Качество.csv')
+    df_quality['Качество города'] = df_quality['Качество города'].apply(del_staple)
+    df_quality = df_quality.rename(columns = {'id' : 'ptv'})
+    df_union_city = df_union_city.merge(df_quality[['ptv', 'Качество города']], on = 'ptv', how= 'left')
+    del df_union_city['ptv']
+    df_union_city = df_union_city.rename(columns = {'Качество города' : 'ptv'})
+
+    print('size df  ', df_union_city.shape[0])
+
+    df_union_city = df_union_city[[
                                     'dateCall',
                                     'userid',
                                     'queue_c',             
@@ -471,71 +441,77 @@ def call_10_to_click(path_file, call_10):
             })
     
     # Убирем лишние точки с нулями в значениях 
-    df_union_otkaz = df_union_otkaz.fillna('').astype('str')
+    df_union_city['CallDurationMinute'] = df_union_city['CallDurationMinute'].fillna('0')
+    df_union_city = df_union_city.fillna('').astype('str')
     col_list = ['CallQueue', 'CallCityCode', 'CallSetQueue', 'CallDurationMinute', 'CallMarker']
+    defs.del_point_zero(df_union_city, col_list)
+    df_union_city['CallDurationMinute'] = df_union_city['CallDurationMinute'].astype('int64')
 
-    defs.del_point_zero(df_union_otkaz, col_list)
 
     # Отправляем в clickhous
 
     print('Подключаемся к clickhouse')
 
     # Достаем host, user & password
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
-    if dest:
-                with open(dest) as file:
-                    for now in file:
-                        now = now.strip().split('=')
-                        first, second = now[0].strip(), now[1].strip()
-                        if first == 'host':
-                            host = second
-                        elif first == 'user':
-                            user = second
-                        elif first == 'password':
-                            password = second
-    
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
-    
-    # Очищаем таблицу call_today
+    # dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
+    # if dest:
+    #             with open(dest) as file:
+    #                 for now in file:
+    #                     now = now.strip().split('=')
+    #                     first, second = now[0].strip(), now[1].strip()
+    #                     if first == 'host':
+    #                         host = second
+    #                     elif first == 'user':
+    #                         user = second
+    #                     elif first == 'password':
+    #                         password = second
 
-    print('delete dates from table call_today')
-    client.execute('truncate table suitecrm_robot_ch.userrefusal_call_today')
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+    try:                         
+        # client = Client(host=host, port='9000', user=user, password=password,
+        #             database='suitecrm_robot_ch', settings={'use_numpy': True})  
+        client = my_connection() 
+        # Очищаем таблицу call_today
+        print('delete dates from table call_today')
+        cluster = '{cluster}'
+        client.execute(f'''truncate table userrefusal_call_today on cluster '{cluster}' ''')
 
-    # # Удаляем таблицу call_today
+    except (ValueError):
+        print('Данные не удалены')
 
-    # print('drop table call')
-    # client.execute('drop table suitecrm_robot_ch.userrefusal_call_today')
-    # client = Client(host=host, port='9000', user=user, password=password,
-    #                 database='suitecrm_robot_ch', settings={'use_numpy': True})
+    finally:
+        try:        
+            # Создаем таблицу usermetric_call
+            print('Create table call')
+            sql_create = '''CREATE TABLE IF NOT EXISTS userrefusal_call_today
+                        (
+                        CallDate            Date,
+                        CallUserID          String,
+                        CallQueue           String,            
+                        CallResult          String,
+                        CallCityCode        String,
+                        CallCountId         Int64,
+                        CallSetQueue        String,
+                        CallDurationMinute  String,
+                        CallMarker          String,
+                        CallPTV             String,
+                        UserFio             String,
+                        UserSupervisor      String,
+                        LidsProject         String,
+                        JCRegion            String,
+                        OtkazName           String
+                        )
+                        engine = MergeTree ORDER BY CallDate;'''
+            client.execute(sql_create)
+        except (ValueError):
+            print('Таблица не создана')
+        finally:
+            try:
+                # Записываем новый данные в таблицу usermetric_call
+                client.insert_dataframe('INSERT INTO userrefusal_call_today VALUES', df_union_otkaz)
+            except (ValueError):
+                print('Данные не загружены')
+            finally:
+                client.connection.disconnect()
+                print('conection closed')
+ 
 
-    # # Создаем таблицу usermetric_call
-    # print('Create table call')
-    # sql_create = '''create table suitecrm_robot_ch.userrefusal_call_today
-    # (
-    # CallDate            Date,
-    # CallUserID          String,
-    # CallQueue           String,            
-    # CallResult          String,
-    # CallCityCode        String,
-    # CallCountId         Int64,
-    # CallSetQueue        String,
-    # CallDurationMinute  String,
-    # CallMarker          String,
-    # CallPTV             String,
-    # UserFio             String,
-    # UserSupervisor      String,
-    # LidsProject         String,
-    # JCRegion            String,
-    # OtkazName           String
-    # )
-    # engine = MergeTree ORDER BY CallDate;'''
-    # client.execute(sql_create)
-
-    # Записываем новый данные в таблицу usermetric_call
-    client = Client(host=host, port='9000', user=user, password=password,
-                       database='suitecrm_robot_ch', settings={'use_numpy': True})
-
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.userrefusal_call_today VALUES', df_union_otkaz)

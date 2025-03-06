@@ -12,6 +12,7 @@ from fsp.repeat_download import sql_query_to_csv
 from answering_expect.expect_editing import edit_ex
 from commons_li.clear_folder import clear_folder
 from commons_li.sql_query_semicolon_to_csv import sql_query_to_csv_sc
+from answering_expect.load_backup import load_expect
  
 
 default_args = {
@@ -32,7 +33,8 @@ dag = DAG(
     )
 
 
-cloud_name = 'cloud_128'
+# cloud_name = 'cloud_128'
+cloud_name = 'cloud_183'
 
 path_to_file_airflow = '/root/airflow/dags/answering_expect/Files/'
 
@@ -40,10 +42,10 @@ path_dbs_total = '/Отчеты BI/Автоответчики/'
 
 sql = '/root/airflow/dags/answering_expect/SQL/expect_auto.sql'
 
-
+n = 1
 
 today = datetime.date.today()
-previous_date = today - datetime.timedelta(days=1)
+previous_date = today - datetime.timedelta(days=n)
 year = previous_date.year
 month = previous_date.month
 day = previous_date.day
@@ -55,15 +57,15 @@ file_sql = 'exp.csv'
 
 expect_sql = PythonOperator(
     task_id='expect_sql', 
-    python_callable=sql_query_to_csv, 
-    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql, 'path_csv_file': path_to_file_airflow, 'name_csv_file': file_sql}, 
+    python_callable=load_expect, 
+    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql, 'path_csv_file': path_to_file_airflow, 'name_csv_file': file_sql, 'n' : n}, 
     dag=dag
     )
 
 edit_of_autootvet_ex = PythonOperator(
     task_id='edit_of_autootvet_ex', 
     python_callable=edit_ex, 
-    op_kwargs={'path_file': path_to_file_airflow, 'expect': file_sql, 'total' : file_expect}, 
+    op_kwargs={'path_file': path_to_file_airflow, 'expect': file_sql, 'n' : n, 'total' : file_expect}, 
     dag=dag
     )
 

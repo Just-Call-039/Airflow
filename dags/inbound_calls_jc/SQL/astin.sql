@@ -13,4 +13,5 @@ select if(substr(src, 1, 1) = '7', concat('8', substr(src, 2, 10)), src)        
                else lastdata end shoulder_astin, 
        disposition disposition_astin, 1 as disposition_cdr 
 from asteriskcdrdb_all.astin_cdr 
+
 where toDate(start) = toDate(now()) - interval 1 day  

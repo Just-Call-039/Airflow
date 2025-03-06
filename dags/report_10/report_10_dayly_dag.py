@@ -27,14 +27,8 @@ dag = DAG(
     catchup=False,
     default_args=default_args,
     max_active_runs=1)
-   
-# date = str(now.replace(month=now.month - 1).date())
-# date = str(datetime.date.today())
-# year_num = date.split('-')[0]
-# month_num = date.split('-')[1]
-# # day_num = date.split('-')[2]
-# file_name = f'Звонки_{year_num}_{month_num}.csv'
-# path_to_file_airflow = '/root/airflow/dags/report_10/report_files/'
+
+n = 1
 
 access_pass = '/root/airflow/dags/report_10/report_files/access.txt'
 
@@ -42,10 +36,17 @@ access_pass = '/root/airflow/dags/report_10/report_files/access.txt'
 dag_dayly_report_to_clickhouse = PythonOperator(
     task_id='dag_dayly_report_to_clickhouse', 
     python_callable=dayly_report_to_clickhouse, 
-    op_kwargs={'access_pass': access_pass}, 
+    op_kwargs={'access_pass': access_pass,
+               'n' : n}, 
     dag=dag
     )
 
-# op_kwargs={'file_name': file_name, 'path_to_file_airflow': path_to_file_airflow, 'access_pass': access_pass},
+# dag_temperaly = PythonOperator(
+#     task_id='dag_temperaly', 
+#     python_callable=dag_temp, 
+#     op_kwargs={'access_pass': access_pass,
+#                'n' : n}, 
+#     dag=dag
+#     )
 
-dag_dayly_report_to_clickhouse
+dag_dayly_report_to_clickhouse 

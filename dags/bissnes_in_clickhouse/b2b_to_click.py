@@ -92,7 +92,7 @@ def b2b():
     df_full['phone'] = df_full['phone'].apply(lambda x: x.replace('.0',''))
     df_full=df_full.astype('str')
     print('Подключаемся к clickhouse')
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
+    dest = '/root/airflow/dags/not_share/ClickHouse198.csv'
     if dest:
                 with open(dest) as file:
                     for now in file:
@@ -106,9 +106,19 @@ def b2b():
                             password = second
         # return host, user, password
 
-    client = Client(host=host, port='9000', user=user, password=password,
+    try:
+         
+        client = Client(host=host, user=user, password=password,
                     database='suitecrm_robot_ch', settings={'use_numpy': True})
+        print(df_full.shape[0])
     
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.b2b_marker VALUES', df_full)
+        client.insert_dataframe('INSERT INTO suitecrm_robot_ch.b2b_marker VALUES', df_full)
+        
+    except (ValueError):
+        print('Данные не загружены')
+    finally:
+
+        client.connection.disconnect()
+        print('conection closed')
 
     

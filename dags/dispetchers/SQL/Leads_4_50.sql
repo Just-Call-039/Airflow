@@ -795,12 +795,12 @@ with town_c as (select 0 town_c, '0 РФ' Город
                     ) as t2
                where ochered is not null),
 
-     osnova as (select substring(jrl.dialog, 11, 4)     Диалог_лиды,
-                       if(substring(log.dialog, 11, 4) is null, substring(jrl.dialog, 11, 4),
-                          substring(log.dialog, 11, 4)) Диалог_лог,
+     osnova as (select REGEXP_SUBSTR(jrl.dialog, '[0-9]+')    Диалог_лиды,
+                       if(log.dialog is null, REGEXP_SUBSTR(jrl.dialog, '[0-9]+'),
+                          log.dialog) Диалог_лог,
                        if(destination_queue is null,
-                          if(substring(log.dialog, 11, 4) is null, substring(jrl.dialog, 11, 4),
-                             substring(log.dialog, 11, 4)),
+                          if(log.dialog is null, REGEXP_SUBSTR(jrl.dialog, '[0-9]+'),
+                             log.dialog),
                           destination_queue)            'Принимающая_очередь',
                        last_step                        'Последний_шаг',
                        steps.name,
@@ -831,9 +831,40 @@ with town_c as (select 0 town_c, '0 РФ' Город
                            else '' end                  'Разметка'
                 from suitecrm.jc_robot_leads jrl
                          left join suitecrm.jc_robot_leads_cstm jrlc ON jrl.id = jrlc.id_c
-                         left join (select *
-                                    from suitecrm_robot.jc_robot_log
-                                    where date(call_date) = date(now()) - interval 1 day) log
+                         left join 
+                         
+                         (select 
+                              phone,
+                              call_date,
+                              uniqueid,
+                              REGEXP_SUBSTR(dialog, '[0-9]+') dialog,
+                              ptv_c,
+                              was_repeat, 
+                              last_step
+                             
+                    
+                         from suitecrm_robot.jc_robot_log
+                         where date(call_date) = date(now()) - interval 1 day
+                                        
+                        union all
+                                
+                        SELECT 
+                                phone,
+                                call_date,
+                                dialog_id as uniqueid,
+                                robot_id as dialog,
+                                ptv as ptv_c,
+                                was_ptv as was_repeat,
+                                last_step
+
+                                
+                          FROM suitecrm_robot.robot_log 
+                          left join suitecrm_robot.robot_log_addition 
+                                on robot_log.id = robot_log_addition.robot_log_id
+                          where date(call_date) = date(now()) - interval 1 day
+                                        
+                                ) as log
+                                    
                                    on (date(jrl.date_entered) = date(log.call_date) and jrl.phone = log.phone)
                          left join (select distinct * from suitecrm.transferred_to_other_queue) tr
                                    on (log.uniqueid = tr.uniqueid and log.phone = tr.phone)
@@ -843,7 +874,7 @@ with town_c as (select 0 town_c, '0 РФ' Город
                          left join town_c ON town_c.town_c = jrlc.town_c
                          left join type ON type.type = jrl.type
                          left join steps
-                                   on (steps.ochered = substring(log.dialog, 11, 4) and log.last_step = steps.step)
+                                   on (steps.ochered = REGEXP_SUBSTR(jrl.dialog, '[0-9]+') and log.last_step = steps.step)
                 where jrl.type in ('interested','recall','recall_plus', 'recall_tomorrow', 'waiters', 'recall_today', 'leads')
                   and date(jrl.date_entered) = date(now()) - interval 1 day
                   and date_start_bp is null

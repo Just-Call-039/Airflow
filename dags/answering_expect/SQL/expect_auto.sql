@@ -5,9 +5,9 @@ with calls as (select date(cl.date_entered) as calldate,
                       cl_c.otkaz_c
                from suitecrm.calls as cl
                         left join suitecrm.calls_cstm as cl_c on cl.id = cl_c.id_c
-               where (date(cl.date_entered) = date(now()) - interval 1 day))
+               where (date(cl.date_entered) = date(now()) - interval {n} day))
 
-select substring(dialog, 11, 4)                                              dialog,
+select dialog,
        phone,
        date(call_date)                                                       calldate,
        if(last_step in ('111', '0'), 1, 0)                                   autootvet,
@@ -93,6 +93,49 @@ select substring(dialog, 11, 4)                                              dia
        if(real_billsec is null, billsec, real_billsec)                       call_sec,
        if(otkaz = 'otkaz_23', 1, 0)                                          otkaz,
        1                                                                     calls
-from suitecrm_robot.jc_robot_log
-         left join calls on phone = asterisk_caller_id_c and calldate = date(call_date)
-where date(call_date) = date(now()) - interval 1 day
+from 
+
+        (select phone,
+				call_date,
+				REGEXP_SUBSTR(dialog, '[0-9]+') dialog,
+				otkaz,
+				last_step,
+				trunk_id,
+       			marker,
+       			uniqueid,
+       			ptv_c,
+       			region_c,
+       			city_c,
+       			billsec, 
+       			real_billsec
+			
+				from suitecrm_robot.jc_robot_log
+                where date(call_date) = date(now()) - interval {n} day   
+				
+		 union all
+		 
+		SELECT 
+			   phone,
+			   call_date,
+			   robot_id as dialog,
+			   refuse as otkaz,
+			   last_step,
+			   trunk_id,
+       		   marker,
+       		   dialog_id as uniqueid,
+       		   ptv as ptv_c,
+       		   quality as region_c,
+       		   city as city_c,
+       		   billsec, 
+       		   real_billsec
+				
+				FROM  suitecrm_robot.robot_log 
+				left join suitecrm_robot.robot_log_addition 
+				on robot_log.id = robot_log_addition.robot_log_id
+                where date(call_date) = date(now()) - interval {n} day   
+				
+		) as rl
+
+
+         left join calls on rl.phone = asterisk_caller_id_c and calldate = date(call_date)
+where date(call_date) = date(now()) - interval {n} day   

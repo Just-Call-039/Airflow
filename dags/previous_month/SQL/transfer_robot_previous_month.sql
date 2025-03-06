@@ -1,15 +1,30 @@
 with robotlog as (select phone,
                          city_c,
                          date(call_date)          datecall,
-                         substring(dialog, 11, 4) set_queue,
+                         REGEXP_SUBSTR(dialog, '[0-9]+') set_queue,
                          town,
                          last_step,
                          uniqueid
                   from suitecrm_robot.jc_robot_log
                   where last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372')
-                    and month(call_date) = month(curdate() - interval 1 month)
-                     and year(call_date) = if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year),
-                                            year(curdate()))),
+                    and date(call_date >= DATE_FORMAT(curdate() - interval 1 MONTH, '%Y-%m-01') 
+                        and date(call_date > DATE_FORMAT(curdate(), '%Y-%m-01')))
+                        union all
+                select phone,
+                         city city_c,
+                         date(call_date)          datecall,
+                         robot_id set_queue,
+                         region town,
+                         last_step,
+                         dialog_id uniqueid
+                  from suitecrm_robot.robot_log 
+                        left join suitecrm_robot.robot_log_addition 
+                        on robot_log.id = robot_log_addition.robot_log_id
+                  where last_step not in ('', '0', '1', '261', '262', '111', '361', '362', '371', '372')
+                    and date(call_date) >= DATE_FORMAT(curdate() - interval 1 MONTH, '%Y-%m-01') 
+                        and date(call_date) > DATE_FORMAT(curdate(), '%Y-%m-01')
+                                            
+                                            ),
 
      reportcongif as (select substring(turn, 11, 4) dialog, steps_transferred
                       from jc_robot_reportconfig),
@@ -423,18 +438,16 @@ with robotlog as (select phone,
                      from robotlog
                               left join steps
                                         on (robotlog.set_queue = steps.dialog and last_step = laststep)
-                     where month(datecall) = month(curdate() - interval 1 month)
-                     and year(datecall) = if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year),
-                                            year(curdate()))),
+                     where date(datecall) >= DATE_FORMAT(curdate() - interval 1 MONTH, '%Y-%m-01') 
+                        and date(datecall) > DATE_FORMAT(curdate(), '%Y-%m-01')),
 
      address as (select distinct date(calldate)           dateadress,
                                  phone,
                                  substring(dialog, 11, 4) set_queue,
                                  city
                  from address_log
-                 where month(calldate) = month(curdate() - interval 1 month)
-                     and year(calldate) = if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year),
-                                            year(curdate()))
+                 where date(calldate) >= DATE_FORMAT(curdate() - interval 1 MONTH, '%Y-%m-01') 
+                        and date(calldate) > DATE_FORMAT(curdate(), '%Y-%m-01')
                    and city is not null),
 
      transferLog as (select distinct t.phone,
@@ -453,9 +466,8 @@ with robotlog as (select phone,
                               left join address on (address.phone = t.phone and
                                                     date(date) = date(dateadress) and
                                                     dialog = set_queue)
-                     where month(date) = month(curdate() - interval 1 month)
-                     and year(date) = if(month(curdate() - interval 1 month) = 12, year(curdate() - interval 1 year),
-                                            year(curdate())))
+                     where date(date) >= DATE_FORMAT(curdate() - interval 1 MONTH, '%Y-%m-01') 
+                        and date(date) > DATE_FORMAT(curdate(), '%Y-%m-01'))
 
 select *
 from transferLog

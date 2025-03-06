@@ -27,7 +27,8 @@ dag = DAG(
     default_args=default_args
     )
 
-cloud_name = 'cloud_128'
+# cloud_name = 'cloud_128'
+cloud_name = 'cloud_183'
 
 
 # Блок выполнения SQL запросов.

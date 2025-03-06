@@ -16,6 +16,6 @@ select phone_work,
         istochnik_combo_c
 from suitecrm.contacts_cstm
 left join suitecrm.contacts on id=id_c
-left join contacts_custom_fields ON contacts_custom_fields.id_custom = contacts.id
+left join contacts_custom_fields_new ON contacts_custom_fields_new.id_custom = contacts.id
 where deleted=0
 limit {},{}

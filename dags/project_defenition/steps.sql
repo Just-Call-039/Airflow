@@ -1,7 +1,7 @@
 with config as (select D.name                                        '???????? ???????',
                        step.name                                     '???????? ???? ????????',
                        index_number                                  'step',
-                       replace(replace(queue, '_NEW^', ''), '^', '') 'dialogs',
+                       REGEXP_REPLACE(queue, '(_NEW\\^|\\^|m)', '') 'dialogs',
                        custom_queue_c                                '??????????? ???????',
                        case when action_type>0 and check_exit = 1 then '0'
                         when action_type>0 and check_exit = 0 then '1' end type_steps
@@ -416,5 +416,7 @@ with config as (select D.name                                        '???????? ?
                     ) as t2
                where ochered is not null)
 
-select step, ochered, type_steps
+select step, 
+       ochered,
+       type_steps
 from steps

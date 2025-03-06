@@ -28,7 +28,8 @@ select date(calls.date_entered)                                                 
        contacts_cstm.city_c,
        queue_c,
        result_call_c,
-       calls_cstm.otkaz_c,
+       if(result_call_c = 'refusing' and calls_cstm.otkaz_c = '0', 'otkaz_1000', calls_cstm.otkaz_c) as otkaz_c,
+       
        project_c,
        if(length(replace(replace(replace(replace(asterisk_caller_id_c, '-', ''), ')', ''), '(', ''), ' ',
                                            '')) <=

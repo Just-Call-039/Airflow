@@ -47,7 +47,7 @@ path_to_user = '/root/airflow/dags/request_with_calls_today/Files/users.csv'
 path_to_request = '/root/airflow/dags/request_with_calls_today/Files/sql_total/request.csv'
 path_to_decoding = '/root/airflow/dags/current_month_yesterday/Files/decoding.xlsx'
 path_to_workhour = '/root/airflow/dags/current_month_yesterday/Files/4/working_time_current_month.csv'
-path_to_workprevios = '/root/airflow/dags/previos_month/Files/working/'
+path_to_workprevios = '/root/airflow/dags/previous_month/Files/working/'
 
 csv_request = 'request.csv'
 csv_request_result = 'Requests .csv'
@@ -113,8 +113,9 @@ download_transfer_arhiv = PythonOperator(
 download_city = PythonOperator(
     task_id = 'download_city',
     python_callable=download_from_dbs.transfer_file_from_dbs,
-    op_kwargs={'file_path_on_share' : f'{path_to_dbs}{file_name_city}',
-                'local_file_path' : f'{path_to_files}{file_name_city}'},
+    op_kwargs={'file_path_on_share' : path_to_dbs,
+                'local_file_path' : path_to_files,
+                'file_name_list' : [file_name_city]},
     dag=dag
     )
 
@@ -133,7 +134,7 @@ df_to_click = PythonOperator(
     python_callable=to_clickhous.to_click, 
     op_kwargs={'path_to_files' : path_to_files, 
                'csv_city' : csv_city, 
-               'path_to_request' : path_to_request, 
+               'path_to_request' : f'{path_to_file_sql}{csv_request}',               
                'path_to_call' : path_to_file_sql_calls, 
                'path_to_transfer' : path_to_transfer_sql, 
                'path_to_user' : path_to_user, 

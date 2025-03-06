@@ -424,8 +424,8 @@ with town_c as (select 0 town_c, '0 РФ' Город
                                 last_step
                          from (select jc.phone,
                                       assigned_user_id,
-                                      substring(jc.dialog, 11, 4) queue,
-                                      if(destination_queue is null, substring(jc.dialog, 11, 4),
+                                      REGEXP_SUBSTR(jc.dialog, '[0-9]+') queue,
+                                      if(destination_queue is null, REGEXP_SUBSTR(jc.dialog, '[0-9]+'),
                                          destination_queue)       destination_queue,
                                       date(call_date)             call_date,
                                       last_step

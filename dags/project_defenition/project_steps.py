@@ -5,7 +5,7 @@ def project_steps():
     import gspread
     from oauth2client.service_account import ServiceAccountCredentials
 
-    host128 = "192.168.1.183"
+    host128 = "192.168.1.182"
     host = host128
     Con = MySQLdb.Connect(host=host, user="base_dep_slave", passwd="IyHBh9mDBdpg", db="suitecrm",
                         charset='utf8')

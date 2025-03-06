@@ -37,9 +37,20 @@ select call_time,
 from suitecrm.waiter_log wl
          left join (select phone,
                            last_step,
-                           substring(dialog, 11, 4) as ochered,
+                           REGEXP_SUBSTR(dialog, '[0-9]+') as ochered,
                            date(call_date)          as data
                     from suitecrm_robot.jc_robot_log
-                    where date(call_date) = date(now())) as jrl on jrl.phone = right(wl.caller_id, 11)
+                    where date(call_date) = date(now())
+
+                    union all
+                    
+                    select phone,
+                           last_step,
+                           robot_id as ochered,
+                           date(call_date)          as data
+                    from suitecrm_robot.robot_log 
+                         left join suitecrm_robot.robot_log_addition 
+                              on robot_log.id = robot_log_addition.robot_log_id
+                    where date(call_date) = date(now()) ) as jrl on jrl.phone = right(wl.caller_id, 11)
          left join ocheredi o on jrl.ochered = o.queue
 where wl.is_parsed = 1;

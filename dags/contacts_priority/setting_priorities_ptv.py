@@ -2,6 +2,8 @@ def setting_priorities_ptv(path_sql_file):
     import pandas as pd
     from clickhouse_driver import Client
 
+    from commons_liza.to_click import my_connection
+
     def priority1(row):
         X = row['list2'].split(',')
         Y = row['list'].split(',')
@@ -91,7 +93,8 @@ def setting_priorities_ptv(path_sql_file):
 
 
         print('Заливаем в итоговую таблицу')
-        client = Client(host=host, port='9000', user=user, password=password,
-                        database='suitecrm_robot_ch', settings={'use_numpy': True})
-
+        # client = Client(host=host, port='9000', user=user, password=password,
+        #                 database='suitecrm_robot_ch', settings={'use_numpy': True})
+        client = my_connection()
+        
         client.insert_dataframe('INSERT INTO suitecrm_robot_ch.contacts_priorities VALUES', df2)

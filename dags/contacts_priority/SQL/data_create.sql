@@ -1,4 +1,4 @@
-create table suitecrm_robot_ch.data
+CREATE TABLE IF NOT EXISTS data ON CLUSTER '{cluster}'
 (
     town_c                 Nullable(String),
     city_c                 Nullable(String),
@@ -88,5 +88,5 @@ create table suitecrm_robot_ch.data
     contacts               Nullable(Int64)
 
 
-) ENGINE = MergeTree
-      order by network_provider
+) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{cluster}/{shard}/suitecrm_robot_ch/data', '{replica}')
+        ORDER BY network_provider

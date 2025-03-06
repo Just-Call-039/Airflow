@@ -3,7 +3,7 @@ def sql_query_to_csv_sc(cloud, path_sql_file, path_csv_file, name_csv_file, curr
     import pymysql
     import pandas as pd
 
-    from commons.connect_db import connect_db
+    from commons_sawa.connect_db import connect_db
 
     host, user, password = connect_db(cloud)
     my_connect = pymysql.Connect(host=host, user=user, passwd=password,

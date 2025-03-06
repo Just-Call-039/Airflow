@@ -1,4 +1,4 @@
-SELECT substring(turn, 11, 4)                                      as queue,
+SELECT REGEXP_SUBSTR(turn, '[0-9]+')                                      as queue,
        steps_inconvenient,
        steps_error,
        steps_refusing,

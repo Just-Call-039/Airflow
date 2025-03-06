@@ -1,4 +1,4 @@
-def edit_ex(path_file, expect, total):
+def edit_ex(path_file, expect, n, total):
     import pandas as pd
     import pymysql
     import gspread 
@@ -12,11 +12,14 @@ def edit_ex(path_file, expect, total):
     import datetime
     from clickhouse_driver import Client
     import datetime
+    from commons_liza.to_click import my_connection
+    from commons_liza import load_mysql
 
+    cloud = ['base_dep_slave', 'IyHBh9mDBdpg', '192.168.1.183', 'suitecrm'] 
 
     print('Читаем созданный файл')
     df_robot = pd.read_csv(f'{path_file}/{expect}')
-    df_r= df_robot
+    df_r = df_robot
     df_r[['dialog']]=df_r[['dialog']].astype('int64')
 
     df_r = df_r['dialog'].drop_duplicates()
@@ -55,9 +58,11 @@ def edit_ex(path_file, expect, total):
 '192.168.1.156',
 '192.168.1.110',
 '192.168.1.113',
-'192.168.1.118',
-'192.168.1.116',
-'192.168.1.147']
+'192.168.1.118'
+# ,
+# '192.168.1.116',
+# '192.168.1.147'
+]
 
 
     no_data_rollback = pd.DataFrame()
@@ -69,6 +74,7 @@ def edit_ex(path_file, expect, total):
     for queue in queue_list:
         for server in servers:
             try:
+                
                 connection = pymysql.connect(host= server,
                                  user=user,
                                  password=password,
@@ -82,110 +88,110 @@ def edit_ex(path_file, expect, total):
                  from `cel_just-call-{queue}-new_1`  a
                  left join `bill_cdr` b  on a.uniqueid = b.uniqueid
                  where 
-                 date(date) = date(now())-interval 1 day and type = 'expect'
+                 date(date) = date(now())-interval {n} day and type = 'expect'
                  '''
                         cursor.execute(sql)
                         result = cursor.fetchone()
-                        df = pd.read_sql_query(sql, connection)
-    
-                        df_full = df_full.append(df)
+                        try:
+                            # df = pd.read_sql_query(sql, connection)
+                            df = load_mysql.get_data_request(sql, cloud)
+                            df_full = pd.concat([df_full, df], ignore_index=False)
+                            # df_full = df_full.append(df)
+                        except Exception as e:
+                            print(f"Error: {e}")
+                            continue
+                            k += 1
                     except pymysql.err.ProgrammingError as e:
                         print(f"Error: {e} Table cel_just-call-{queue}-new_1 not found.")
                         continue
                         k += 1
+
+            except pymysql.err.OperationalError as e1:
+
+                print(f"Error: {e1} Host {server} not found.")
+                continue
                 
             except pymysql.err.ProgrammingError as e:
                 print(f"Error: {e} Table cel_just-call-{queue}-new_1 not found.")
                 continue
                 k += 1
+
+    print(df_full.shape[0])
+
+    if df_full.shape[0] > 0:
         
-    df_full['date'] = pd.to_datetime(df_full['date'])        
-    df_full2 = df_full
-    start_time = time.time()
-    print(f'Конец: {time.strftime("%X")}.')
-    df_full2=df_full2.drop_duplicates().fillna('')
-    print('Проставляем ранг по экспектам')
-    df_full2['Rank'] = df_full2.groupby(['phone','dialog'])['date'].rank(ascending=True).fillna('0')
-    df_full2['Rank'] = df_full2['Rank'].astype('str').apply(lambda x: x.replace('.0',''))
-    df_full2['full_normalized'] = df_full2['Rank'] + '. '+ df_full2['full_normalized']
-    df_full2 = df_full2[['phone','step_start','step_end','full_normalized','dialog','uid','Rank']]
-    df_robot= df_robot.astype('str')
-    df_full2= df_full2.astype('str')
-    print('Соединяем роботлог с экспектами')
-    tab =  df_robot.merge(df_full2, left_on = ['phone','dialog'], right_on = ['phone','dialog'], how = 'left').fillna('')
+        df_full['date'] = pd.to_datetime(df_full['date'])        
+        df_full2 = df_full
+        start_time = time.time()
+        print(f'Конец: {time.strftime("%X")}.')
+        df_full2=df_full2.drop_duplicates().fillna('')
+        print('Проставляем ранг по экспектам')
+        df_full2['Rank'] = df_full2.groupby(['phone','dialog'])['date'].rank(ascending=True).fillna('0')
+        df_full2['Rank'] = df_full2['Rank'].astype('str').apply(lambda x: x.replace('.0',''))
+        df_full2['full_normalized'] = df_full2['Rank'] + '. '+ df_full2['full_normalized']
+        print(df_full2['full_normalized'].unique())
+        df_full2 = df_full2[['phone','step_start','step_end','full_normalized','dialog','uid','Rank']]
+        df_robot= df_robot.astype('str')
+        df_full2= df_full2.astype('str')
+        print('Соединяем роботлог с экспектами')
+        tab =  df_robot.merge(df_full2, left_on = ['phone','dialog'], right_on = ['phone','dialog'], how = 'left').fillna('')
 
-    tab['trunk_id'] = tab['trunk_id'].astype('str').apply(lambda x: x.replace('.0',''))
-    tab['step_end'] = tab['step_end'].astype('str').apply(lambda x: x.replace('.0',''))
-    tab['trunk_id'] = tab['trunk_id'].astype('str').apply(lambda x: x.replace('.0',''))
-    tab['call_sec'] = tab['call_sec'].fillna(0).astype('int64')
-    print('Группируем и делим длительность на количество строк')
-    tab['new_callsec'] =tab.groupby(['phone','dialog','last_step'])['call_sec'].transform(lambda x: x / len(x))
-    tab = tab[['dialog',
-           'calldate',
-           'autootvet',
-           'talk',
-           'last_step',
-           'trunk_id',
-           'marker',
-           'uniqueid',
-           'ptv_c',
-           'city_c',
-           'call_sec',
-           'new_callsec',
-           'otkaz',
-           'calls',
-           'step_start',
-          'step_end',
-          'full_normalized',
-          'Rank']] 
-    tab['new_callsec'] = tab['new_callsec'].fillna(0).astype('int64')
-    # print('Записывается в файл')
-    # tab.to_csv(f'{path_file}/{total}',sep=',', index=False)
+        tab['trunk_id'] = tab['trunk_id'].astype('str').apply(lambda x: x.replace('.0',''))
+        tab['step_end'] = tab['step_end'].astype('str').apply(lambda x: x.replace('.0',''))
+        tab['trunk_id'] = tab['trunk_id'].astype('str').apply(lambda x: x.replace('.0',''))
+        tab['call_sec'] = tab['call_sec'].fillna(0).astype('int64')
+        print('Группируем и делим длительность на количество строк')
+        tab['new_callsec'] =tab.groupby(['phone','dialog','last_step'])['call_sec'].transform(lambda x: x / len(x))
+        tab = tab[['dialog',
+            'calldate',
+            'autootvet',
+            'talk',
+            'last_step',
+            'trunk_id',
+            'marker',
+            'uniqueid',
+            'ptv_c',
+            'city_c',
+            'call_sec',
+            'new_callsec',
+            'otkaz',
+            'calls',
+            'step_start',
+            'step_end',
+            'full_normalized',
+            'Rank']] 
+        tab['new_callsec'] = tab['new_callsec'].fillna(0).astype('int64')
+        # print('Записывается в файл')
+        # tab.to_csv(f'{path_file}/{total}',sep=',', index=False)
 
-    print('Подключаемся к clickhouse')
-    dest = '/root/airflow/dags/not_share/ClickHouse2.csv'
-    if dest:
-        with open(dest) as file:
-            for now in file:
-                now = now.strip().split('=')
-                first, second = now[0].strip(), now[1].strip()
-                if first == 'host':
-                    host = second
-                elif first == 'user':
-                    user = second
-                elif first == 'password':
-                    password = second
-        # return host, user, password
-
-    tab[['dialog','last_step','trunk_id','marker','uniqueid',
-        'ptv_c','city_c','step_start','step_end','full_normalized','Rank']] =  tab[['dialog','last_step','trunk_id','marker','uniqueid',
-        'ptv_c','city_c','step_start','step_end','full_normalized','Rank']].fillna('').astype('str')
-    
-    tab['ptv_c'] = tab['ptv_c'].astype('str').apply(lambda x: x.replace('nan',''))
-    tab['trunk_id'] = tab['trunk_id'].astype('str').apply(lambda x: x.replace('nan',''))
-    tab['full_normalized'] = tab['full_normalized'].astype('str').apply(lambda x: x.replace('nan',''))
-    tab['step_start'] = tab['step_start'].astype('str').apply(lambda x: x.replace('nan',''))
-    tab['step_end'] = tab['step_end'].astype('str').apply(lambda x: x.replace('nan',''))
-
+        tab[['dialog','last_step','trunk_id','marker','uniqueid',
+            'ptv_c','city_c','step_start','step_end','full_normalized','Rank']] =  tab[['dialog','last_step','trunk_id','marker','uniqueid',
+            'ptv_c','city_c','step_start','step_end','full_normalized','Rank']].fillna('').astype('str')
         
-        
-    tab[['autootvet','talk','otkaz','calls',
-            'call_sec','new_callsec']] =  tab[['autootvet','talk','otkaz','calls',
-            'call_sec','new_callsec']].fillna(0).astype('int64')
+        tab['ptv_c'] = tab['ptv_c'].astype('str').apply(lambda x: x.replace('nan',''))
+        tab['trunk_id'] = tab['trunk_id'].astype('str').apply(lambda x: x.replace('nan',''))
+        tab['full_normalized'] = tab['full_normalized'].astype('str').apply(lambda x: x.replace('nan',''))
+        tab['step_start'] = tab['step_start'].astype('str').apply(lambda x: x.replace('nan',''))
+        tab['step_end'] = tab['step_end'].astype('str').apply(lambda x: x.replace('nan',''))
 
-        
-        
-    print('Загрузка в базу')
-    tab['calldate'] = pd.to_datetime(tab['calldate'])
+            
+            
+        tab[['autootvet','talk','otkaz','calls',
+                'call_sec','new_callsec']] =  tab[['autootvet','talk','otkaz','calls',
+                'call_sec','new_callsec']].fillna(0).astype('int64')
+
+            
+            
+        print('Загрузка в базу')
+        tab['calldate'] = pd.to_datetime(tab['calldate'])
 
 
-    tab = tab[['dialog','calldate','autootvet','talk','last_step','trunk_id','marker','uniqueid',
-        'ptv_c','city_c','call_sec','new_callsec','otkaz','calls','step_start','step_end','full_normalized','Rank']]
+        tab = tab[['dialog','calldate','autootvet','talk','last_step','trunk_id','marker','uniqueid',
+            'ptv_c','city_c','call_sec','new_callsec','otkaz','calls','step_start','step_end','full_normalized','Rank']]
 
-
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
-        
-    print('Отправляем запрос')
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.expect_voicemail VALUES', tab)
-
+        client = my_connection()
+            
+        print('Отправляем запрос')
+        client.insert_dataframe('INSERT INTO suitecrm_robot_ch.expect_voicemail VALUES', tab)
+    else:
+        pass

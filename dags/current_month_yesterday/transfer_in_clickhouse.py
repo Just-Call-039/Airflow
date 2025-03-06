@@ -1,23 +1,15 @@
 def to_click(path_file, calls):
-    import pandas as pd
-    import pymysql
-    import gspread 
-    from oauth2client.service_account import ServiceAccountCredentials
+    import pandas as pd   
     import datetime
-    from datetime import datetime, timedelta
     from datetime import datetime
     from clickhouse_driver import Client
-    import pandas as pd
-    import pymysql
-    import datetime
-    from clickhouse_driver import Client
-    import datetime
+    from indicators_to_regions.download_googlesheet import download_gs
 
     df = pd.read_csv(f'{path_file}/{calls}')
     print('самая рання дата ', df['call_date'].min())
 
     df[['id','name',
-'contactid','queue',
+    'contactid','queue',
     'user_call','super',
     'city','dialog',
     'completed_c']]=df[['id','name',
@@ -49,37 +41,9 @@ def to_click(path_file, calls):
     print('самая ранняя дата после мерджа с пользователями ', df['call_date'].min())
     print('размер датасета  ', df.shape[0])
     
-    path_to_credential = '/root/airflow/dags/quotas-338711-1e6d339f9a93.json' 
-
-    scope = ['https://spreadsheets.google.com/feeds',
-         'https://www.googleapis.com/auth/drive']
-
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_credential, scope)
-    gs = gspread.authorize(credentials)
-
-    table_name4 = 'Команды/Проекты'
-
-    work_sheet4 = gs.open(table_name4)
-    sheet4 = work_sheet4.worksheet('Лиды')
-    data4 = sheet4.get_all_values() 
-    headers4 = data4.pop(0) 
-    lids = pd.DataFrame(data4, columns=headers4)
-
-
-    path_to_credential = '/root/airflow/dags/quotas-338711-1e6d339f9a93.json' 
-    scope = ['https://spreadsheets.google.com/feeds',
-         'https://www.googleapis.com/auth/drive']
-
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_credential, scope)
-    gs = gspread.authorize(credentials)
-
-    table_name4 = 'Команды/Проекты'
-
-    work_sheet4 = gs.open(table_name4)
-    sheet4 = work_sheet4.worksheet('JC')
-    data4 = sheet4.get_all_values() 
-    headers4 = data4.pop(0) 
-    jc = pd.DataFrame(data4, columns=headers4)
+    
+    lids = download_gs('Команды/Проекты', 'Лиды')
+    jc = download_gs('Команды/Проекты', 'JC')
     
     df =  df.merge(lids[['Проект','СВ CRM']], left_on = 'supervisor', right_on = 'СВ CRM', how = 'left').fillna('')
     df =  df.merge(jc[['Проект','CRM СВ']], left_on = 'supervisor', right_on = 'CRM СВ', how = 'left').fillna('')
@@ -180,47 +144,54 @@ def to_click(path_file, calls):
                         elif first == 'password':
                             password = second
         # return host, user, password
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+    try:
+        client = Client(host=host, port='9000', user=user, password=password,
+                        database='suitecrm_robot_ch', settings={'use_numpy': True})
 
-    print('Удаляем таблицу')
-    client.execute('drop table suitecrm_robot_ch.pokazateli_operatorov')
-    client = Client(host=host, port='9000', user=user, password=password,
-                    database='suitecrm_robot_ch', settings={'use_numpy': True})
+        print('Удаляем таблицу')
+        client.execute('truncate table suitecrm_robot_ch.pokazateli_operatorov')
+    except (ValueError):
+        print('Таблица не удалена')
+    finally:
+        try:
 
+            print('Создаем таблицу')
+            sql_create = '''create table if not exists suitecrm_robot_ch.pokazateli_operatorov
+        (
+            id            String,
+            call_date     Date,
+            name          String,
+            contactid     String,
+            queue         String,
+            user_call     String,
+            super         String,
+            city          String,
+            town          String,
+            call_sec      Int64,
+            short_calls   Int64,
+            dialog        String,
+            completed_c   String,
+            fio           String,
+            supervisor    String,
+            project       String,
+            call_count    Float64,
+            request_date  Date,
+            user          String,
+            status        String,
+            district_c    String,
+            my_phone_work String
+        )
+            engine = MergeTree ORDER BY call_date;'''
+            client.execute(sql_create)
+        except (ValueError):
+            print('Таблица не удалена')
+        finally:
+            try:
+                client.insert_dataframe('INSERT INTO suitecrm_robot_ch.pokazateli_operatorov VALUES', df1)
+            except (ValueError):
+                print('Таблица не удалена')
+            finally:
 
-    print('Создаем таблицу')
-    sql_create = '''create table suitecrm_robot_ch.pokazateli_operatorov
-(
-    id            String,
-    call_date     Date,
-    name          String,
-    contactid     String,
-    queue         String,
-    user_call     String,
-    super         String,
-    city          String,
-    town          String,
-    call_sec      Int64,
-    short_calls   Int64,
-    dialog        String,
-    completed_c   String,
-    fio           String,
-    supervisor    String,
-    project       String,
-    call_count    Float64,
-    request_date  Date,
-    user          String,
-    status        String,
-    district_c    String,
-    my_phone_work String
-)
-    engine = MergeTree ORDER BY call_date;'''
-    client.execute(sql_create)
-
-
-    client = Client(host=host, port='9000', user=user, password=password,
-                       database='suitecrm_robot_ch', settings={'use_numpy': True})
-
-    client.insert_dataframe('INSERT INTO suitecrm_robot_ch.pokazateli_operatorov VALUES', df1)
+                client.connection.disconnect()
+                print('conection closed')
 

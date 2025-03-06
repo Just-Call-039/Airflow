@@ -264,30 +264,54 @@ with timework as (select id_user, date, sum(A) timework, sum(talk_inbound) talk_
                         FROM suitecrm.users) user),
      jc as (select distinct assigned_user_id,
                             team,
-                            substring(jc.dialog, 11, 4)                                                   dialog,
-                            if(destination_queue is null, substring(jc.dialog, 11, 4), destination_queue) destination,
+                            jc.dialog,
+                            if(destination_queue is null, jc.dialog, destination_queue) destination,
                             jc.uniqueid,
                             jc.phone,
                             date(jc.call_date)                                                            calldate,
                             jc.city_c
-            from (select assigned_user_id,dialog,uniqueid,phone,call_date,city_c,last_step
-            from suitecrm_robot.jc_robot_log
-            --    union all
-            --     select assigned_user_id,dialog,uniqueid,phone,call_date,city_c,last_step
-            -- from suitecrm_robot.jc_robot_log_2023_01
-                ) jc
-                     left join steps on (queue = substring(dialog, 11, 4) and last_step = step)
+            from (select assigned_user_id,
+                        REGEXP_SUBSTR(jc1.dialog, '[0-9]+')                                                   dialog,
+                        jc1.uniqueid,
+                        destination_queue,
+                        jc1.phone,
+                        call_date,
+                        city_c,
+                        team,
+                        last_step
+                   from suitecrm_robot.jc_robot_log jc1
+                   left join steps on (queue = jc1.dialog and last_step = step)
                      left join (select distinct * from suitecrm.transferred_to_other_queue) tr
-                               on tr.phone = jc.phone and tr.uniqueid = jc.uniqueid
-                     left join teams on jc.assigned_user_id = teams.id
+                               on tr.phone = jc1.phone and tr.uniqueid = jc1.uniqueid
+                     left join teams on assigned_user_id = teams.id
             where assigned_user_id not in ('', '1')
-              and date(call_date) >= '2022-03-01'
-              and date(now())
-              and step is not null),
+              and date(call_date) between '2024-09-01' and date(now())
+              and step is not null
+
+                    union all
+
+                 select operator_id assigned_user_id,
+                        robot_id dialog,
+                        dialog_id as uniqueid,
+                        transfer as destination_queue,
+                        jc2.phone,
+                        call_date,
+                        city city_c,
+                        team,
+                        last_step
+                   from suitecrm_robot.robot_log jc2
+                        left join suitecrm_robot.robot_log_addition jc3
+                             on jc2.id = jc3.robot_log_id
+                
+                     left join steps on (queue = robot_id and last_step = step)
+                     left join teams on jc3.operator_id = teams.id
+            where jc3.operator_id not in ('', '1')
+              and date(call_date) between '2024-09-01' and date(now())
+              and step is not null)  jc),
      jc2 as (select jc.*,
                     case
-                       when team = 555 and calldate <= '2023-02-15' then 'NBN'
-                       when team = 555 and calldate > '2023-02-15' then 'RTK'
+                       
+                       when team = 555 then 'RTK'
                        when team in (122, 432, 667) then 'BEELINE LIDS'
                        when team in (20, 24, 40, 62, 63, 90, 100, 502, 503, 504, 506, 507, 509, 510, 511, 512, 513)
                            then 'DOMRU LIDS'

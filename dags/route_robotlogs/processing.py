@@ -9,15 +9,15 @@ from datetime import datetime, date
 
 def group_log(path_project_folder, path_sql_log, path_sql_dest, path_sql_city, path_to_robot_log, path_to_route_unique, path_to_route,
               path_to_defenition, file_name_operator):
-            #   , file_name_route, file_name_unique_route):
+           
 
-    count = 3
+    count = 2
     cloud_name = 'cloud_128'
 
-    for i in range(2, count):
+    for i in range(1, count):
 
         # Определим дату, за которую будем выгружать данные
-        # date_f = datetime.strptime("2024-06-02", "%Y-%m-%d").date() - pd.Timedelta(days=i)
+        
         date_f = date.today() - pd.Timedelta(days=i)
         print(date_f)
 
@@ -622,6 +622,7 @@ def create_conv(path_to_folder, file_name_request, file_name_conv):
     col_list = ['queue', 'destination_queue', 'team', 'konva', 'vsego', 'marker', 'last_step', 'trunk_id', 'inbound_call']
 
     for col in col_list:
+        request.loc[request[col] == ' ', [col]] = 0
         request[col] = request[col].fillna(0)
         request[col] = request[col].astype(int).astype(str)
     

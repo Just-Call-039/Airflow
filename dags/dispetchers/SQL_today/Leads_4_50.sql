@@ -795,12 +795,12 @@ with town_c as (select 0 town_c, '0 РФ' Город
                     ) as t2
                where ochered is not null),
 
-     osnova as (select substring(jrl.dialog, 11, 4)     Диалог_лиды,
-                       if(substring(log.dialog, 11, 4) is null, substring(jrl.dialog, 11, 4),
-                          substring(log.dialog, 11, 4)) Диалог_лог,
+     osnova as (select  REGEXP_SUBSTR(jrl.dialog, '[0-9]+')     Диалог_лиды,
+                       if(REGEXP_SUBSTR(log.dialog, '[0-9]+') is null, REGEXP_SUBSTR(jrl.dialog, '[0-9]+'),
+                          REGEXP_SUBSTR(log.dialog, '[0-9]+')) Диалог_лог,
                        if(destination_queue is null,
-                          if(substring(log.dialog, 11, 4) is null, substring(jrl.dialog, 11, 4),
-                             substring(log.dialog, 11, 4)),
+                          if(REGEXP_SUBSTR(log.dialog, '[0-9]+') is null, REGEXP_SUBSTR(jrl.dialog, '[0-9]+'),
+                             REGEXP_SUBSTR(log.dialog, '[0-9]+')),
                           destination_queue)            'Принимающая_очередь',
                        last_step                        'Последний_шаг',
                        steps.name,
@@ -843,7 +843,7 @@ with town_c as (select 0 town_c, '0 РФ' Город
                          left join town_c ON town_c.town_c = jrlc.town_c
                          left join type ON type.type = jrl.type
                          left join steps
-                                   on (steps.ochered = substring(log.dialog, 11, 4) and log.last_step = steps.step)
+                                   on (steps.ochered = REGEXP_SUBSTR(log.dialog, '[0-9]+') and log.last_step = steps.step)
                 where jrl.type in ('interested','recall', 'recall_plus', 'recall_tomorrow', 'waiters', 'recall_today', 'leads')
                   and date(jrl.date_entered) = date(now())
                   and date_start_bp is null

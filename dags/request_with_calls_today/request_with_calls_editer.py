@@ -21,6 +21,7 @@ def request_editer(path_to_files, request, path_result, file_result):
    Callreqfull.reset_index(drop=True, inplace=True)
 
    request_now = pd.read_csv(f'{path_to_files}/{request}')
+   print('request ', request_now[request_now['user'] == 'e9abfebd-cb27-9a24-61bc-6786646edd55'])
 
    request_now["my_phone_work"] = request_now['my_phone_work'].astype(object)
    request_now["my_phone_work"] = request_now['my_phone_work'].astype(str)
@@ -37,11 +38,12 @@ def request_editer(path_to_files, request, path_result, file_result):
 
    Callreqfull["assigned_user_id"] = Callreqfull['assigned_user_id'].astype(object)
    Callreqfull["assigned_user_id"] = Callreqfull['assigned_user_id'].astype(str)
+   print('call ', Callreqfull[Callreqfull['assigned_user_id'] == 'e9abfebd-cb27-9a24-61bc-6786646edd55'])
 
    print(f'Заявки {request_now.shape[0]}')
 
    Requests = request_now.merge(Callreqfull, how = 'left', left_on=['my_phone_work','user'], right_on=['phone_number','assigned_user_id'])
-
+   print('union ', Requests[Requests['user'] == 'e9abfebd-cb27-9a24-61bc-6786646edd55'])
    print(f'Заявки после соединиения {Requests.shape[0]}')
    Requests['request_hour'] = Requests['request_hour'].astype('str').apply(lambda x: x.replace('.0',''))
    Requests = Requests[['project','request_date','request_hour',

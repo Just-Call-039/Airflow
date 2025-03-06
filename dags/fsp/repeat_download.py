@@ -3,9 +3,11 @@ def sql_query_to_csv(cloud, path_sql_file, path_csv_file, name_csv_file, current
     import pymysql
     import pandas as pd
 
-    from commons.connect_db import connect_db
-
+    from commons_sawa.connect_db import connect_db
+    print('try read file cloud ', cloud)
+    
     host, user, password = connect_db(cloud)
+    print('try connection')
     my_connect = pymysql.Connect(host=host, user=user, passwd=password,
                                  db="suitecrm",
                                  charset='utf8')
@@ -64,7 +66,8 @@ def repeat_download(n, days, source, cloud, path_sql_file, path_csv_file, name_c
             step = 1
 
     else:    
-        from commons.connect_db import connect_db
+        # from commons.connect_db import connect_db
+        from commons_sawa.connect_db import connect_db
 
         for i in range(0,days):
             host, user, password = connect_db(cloud)
@@ -72,7 +75,7 @@ def repeat_download(n, days, source, cloud, path_sql_file, path_csv_file, name_c
                                         db="suitecrm",
                                         charset='utf8')
 
-            my_query = open(path_sql_file).read().replace('п»ї','').replace('﻿','').replace('\ufeff','').format(n)
+            my_query = open(path_sql_file).read().replace('п»ї','').replace('﻿','').replace('\ufeff','').format(n=n)
             # print(my_query)
 
             df = pd.read_sql_query(my_query, my_connect)
@@ -83,7 +86,7 @@ def repeat_download(n, days, source, cloud, path_sql_file, path_csv_file, name_c
             df.to_csv(to_file, index=False, sep=',', encoding='utf-8')
             print(f'DONE {now}')
 
-            n += 1
+            n += 1 
             my_connect.close()
             sleep(20)
 
