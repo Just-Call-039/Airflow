@@ -49,8 +49,7 @@ def update_operational(n, stop, path_to_sql, file_name,path_to_airflow,file_dele
         client.connection.disconnect()
         print('conection closed')
 
-    # Отправляем запрос
-    client.execute(sql)
+
     for i in range(0, stop):
         print(f'start {i}')
         print(datetime.datetime.now() - datetime.timedelta(days=n))

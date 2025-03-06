@@ -216,6 +216,7 @@ def operational_calls_transformation(path_to_folder, name_calls, path_to_final_f
 
     for column in column_list_str:
         df[column] = df[column].astype(str)
+   
     
     df['calldate'] = df['calldate'].astype('datetime64').dt.date
 

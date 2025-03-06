@@ -1,3 +1,5 @@
+import datetime
+import dateutil.relativedelta
 from datetime import timedelta
 import pendulum
 
@@ -8,9 +10,10 @@ from airflow.operators.python import PythonOperator
 from commons.transfer_file_to_dbs import transfer_file_to_dbs
 from fsp.repeat_download import sql_query_to_csv
 from commons_li.sql_query_semicolon_to_csv import sql_query_to_csv_sc
-
+from commons_liza import load_mysql
 from current_month_yesterday.transfer_in_clickhouse import to_click
 from current_month_yesterday import transfer_in_clickhouse_v2
+from previous_month import union_old_new_robot
 
 
 
@@ -32,11 +35,16 @@ dag = DAG(
     )
 
 
-cloud_name = 'cloud_128'
-# cloud_name = 'cloud_183'
+cloud_182 = 'cloud_128'
+cloud = ['base_dep_slave', 'IyHBh9mDBdpg', '192.168.1.183', 'suitecrm'] 
+
+cloud_name = 'cloud_183'
 
 # Наименование файлов.
 csv_calls = 'Звонки_вчера.csv' 
+csv_calls_old = 'Звонки_вчера_old.csv' 
+csv_calls_new = 'Звонки_вчера_new.csv' 
+
 csv_call_wait = 'CallWaitUser.csv' 
 csv_login_user = 'LoginUsers.csv'
 csv_user = 'users.csv'
@@ -47,6 +55,9 @@ csv_working = 'working_time_current_month.csv'
 path_to_sql_airflow = '/root/airflow/dags/current_month_yesterday/SQL/'
 sql_calls = f'{path_to_sql_airflow}calls_yesterday.sql'
 sql_calls_4 = f'{path_to_sql_airflow}Звонки вчера.sql'
+sql_calls_4_old = f'{path_to_sql_airflow}Звонки вчера_old.sql'
+sql_calls_4_new = f'{path_to_sql_airflow}Звонки вчера_new.sql'
+
 sql_users_total = f'{path_to_sql_airflow}Users_total.sql'
 sql_call_wait = f'{path_to_sql_airflow}CallWaitUser.sql'
 sql_login_users = f'{path_to_sql_airflow}LoginUsers.sql'
@@ -66,6 +77,23 @@ path_to_user_dop_dbs = '/4_report/'
 path_to_work_dbs = '/4_report/Files/working_time_folder/'
 
 
+first_date = (datetime.datetime.now()).replace(day=1).strftime('%Y-%m-%d')
+last_date = (datetime.datetime.now() - dateutil.relativedelta.relativedelta(days=1)).strftime('%Y-%m-%d')
+
+type_dict = {'id' : 'str',
+            'name' : 'str',
+            'contactid' :'str',
+            'queue' : 'str',
+            'user_call' :'str',
+            'super' : 'str',
+            'city' : 'str',
+            'call_sec' : 'float64',
+             'short_calls' : 'int64',
+             'dialog' : 'str',
+             'completed_c' : 'str',
+             'call_count' : 'float64',
+             'phone': 'str'}
+
 
 # Блок выполнения SQL запросов.
 
@@ -79,9 +107,49 @@ calls_yesterday = PythonOperator(
 calls_yesterday_4 = PythonOperator(
     task_id='calls_yesterday_4', 
     python_callable=sql_query_to_csv, 
-    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_calls_4, 'path_csv_file': path_to_file_sql, 'name_csv_file': csv_calls}, 
+    op_kwargs={'cloud': cloud_182, 
+               'path_sql_file': sql_calls_4, 
+               'path_csv_file': path_to_file_sql, 
+               'name_csv_file': csv_calls}, 
     dag=dag
     )
+
+# calls_yesterday_4_old = PythonOperator(
+#     task_id='calls_yesterday_4_old', 
+#     python_callable=load_mysql.get_data_permonth, 
+#     op_kwargs={'sql_download' : sql_calls_4_old,
+#                'cloud' : cloud, 
+#                'date_i' : str(first_date),
+#                'date_before' : str(last_date),
+#                'file_path': f'{path_to_file_sql}{csv_calls_old}'}, 
+#     dag=dag
+  
+#     )
+
+# calls_yesterday_4_new = PythonOperator(
+#     task_id='calls_yesterday_4_new', 
+#     python_callable=load_mysql.get_data_permonth, 
+#     op_kwargs={'sql_download' : sql_calls_4_new,
+#                'cloud' : cloud, 
+#                'date_i' : str(first_date),
+#                'date_before' : str(last_date),
+#                'file_path': f'{path_to_file_sql}{csv_calls_new}'}, 
+#     dag=dag
+  
+#     )
+
+# union_calls = PythonOperator(
+#     task_id='union_calls', 
+#      python_callable=union_old_new_robot.union_calls, 
+#     op_kwargs={
+#                'old_calls_path' : f'{path_to_file_sql}{csv_calls_old}',
+#                'new_calls_path' : f'{path_to_file_sql}{csv_calls_new}', 
+#                'type_dict' : type_dict,
+#                'union_calls_path' : f'{path_to_file_sql}{csv_calls}'
+#                }, 
+#     dag=dag
+#     )
+
 login_user = PythonOperator(
     task_id='login_user', 
     python_callable=sql_query_to_csv, 
@@ -103,7 +171,7 @@ call_wait = PythonOperator(
 working_time = PythonOperator(
     task_id='working_time', 
     python_callable=sql_query_to_csv_sc, 
-    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_working, 'path_csv_file': path_to_file_sql, 'name_csv_file': csv_working}, 
+    op_kwargs={'cloud': cloud_182, 'path_sql_file': sql_working, 'path_csv_file': path_to_file_sql, 'name_csv_file': csv_working}, 
     dag=dag
     )
 

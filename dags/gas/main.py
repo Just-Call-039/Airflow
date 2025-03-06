@@ -20,22 +20,22 @@ default_args = {
 
 dag = DAG(
     dag_id='gas',
-    schedule_interval='20 5 * * *',
-    start_date=pendulum.datetime(2023, 7, 25, tz='Europe/Kaliningrad'),
+    schedule_interval='30 21 * * *',
+    start_date=pendulum.datetime(2025, 2, 1, tz='Europe/Kaliningrad'),
     catchup=False,
     default_args=default_args
     )
 
 # Определяем дату за которую будем выгружать данные
-
-date_i = datetime.date.today() - datetime.timedelta(days=1)
+n = 0  # Количество дней назад от текущей даты
+date_i = datetime.date.today() - datetime.timedelta(days=n)
 year = date_i.year
 month = date_i.month
 day = date_i.day
 
 # Данные для подклбчения
 
-cloud_183 = ['base_dep_slave', 'IyHBh9mDBdpg', '192.168.1.183', 'suitecrm'] 
+cloud_182 = ['base_dep_slave', 'IyHBh9mDBdpg', '192.168.1.182', 'suitecrm'] 
 cloud_42 = ['gas_manager', 'teBxoh-2dekpy-ruvrid', '192.168.1.42', 'gasification'] 
 
 # Пути к sql запросам
@@ -101,7 +101,7 @@ dbs_path = 'scripts fsp\Current Files\gas'
 procceess = PythonOperator(
     task_id = 'all_proccess',
     python_callable = all_proccess,
-    op_kwargs = {'cloud_183' : cloud_183, 
+    op_kwargs = {'cloud_183' : cloud_182, 
                  'cloud_42' : cloud_42, 
                  'date_i' : date_i, 
                  'type_dict' : type_dict, 
@@ -136,15 +136,14 @@ save_files_dbs = PythonOperator(
 
 # Функция для очистки папки проекта
 
-# clear_folders = PythonOperator(
-#     task_id='clear_folder', 
-#     python_callable=clear_folder, 
-#     op_kwargs={'folder': folder_path,
-#                'folder_not_delete' : 'xxx'}, 
-#     dag=dag
-#     )
+clear_folders = PythonOperator(
+    task_id='clear_folder', 
+    python_callable=clear_folder, 
+    op_kwargs={'folder': folder_path,
+               'folder_not_delete' : 'xxx'}, 
+    dag=dag
+    )
 
 
-procceess >> save_files_dbs 
-# >> clear_folders
+procceess >> save_files_dbs >> clear_folders
     

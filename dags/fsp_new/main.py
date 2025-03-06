@@ -13,8 +13,8 @@ default_args = {
     'email': 'kunina.elisaveta@gmail.com',
     'email_on_failure': False,
     'email_on_retry': False,
-    'retries': 3,
-    'retry_delay': timedelta(minutes=3)
+    'retries': 2,
+    'retry_delay': timedelta(minutes=60)
     }
 
 dag = DAG(
@@ -28,7 +28,7 @@ dag = DAG(
 
 cloud = ['base_dep_slave', 'IyHBh9mDBdpg', '192.168.1.182', 'suitecrm']
 
-n = 2
+n = 1
 days = 1
 # project folder
 trafic_folder_path = '/root/airflow/dags/fsp_new/files/trafic'

@@ -90,46 +90,46 @@ from (select distinct jc.uniqueid                                               
             from suitecrm_robot.jc_robot_log
             WHERE date(call_date) >= '2025-01-01'
               and jc_robot_log.assigned_user_id not in ('1', '')
-       --      union all
-       --      select uniqueid,
-       --             call_date,
-       --             assigned_user_id,
-       --             phone,
-       --             city_c,
-       --             town,
-       --             network_provider_c,
-       --             ptv_c,
-       --             region_c,
-       --             marker,
-       --             last_step,
-       --             REGEXP_REPLACE(dialog, '[^0-9]', '')                                                 as queue,
-       --             was_repeat,
-       --             inbound_call,
-       --             directory,
-       --             trunk_id,
-       --             base_source_c
-       --      from suitecrm_robot.jc_robot_log_2024_09 jc1
-       --      WHERE jc1.assigned_user_id not in ('1', '')
-       --      union all
-       --      select uniqueid,
-       --             call_date,
-       --             assigned_user_id,
-       --             phone,
-       --             city_c,
-       --             town,
-       --             network_provider_c,
-       --             ptv_c,
-       --             region_c,
-       --             marker,
-       --             last_step,
-       --             REGEXP_REPLACE(dialog, '[^0-9]', '')                                                 as queue,
-       --             was_repeat,
-       --             inbound_call,
-       --             directory,
-       --             trunk_id,
-       --             base_source_c
-       --      from suitecrm_robot.jc_robot_log_2024_12 jc2
-       --      WHERE jc2.assigned_user_id not in ('1', '')
+            union all
+            select uniqueid,
+                   call_date,
+                   assigned_user_id,
+                   phone,
+                   city_c,
+                   town,
+                   network_provider_c,
+                   ptv_c,
+                   region_c,
+                   marker,
+                   last_step,
+                   REGEXP_REPLACE(dialog, '[^0-9]', '')                                                 as queue,
+                   was_repeat,
+                   inbound_call,
+                   directory,
+                   trunk_id,
+                   base_source_c
+            from suitecrm_robot.jc_robot_log_2025_01 jc1
+            WHERE jc1.assigned_user_id not in ('1', '')
+            union all
+            select uniqueid,
+                   call_date,
+                   assigned_user_id,
+                   phone,
+                   city_c,
+                   town,
+                   network_provider_c,
+                   ptv_c,
+                   region_c,
+                   marker,
+                   last_step,
+                   REGEXP_REPLACE(dialog, '[^0-9]', '')                                                 as queue,
+                   was_repeat,
+                   inbound_call,
+                   directory,
+                   trunk_id,
+                   base_source_c
+            from suitecrm_robot.jc_robot_log_2024_12 jc2
+            WHERE jc2.assigned_user_id not in ('1', '')
        --      union all
        --      select uniqueid,
        --             call_date,
@@ -168,7 +168,7 @@ from (select distinct jc.uniqueid                                               
        --             directory,
        --             trunk_id,
        --             base_source_c
-       --      from suitecrm_robot.jc_robot_log_2024_10 jc3
+       -- --      from suitecrm_robot.jc_robot_log_2024_10 jc3
        --      WHERE jc3.assigned_user_id not in ('1', '')
             union all
             SELECT robot_log_id         uniqueid,
@@ -190,7 +190,7 @@ from (select distinct jc.uniqueid                                               
                    base_source      base_source_c
             FROM suitecrm_robot.robot_log
                      left join suitecrm_robot.robot_log_addition on robot_log.id = robot_log_addition.robot_log_id
-            WHERE date(call_date) >= '2025-02-01'
+            WHERE date(call_date) >= '2025-01-01'
               and robot_log_addition.operator_id not in ('1', '')
            ) jc
                left join suitecrm.contacts c on c.phone_work = jc.phone

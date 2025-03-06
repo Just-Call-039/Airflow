@@ -32,6 +32,7 @@ def disp_editors(path_to_files, lids, path_result, calls):
     queues['date'] = datetime.datetime.now().strftime('%Y-%m-%d')
 
     lid = pd.read_csv(f'{path_to_files}/{lids}')
+    print('lid_size', lid.shape[0])
 
     lid['Принимающая_очередь'] = lid['Принимающая_очередь'].astype('str').apply(lambda x: x.replace('.0',''))
     queues['Очередь'] = queues['Очередь'].astype('str').apply(lambda x: x.replace('.0',''))
@@ -40,6 +41,7 @@ def disp_editors(path_to_files, lids, path_result, calls):
     lid = lid.merge(queues, how='left', left_on='Принимающая_очередь', right_on='Очередь')
     lid['Последний_шаг'] = lid['Последний_шаг'].astype('str').apply(lambda x: x.replace('.0',''))
     print(lid.columns)
+    print('lid_merge', lid.shape[0])
     lid['Очередь заливки'] = lid['Проект (набирающая очередь)'].apply(lambda x:
                                                            '9293' if x in ['TTK', 'TTK LIDS'] else
                                                                     '9295' if x in ['MTS', 'MTS LIDS'] else

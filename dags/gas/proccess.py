@@ -51,9 +51,11 @@ def all_proccess(cloud_183, cloud_42, date_i, type_dict, contact_sql, contact_cs
 
     # load_mysql.save_data_request(gas_request, cloud_42, gas_csv)
     gas = load_mysql.get_data_request(gas_request, cloud_42)
+    print(gas[(gas['territory_name'] == 'Зеленоградск') & (gas['plan_date'] == '2025-02-26')].count())
     gas = gas.merge(contact[['phone', 'call_date']], on = 'phone', how = 'left').fillna('')
     gas = gas[gas['call_date'] != '']
     del gas['call_date']
+    print(gas[(gas['territory_name'] == 'Зеленоградск') & (gas['plan_date'] == '2025-02-26')].count())
     gas.to_csv(gas_csv, index  = False)
 
     # Передаем в запрос переменные дату и список телефона, для того чтобы выгрузить данные по входящим звонкам из роботлога

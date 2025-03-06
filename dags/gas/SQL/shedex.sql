@@ -8,4 +8,4 @@ SELECT id_address,
        date(date) req_date, 
        mID as shedex_id
   FROM suitecrm.schedex
- WHERE date(date) = '{date_i}'
+ WHERE date(date) = date(now())

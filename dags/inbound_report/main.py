@@ -28,7 +28,7 @@ dag = DAG(
 
 numdays = 30
 
-date_i = datetime.date.today() - datetime.timedelta(days=2)
+date_i = datetime.date.today() - datetime.timedelta(days=1)
 year = date_i.year
 month = date_i.month
 day = date_i.day

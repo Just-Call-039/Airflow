@@ -9,4 +9,4 @@ select
 
   from suitecrm.send_sms 
  where sender_number = 'GAZ39.RU'  
-       and date(date_send) = '{date_i}'  
+       and date(date_send) = date(now())

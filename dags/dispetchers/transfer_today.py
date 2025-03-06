@@ -23,6 +23,7 @@ def transfer_edit(call_path, step_path, date_i, result_path):
                            'type_steps' : 'type_step'}, inplace = True)
     
     print(call_df.columns)
+    print('call', call_df.shape[0])
 
     call_df = call_df.merge(step_df[['last_step', 'dialog', 'type_step']], how = 'left', 
                                 on = ['last_step', 'dialog'])
@@ -37,6 +38,7 @@ def transfer_edit(call_path, step_path, date_i, result_path):
     print('type_step', call_df['type_step'].unique())
     # call_df = call_df[call_df['type_step'] == 1]
     print(call_df['dialog'].unique())
+    print('call_df ', call_df['dialog'].shape[0])
     # call_df = call_df.fillna('')
     
 
@@ -50,6 +52,7 @@ def transfer_edit(call_path, step_path, date_i, result_path):
 
     merge_df = call_df.merge(project_df[['dialog', 'project']], how = 'left', on = 'dialog').fillna('')
     print(merge_df['dialog'].unique())
+    print('merge_df size', merge_df['dialog'].shape[0])
 
 
 
@@ -71,4 +74,5 @@ def transfer_edit(call_path, step_path, date_i, result_path):
                                                                                                                                     '9072' if 'GULFSTREAM' in x
                                                                                                                                             else '')
     merge_df = merge_df[['phone', 'call_date', 'dialog', 'contacts_status_c', 'project', 'queue_zalivki']]
+    print('merge_df size', merge_df['dialog'].unique())
     merge_df.to_excel(result_path, index = False)

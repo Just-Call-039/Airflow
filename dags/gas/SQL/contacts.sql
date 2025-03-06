@@ -3,7 +3,7 @@
 
 
 select phone_work as phone, 
-                    if(date(last_call_c) = date(now()), date(last_call_c), '') call_date, 
+                    if(date(last_call_c) = now(), date(last_call_c), '1970-01-01') call_date, 
                     last_queue_c as last_queue, 
                     step_c as last_step, 
                     contacts_status_c as contact_status, 

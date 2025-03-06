@@ -316,6 +316,7 @@ def operational_transformation(path_to_users, name_users, path_to_folder, name_c
     df['trunk_id'] = df['trunk_id'].astype('str').apply(lambda x: x.replace('.0',''))
     df['was_repeat'] = df['was_repeat'].astype('str').apply(lambda x: x.replace('.0',''))
     df['type_steps'] = df['type_steps'].astype('str').apply(lambda x: x.replace('.0',''))
+    df['last_step'] = df['last_step'].astype('str').apply(lambda x: x.replace('.0',''))
     df['etv'] = df['etv'].astype('str').apply(lambda x: x.replace('.0',''))
 
     df = df[['project', 'dialog', 'destination_queue', 'calldate', 'client_status',

@@ -41,6 +41,7 @@ cloud_name = 'cloud_183'
 token = '5232984306:AAERQkP-trXpL4qbCivxAINX-Oz0oSL3hVY'
 chat_id = 738716223
 nastya_chat_id = 1680452690  
+liza_chat_id = 974747353
 
 date_i = datetime.date.today() -  datetime.timedelta(days=1)
 
@@ -152,10 +153,25 @@ leads_telegram1 = PythonOperator(
     dag=dag
     )
 
+
+leads_liza_telegram1 = PythonOperator(
+    task_id='leads_liza_telegram1', 
+    python_callable=telegram_send, 
+    op_kwargs={'text': text_leads, 'token': token, 'chat_id': liza_chat_id, 'filepath': path_to_file_sql_airflow, 'filename': excel_lids}, 
+    dag=dag
+    )
+
 transfer_call_telegram = PythonOperator(
     task_id='transfer_call_telegram', 
     python_callable=telegram_send, 
     op_kwargs={'text': text_transfer, 'token': token, 'chat_id': nastya_chat_id, 'filepath': path_to_file_sql_airflow, 'filename': transfer_xlsx}, 
+    dag=dag
+    )
+
+transfer_call_liza_telegram = PythonOperator(
+    task_id='transfer_call_liza_telegram', 
+    python_callable=telegram_send, 
+    op_kwargs={'text': text_transfer, 'token': token, 'chat_id': liza_chat_id, 'filepath': path_to_file_sql_airflow, 'filename': transfer_xlsx}, 
     dag=dag
     )
 
@@ -197,8 +213,8 @@ recall_edit_telegram1 = PythonOperator(
 
 
 
-[leads_sql,recalls_edit_sql] >> lids_upgrade >> [leads_telegram, leads_telegram1, recall_edit_telegram, recall_edit_telegram1]
+[leads_sql,recalls_edit_sql] >> lids_upgrade >> [leads_telegram, leads_telegram1, leads_liza_telegram1, recall_edit_telegram, recall_edit_telegram1]
 recalls_sql >>  recalls_telegram
 transfers_sql >> transfers_telegram
 request_sql >> meetings_telegram
-transfer_call_sql >> transfer_edit >> transfer_call_telegram
+transfer_call_sql >> transfer_edit >> transfer_call_telegram >> transfer_call_liza_telegram

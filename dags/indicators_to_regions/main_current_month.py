@@ -27,7 +27,8 @@ dag = DAG(
     default_args=default_args
     )
 
-cloud_name = 'cloud_128'
+# cloud_name = 'cloud_128'
+cloud_name = 'cloud_183'
 i_date = (datetime.now()).replace(day=1)
 
 # Пути к запросам для выгрузки данных с базы

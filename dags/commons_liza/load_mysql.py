@@ -29,7 +29,7 @@ def get_data_permonth(sql_download, cloud, date_i, date_before, file_path):
     connection_string = f'mysql+pymysql://{cloud[0]}:{cloud[1]}@{cloud[2]}/{cloud[3]}?charset=utf8'
     print(connection_string)
     engine = create_engine(connection_string)
-    sql_request = open(sql_download, "r", encoding='utf8', errors='ignore').read().format(date_before, date_i)
+    sql_request = open(sql_download, "r", encoding='utf8', errors='ignore').read().format(date_before = date_before, date_i = date_i)
 
     # Использование контекстного менеджера для безопасного открытия и закрытия соединения
     with engine.connect() as connection:

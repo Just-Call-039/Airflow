@@ -9,8 +9,10 @@ from airflow.operators.python import PythonOperator
 
 from commons.transfer_file_to_dbs import transfer_file_to_dbs
 from fsp.repeat_download import sql_query_to_csv
+from commons_liza import load_mysql
 from commons_li.sql_query_semicolon_to_csv import sql_query_to_csv_sc
 from commons_li.clear_folder import clear_folder
+from previous_month import union_old_new_robot
 from previous_month.transfer_in_clickhouse import to_click
 from previous_month.transfer_in_clickhouse_v2 import call_to_click
 from previous_month.transfer_in_clickhouse_v2 import work_to_click
@@ -36,8 +38,9 @@ dag = DAG(
     )
 
 
-cloud_name = 'cloud_128'
-# cloud_name = 'cloud_183'
+# cloud_name = 'cloud_128'
+cloud_name = 'cloud_183'
+cloud = ['base_dep_slave', 'IyHBh9mDBdpg', '192.168.1.183', 'suitecrm'] 
 
 path_to_file_airflow = '/root/airflow/dags/previous_month/Files/'
 path_airflow_10_otchet = f'{path_to_file_airflow}10_otchet/'
@@ -60,18 +63,43 @@ sql_main_transfer = '/root/airflow/dags/previous_month/SQL/transfer_robot_previo
 sql_main_working = '/root/airflow/dags/previous_month/SQL/working_time_previous_month.sql'
 sql_main_calls_with_request = '/root/airflow/dags/previous_month/SQL/calls_with_request_previous_month.sql'
 sql_main_calls = '/root/airflow/dags/previous_month/SQL/calls_previous_month.sql'
+
+sql_main_old_calls = '/root/airflow/dags/previous_month/SQL/calls_previous_month_old.sql'
+sql_main_new_calls = '/root/airflow/dags/previous_month/SQL/calls_previous_month_new.sql'
+
 sql_main_c = '/root/airflow/dags/previous_month/SQL/Call.sql'
 
 today = datetime.date.today()
+
 previous_date = today - dateutil.relativedelta.relativedelta(months=1)
+date_i = (datetime.datetime.now() - dateutil.relativedelta.relativedelta(months=1)).replace(day=1).strftime('%Y-%m-%d')
+date_before = (datetime.datetime.now().replace(day=1) - dateutil.relativedelta.relativedelta(days=1)).strftime('%Y-%m-%d')
 year = previous_date.year
 month = previous_date.month
 file_calls = f'Звонки_{year}_{month}.csv'
+file_calls_old = f'Звонки_{year}_{month}_old.csv'
+file_calls_new = f'Звонки_{year}_{month}_new.csv'
+
+
 file_otchet = f'{year}_{month}.csv'
 file_calls_req = f'Звонки для заявок {month}{year}.csv'
 file_work = f'{year}_{month}.csv'
 file_transfer = f'Transfer {month}{year}.csv'
 file_c = f'calls {month:02}_{year}.csv'
+
+type_dict = {'id' : 'str',
+            'name' : 'str',
+            'contactid' :'str',
+            'queue' : 'str',
+            'user_call' :'str',
+            'super' : 'str',
+            'city' : 'str',
+            'call_sec' : 'float64',
+             'short_calls' : 'str',
+             'dialog' : 'str',
+             'completed_c' : 'str',
+             'call_count' : 'float64',
+             'phone': 'str'}
 
 
 
@@ -88,12 +116,51 @@ otchet_sql = PythonOperator(
     op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_main_10_otchet, 'path_csv_file': path_airflow_10_otchet, 'name_csv_file': file_otchet}, 
     dag=dag
     )
+
 calls_sql = PythonOperator(
     task_id='calls_sql', 
     python_callable=sql_query_to_csv, 
-    op_kwargs={'cloud': cloud_name, 'path_sql_file': sql_main_calls, 'path_csv_file': path_airflow_calls, 'name_csv_file': file_calls}, 
+    op_kwargs={'cloud': cloud_name, 
+               'path_sql_file': sql_main_calls, 
+               'path_csv_file': path_airflow_calls, 
+               'name_csv_file': file_calls}, 
     dag=dag
     )
+
+# calls_old_sql = PythonOperator(
+#     task_id='calls_old_sql', 
+#     python_callable=load_mysql.get_data_permonth, 
+#     op_kwargs={'sql_download' : sql_main_old_calls,
+#                'cloud' : cloud, 
+#                'date_i' : str(date_i),
+#                'date_before' : str(date_before),
+#                'file_path': f'{path_airflow_calls}{file_calls_old}'}, 
+#     dag=dag
+#     )
+
+# calls_new_sql = PythonOperator(
+#     task_id='calls_new_sql', 
+#      python_callable=load_mysql.get_data_permonth, 
+#     op_kwargs={'sql_download' : sql_main_new_calls,
+#                'cloud' : cloud, 
+#                'date_i' : str(date_i),
+#                'date_before' : str(date_before),
+#                'file_path': f'{path_airflow_calls}{file_calls_new}'}, 
+#     dag=dag
+#     )
+
+# union_calls = PythonOperator(
+#     task_id='union_calls', 
+#      python_callable=union_old_new_robot.union_calls, 
+#     op_kwargs={
+#                'old_calls_path' : f'{path_airflow_calls}{file_calls_old}',
+#                'new_calls_path' : f'{path_airflow_calls}{file_calls_new}', 
+#                'type_dict' : type_dict,
+#                'union_calls_path' : f'{path_airflow_calls}{file_calls}'
+#                }, 
+#     dag=dag
+#     )
+
 calls_with_request_sql = PythonOperator(
     task_id='calls_with_request_sql', 
     python_callable=sql_query_to_csv, 

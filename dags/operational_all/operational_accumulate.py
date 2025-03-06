@@ -47,11 +47,10 @@ dag = DAG(
 # cloud_name = 'cloud_128'
 cloud_name = 'cloud_183'
 
-# n = 2
-# stop = 14
-
 n = 2
-stop = 4
+stop = 14
+
+
 
 
 
